@@ -1,4 +1,42 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+
+/* ─── Types ─── */
+type FrustrationLevel = "low" | "medium" | "high";
+type TechLevel = "low" | "medium" | "high";
+type IssueSeverity = "critical" | "warning" | "info";
+type BadgeVariant = "default" | "success" | "warning" | "error" | "info";
+
+interface Persona {
+  id: string;
+  name: string;
+  initials: string;
+  avatarBg: string;
+  avatarColor: string;
+  description: string;
+  traits: string[];
+  frustration: FrustrationLevel;
+  techLevel: TechLevel;
+}
+
+interface SimStep {
+  action: string;
+  reaction: string;
+}
+
+interface Issue {
+  severity: IssueSeverity;
+  description: string;
+}
+
+interface SimulationResult {
+  personaId: string;
+  score: number;
+  summary: string;
+  steps: SimStep[];
+  issues: Issue[];
+  wouldReturn: boolean | null;
+  verbatim?: string;
+}
 
 /* ─── Plinng DS Tokens ─── */
 const T = {
@@ -55,7 +93,7 @@ const T = {
   font: "'Inter', sans-serif",
 };
 
-const PRESET_PERSONAS = [
+const PRESET_PERSONAS: Persona[] = [
   { id: "early-adopter", name: "Early Adopter Tech", initials: "EA", avatarBg: "#EEFFC7", avatarColor: "#4D8605", description: "Usuario técnico, tolera bugs, busca innovación. Evalúa si el concepto es potente aunque la ejecución sea rough.", traits: ["Tolerante con bugs", "Busca innovación", "Da feedback técnico", "Compara con alternativas"], frustration: "low", techLevel: "high" },
   { id: "busy-manager", name: "Manager Ocupado", initials: "MO", avatarBg: "#FFEBC6", avatarColor: "#E89E1B", description: "Poco tiempo, necesita entender el valor en 10 segundos. Si no lo ve claro, abandona.", traits: ["Impaciente", "Orientado a resultados", "Delega tareas", "Busca ROI claro"], frustration: "high", techLevel: "medium" },
   { id: "skeptic", name: "Escéptico Pragmático", initials: "EP", avatarBg: "#DBEAFE", avatarColor: "#1447E6", description: "Ha visto muchas herramientas fallar. Necesita pruebas concretas y casos de uso reales.", traits: ["Desconfiado", "Pide evidencia", "Compara precios", "Busca casos de éxito"], frustration: "medium", techLevel: "medium" },
@@ -66,7 +104,14 @@ const PRESET_PERSONAS = [
   { id: "mobile-first", name: "Mobile-First User", initials: "MF", avatarBg: "#DBEAFE", avatarColor: "#1447E6", description: "Hace todo desde el móvil. Si la experiencia no es responsive, abandona. Usa el pulgar, poco ancho de banda, cero paciencia con carga lenta.", traits: ["Solo usa móvil", "Sensible a rendimiento", "Gestos táctiles", "No tolera scroll horizontal"], frustration: "high", techLevel: "medium" },
 ];
 
-function Avatar({ persona, size = 40 }) {
+type AvatarPersona = Pick<Persona, "avatarBg" | "avatarColor" | "initials" | "name">;
+
+interface AvatarProps {
+  persona: AvatarPersona;
+  size?: number;
+}
+
+function Avatar({ persona, size = 40 }: AvatarProps) {
   const bg = persona.avatarBg || T.accent100;
   const color = persona.avatarColor || T.accent700;
   const initials = persona.initials || persona.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
@@ -89,7 +134,7 @@ const SOURCE_TYPES = [
 ];
 
 /* ─── DS-aligned styles ─── */
-const inputStyle = {
+const inputStyle: CSSProperties = {
   width: "100%", height: "40px", padding: "0 16px",
   background: T.white, border: `1px solid ${T.tertiaryBorder}`,
   borderRadius: T.rMd, color: T.black,
@@ -97,26 +142,32 @@ const inputStyle = {
   outline: "none", boxSizing: "border-box",
   transition: "border-color 0.15s",
 };
-const textareaStyle = {
+const textareaStyle: CSSProperties = {
   ...inputStyle, height: "auto", padding: "10px 16px",
   resize: "vertical", lineHeight: 1.5,
 };
-const labelStyle = {
+const labelStyle: CSSProperties = {
   fontSize: "14px", fontWeight: 600, lineHeight: "1",
   color: T.black, marginBottom: "6px", display: "block",
 };
 
 /* ─── DS Components ─── */
 
-function Badge({ children, variant = "default", dot = false }) {
-  const vars = {
+interface BadgeProps {
+  children: ReactNode;
+  variant?: BadgeVariant;
+  dot?: boolean;
+}
+
+function Badge({ children, variant = "default", dot = false }: BadgeProps) {
+  const vars: Record<BadgeVariant, { bg: string; text: string; dotC: string }> = {
     default: { bg: T.beige50, text: T.black, dotC: T.black },
     success: { bg: T.accent100, text: T.accent700, dotC: T.accent700 },
     warning: { bg: T.warning2, text: T.warning1, dotC: T.warning1 },
     error: { bg: T.error3, text: T.error1, dotC: T.error1 },
     info: { bg: T.info2, text: T.info1, dotC: T.info1 },
   };
-  const v = vars[variant] || vars.default;
+  const v = vars[variant];
   return (
     <span style={{
       display: "inline-flex", alignItems: "center", gap: "4px",
@@ -130,7 +181,15 @@ function Badge({ children, variant = "default", dot = false }) {
   );
 }
 
-function BtnPrimary({ children, disabled, onClick, block, style: s }) {
+interface BtnPrimaryProps {
+  children: ReactNode;
+  disabled?: boolean;
+  onClick?: () => void;
+  block?: boolean;
+  style?: CSSProperties;
+}
+
+function BtnPrimary({ children, disabled, onClick, block, style: s }: BtnPrimaryProps) {
   return (
     <button onClick={onClick} disabled={disabled} style={{
       display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px",
@@ -145,7 +204,14 @@ function BtnPrimary({ children, disabled, onClick, block, style: s }) {
   );
 }
 
-function BtnSecondary({ children, onClick, block, style: s }) {
+interface BtnSecondaryProps {
+  children: ReactNode;
+  onClick?: () => void;
+  block?: boolean;
+  style?: CSSProperties;
+}
+
+function BtnSecondary({ children, onClick, block, style: s }: BtnSecondaryProps) {
   return (
     <button onClick={onClick} style={{
       display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px",
@@ -159,7 +225,13 @@ function BtnSecondary({ children, onClick, block, style: s }) {
   );
 }
 
-function BtnTertiary({ children, onClick, style: s }) {
+interface BtnTertiaryProps {
+  children: ReactNode;
+  onClick?: () => void;
+  style?: CSSProperties;
+}
+
+function BtnTertiary({ children, onClick, style: s }: BtnTertiaryProps) {
   return (
     <button onClick={onClick} style={{
       display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px",
@@ -173,7 +245,13 @@ function BtnTertiary({ children, onClick, style: s }) {
   );
 }
 
-function PersonaCard({ persona, selected, onToggle }) {
+interface PersonaCardProps {
+  persona: Persona;
+  selected: boolean;
+  onToggle: (id: string) => void;
+}
+
+function PersonaCard({ persona, selected, onToggle }: PersonaCardProps) {
   return (
     <button onClick={() => onToggle(persona.id)} aria-pressed={selected} style={{
       display: "flex", flexDirection: "column", gap: "10px",
@@ -211,7 +289,12 @@ function PersonaCard({ persona, selected, onToggle }) {
   );
 }
 
-function ProgressBar({ steps, current }) {
+interface ProgressBarProps {
+  steps: string[];
+  current: number;
+}
+
+function ProgressBar({ steps, current }: ProgressBarProps) {
   const pct = (current / (steps.length - 1)) * 100;
   return (
     <div style={{ marginBottom: "32px" }}>
@@ -245,14 +328,23 @@ function ProgressBar({ steps, current }) {
   );
 }
 
-function Modal({ open, onClose, title, description, children, footer }) {
-  const ref = useRef(null);
+interface ModalProps {
+  open: boolean;
+  onClose: () => void;
+  title?: string;
+  description?: string;
+  children?: ReactNode;
+  footer?: ReactNode;
+}
+
+function Modal({ open, onClose, title, description, children, footer }: ModalProps) {
+  const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
     const el = ref.current;
     if (el) {
       const f = el.querySelectorAll("input,textarea,button:not([disabled])");
-      if (f.length) f[0].focus();
+      if (f.length) (f[0] as HTMLElement).focus();
     }
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -298,12 +390,17 @@ function Modal({ open, onClose, title, description, children, footer }) {
   );
 }
 
-function ResultCard({ result, index }) {
+interface ResultCardProps {
+  result: SimulationResult;
+  index: number;
+}
+
+function ResultCard({ result, index }: ResultCardProps) {
   const [open, setOpen] = useState(index === 0);
-  const persona = PRESET_PERSONAS.find(p => p.id === result.personaId) || { name: "Custom", initials: "CU", avatarBg: T.accent100, avatarColor: T.accent700 };
+  const persona: AvatarPersona = PRESET_PERSONAS.find(p => p.id === result.personaId) ?? { name: "Custom", initials: "CU", avatarBg: T.accent100, avatarColor: T.accent700 };
   const sc = result.score || 0;
-  const scoreVariant = sc >= 7 ? "success" : sc >= 4 ? "warning" : "error";
-  const sevMap = { critical: "error", warning: "warning", info: "info" };
+  const scoreVariant: BadgeVariant = sc >= 7 ? "success" : sc >= 4 ? "warning" : "error";
+  const sevMap: Record<IssueSeverity, BadgeVariant> = { critical: "error", warning: "warning", info: "info" };
 
   return (
     <div style={{ background: T.white, border: `1px solid ${T.tertiaryBorder}`, borderRadius: T.rXl, overflow: "hidden", boxShadow: T.shadowSm }}>
@@ -354,7 +451,7 @@ function ResultCard({ result, index }) {
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               {result.issues.map((issue, ii) => (
                 <div key={ii} style={{ display: "flex", gap: "10px", alignItems: "flex-start", padding: "10px 14px" }}>
-                  <Badge variant={sevMap[issue.severity] || "default"} dot>{issue.severity === "critical" ? "Crítico" : issue.severity === "warning" ? "Aviso" : "Info"}</Badge>
+                  <Badge variant={sevMap[issue.severity]} dot>{issue.severity === "critical" ? "Crítico" : issue.severity === "warning" ? "Aviso" : "Info"}</Badge>
                   <span style={{ fontSize: "14px", color: T.black, lineHeight: 1.45 }}>{issue.description}</span>
                 </div>
               ))}
@@ -387,17 +484,17 @@ function ResultCard({ result, index }) {
 /* ─── Main ─── */
 export default function SyntheticUsersLab() {
   const [step, setStep] = useState(0);
-  const [selectedPersonas, setSelectedPersonas] = useState(["early-adopter", "busy-manager"]);
+  const [selectedPersonas, setSelectedPersonas] = useState<string[]>(["early-adopter", "busy-manager"]);
   const [customPersona, setCustomPersona] = useState({ name: "", description: "", traits: "" });
   const [sourceType, setSourceType] = useState("description");
   const [flowInput, setFlowInput] = useState("");
   const [productContext, setProductContext] = useState("");
-  const [results, setResults] = useState(null);
+  const [results, setResults] = useState<SimulationResult[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0, currentPersona: "" });
   const [showModal, setShowModal] = useState(false);
 
-  const toggle = (id) => setSelectedPersonas(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
+  const toggle = (id: string) => setSelectedPersonas(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
   const canAdd = customPersona.name && customPersona.description;
 
   const addCustom = () => {
@@ -413,7 +510,7 @@ export default function SyntheticUsersLab() {
     setLoading(true); setResults(null);
     const personas = PRESET_PERSONAS.filter(p => selectedPersonas.includes(p.id));
     setProgress({ current: 0, total: personas.length, currentPersona: "" });
-    const all = [];
+    const all: SimulationResult[] = [];
     for (let i = 0; i < personas.length; i++) {
       const p = personas[i];
       setProgress({ current: i + 1, total: personas.length, currentPersona: p.name });
@@ -442,35 +539,37 @@ Responde SOLO JSON válido (sin markdown ni backticks):
         });
         if (!res.ok) throw new Error(`API ${res.status}`);
         const data = await res.json();
-        const text = data.content?.map(c => c.text || "").join("") || "";
-        let clean = text.replace(/```json|```/g, "").trim();
-        let parsed;
+        const text = data.content?.map((c: { text?: string }) => c.text || "").join("") || "";
+        const clean = text.replace(/```json|```/g, "").trim();
+        let parsed: Omit<SimulationResult, "personaId"> = { score: 5, summary: "Sin datos.", steps: [], issues: [], wouldReturn: null };
         try { parsed = JSON.parse(clean); } catch {
           let r = clean;
           if ((r.match(/(?<!\\)"/g) || []).length % 2 !== 0) r += '"';
           r = r.replace(/,\s*$/, '');
-          const o = (r.match(/[\[{]/g) || []).length;
+          const o = (r.match(/[{[]/g) || []).length;
           const c = (r.match(/[\]}]/g) || []).length;
           for (let j = 0; j < o - c; j++) r += r.lastIndexOf('[') > r.lastIndexOf('{') ? ']' : '}';
           try { parsed = JSON.parse(r); } catch {
             const sm = clean.match(/"score"\s*:\s*(\d+)/);
             const su = clean.match(/"summary"\s*:\s*"([^"]*)/);
             const wr = clean.match(/"wouldReturn"\s*:\s*(true|false)/);
-            parsed = { score: sm ? parseInt(sm[1]) : 5, summary: su ? su[1] : "Respuesta parcial.", steps: [], issues: [{ severity: "warning", description: "Respuesta truncada — datos parciales." }], wouldReturn: wr ? wr[1] === "true" : null };
+            parsed = { score: sm ? parseInt(sm[1]!) : 5, summary: su ? su[1]! : "Respuesta parcial.", steps: [], issues: [{ severity: "warning", description: "Respuesta truncada — datos parciales." }], wouldReturn: wr ? wr[1] === "true" : null };
           }
         }
         all.push({ ...parsed, personaId: p.id });
       } catch (err) {
-        all.push({ personaId: p.id, score: 0, summary: `Error: ${err.message}`, steps: [], issues: [{ severity: "critical", description: err.message }], wouldReturn: false });
+        const msg = err instanceof Error ? err.message : String(err);
+        all.push({ personaId: p.id, score: 0, summary: `Error: ${msg}`, steps: [], issues: [{ severity: "critical", description: msg }], wouldReturn: false });
       }
     }
     setResults(all); setLoading(false); setStep(3);
   }, [selectedPersonas, sourceType, flowInput, productContext]);
 
-  const avg = results ? (results.reduce((a, r) => a + (r.score || 0), 0) / results.length).toFixed(1) : 0;
-  const issues = results ? results.reduce((a, r) => a + (r.issues?.length || 0), 0) : 0;
-  const crits = results ? results.reduce((a, r) => a + (r.issues?.filter(i => i.severity === "critical").length || 0), 0) : 0;
-  const retain = results ? results.filter(r => r.wouldReturn).length : 0;
+  const avgScore = results ? results.reduce((a, r) => a + (r.score || 0), 0) / results.length : 0;
+  const avg = avgScore.toFixed(1);
+  const issueCount = results ? results.reduce((a, r) => a + (r.issues?.length ?? 0), 0) : 0;
+  const critCount = results ? results.reduce((a, r) => a + (r.issues?.filter(i => i.severity === "critical").length ?? 0), 0) : 0;
+  const retainCount = results ? results.filter(r => r.wouldReturn).length : 0;
 
   return (
     <div style={{ minHeight: "100vh", background: T.beige25, fontFamily: T.font, color: T.black, padding: "40px 20px", WebkitFontSmoothing: "antialiased" }}>
@@ -585,12 +684,12 @@ Responde SOLO JSON válido (sin markdown ni backticks):
         {/* Step 3 */}
         {step === 3 && results && <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "10px" }}>
-            {[
-              { l: "Score medio", v: avg, variant: avg >= 7 ? "success" : avg >= 4 ? "warning" : "error" },
-              { l: "Issues", v: issues, variant: "warning" },
-              { l: "Críticos", v: crits, variant: "error" },
-              { l: "Retención", v: `${retain}/${results.length}`, variant: "success" },
-            ].map((m, i) => (
+            {([
+              { l: "Score medio", v: avg, variant: (avgScore >= 7 ? "success" : avgScore >= 4 ? "warning" : "error") as BadgeVariant },
+              { l: "Issues", v: issueCount, variant: "warning" as BadgeVariant },
+              { l: "Críticos", v: critCount, variant: "error" as BadgeVariant },
+              { l: "Retención", v: `${retainCount}/${results.length}`, variant: "success" as BadgeVariant },
+            ]).map((m, i) => (
               <div key={i} style={{ padding: "16px 12px", background: T.white, border: `1px solid ${T.tertiaryBorder}`, borderRadius: T.rLg, textAlign: "center", boxShadow: T.shadowSm }}>
                 <div style={{ fontSize: "24px", fontWeight: 800, color: T.black, marginBottom: "4px" }}>{m.v}</div>
                 <Badge variant={m.variant} dot>{m.l}</Badge>

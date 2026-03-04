@@ -36,7 +36,7 @@ function repairJSON(raw: string): SimulationResult | null {
   const quoteCount = (repaired.match(/(?<!\\)"/g) || []).length;
   if (quoteCount % 2 !== 0) repaired += '"';
   repaired = repaired.replace(/,\s*$/, "");
-  const opens = (repaired.match(/[\[{]/g) || []).length;
+  const opens = (repaired.match(/[{[]/g) || []).length;
   const closes = (repaired.match(/[\]}]/g) || []).length;
   for (let j = 0; j < opens - closes; j++) {
     repaired += repaired.lastIndexOf("[") > repaired.lastIndexOf("{") ? "]" : "}";
