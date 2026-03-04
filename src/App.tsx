@@ -12,6 +12,7 @@ interface Persona {
   initials: string;
   avatarBg: string;
   avatarColor: string;
+  avatarPhoto?: string;
   description: string;
   traits: string[];
   frustration: FrustrationLevel;
@@ -40,7 +41,6 @@ interface SimulationResult {
 
 /* ─── Plinng DS Tokens ─── */
 const T = {
-  /* Core */
   primary: "#000000",
   primaryText: "#FFFFFF",
   secondary: "#BEFF50",
@@ -48,28 +48,23 @@ const T = {
   tertiary: "#FFFFFF",
   tertiaryBorder: "#EBEBEB",
   disabled: "#949494",
-  /* Accent */
   accent100: "#EEFFC7",
   accent200: "#DBFF95",
   accent300: "#BEFF50",
   accent500: "#86DD05",
   accent700: "#4D8605",
-  /* Beige */
   beige25: "#FBFBF7",
   beige50: "#F5F5EB",
   beige100: "#DCDCCB",
   beige200: "#D0CFB8",
   beige300: "#B4B290",
-  /* Grey */
   greySoft: "#EBEBEB",
   greySoftMiddle: "#D8D8D8",
   greyMiddle: "#C3C3C3",
   greyDark: "#949494",
-  /* Basics */
   textSecondary: "#95958F",
   white: "#FFFFFF",
   black: "#000000",
-  /* Status */
   error1: "#DC2625",
   error2: "#FECACA",
   error3: "#FFE0E0",
@@ -77,51 +72,59 @@ const T = {
   warning2: "#FFEBC6",
   info1: "#1447E6",
   info2: "#DBEAFE",
-  /* Radius */
   rSm: "4px",
   rMd: "8px",
   rLg: "12px",
   rXl: "16px",
   r2xl: "24px",
   rFull: "9999px",
-  /* Shadow */
   shadowSm: "0 1px 2px 0 rgba(0,0,0,0.05)",
   shadowMd: "0 4px 6px -1px rgba(0,0,0,0.10), 0 2px 4px -2px rgba(0,0,0,0.10)",
   shadowLg: "0 10px 15px -3px rgba(0,0,0,0.10), 0 4px 6px -4px rgba(0,0,0,0.10)",
   shadowXl: "0 20px 25px -5px rgba(0,0,0,0.10), 0 8px 10px -6px rgba(0,0,0,0.10)",
-  /* Font */
   font: "'Inter', sans-serif",
 };
 
 const PRESET_PERSONAS: Persona[] = [
-  { id: "early-adopter", name: "Early Adopter Tech", initials: "EA", avatarBg: "#EEFFC7", avatarColor: "#4D8605", description: "Usuario técnico, tolera bugs, busca innovación. Evalúa si el concepto es potente aunque la ejecución sea rough.", traits: ["Tolerante con bugs", "Busca innovación", "Da feedback técnico", "Compara con alternativas"], frustration: "low", techLevel: "high" },
-  { id: "busy-manager", name: "Manager Ocupado", initials: "MO", avatarBg: "#FFEBC6", avatarColor: "#E89E1B", description: "Poco tiempo, necesita entender el valor en 10 segundos. Si no lo ve claro, abandona.", traits: ["Impaciente", "Orientado a resultados", "Delega tareas", "Busca ROI claro"], frustration: "high", techLevel: "medium" },
-  { id: "skeptic", name: "Escéptico Pragmático", initials: "EP", avatarBg: "#DBEAFE", avatarColor: "#1447E6", description: "Ha visto muchas herramientas fallar. Necesita pruebas concretas y casos de uso reales.", traits: ["Desconfiado", "Pide evidencia", "Compara precios", "Busca casos de éxito"], frustration: "medium", techLevel: "medium" },
-  { id: "non-tech", name: "Usuario No Técnico", initials: "NT", avatarBg: "#FFE0E0", avatarColor: "#DC2625", description: "No entiende jerga técnica. Si la UI no es obvia, se pierde. Representa al mainstream.", traits: ["Necesita guía visual", "Se frustra fácil", "No lee instrucciones", "Pregunta mucho"], frustration: "high", techLevel: "low" },
-  { id: "power-user", name: "Power User", initials: "PU", avatarBg: "#DBFF95", avatarColor: "#4D8605", description: "Usa el producto al máximo. Encuentra edge cases, quiere atajos y personalización.", traits: ["Explora todo", "Busca atajos", "Reporta bugs detallados", "Quiere API/integraciones"], frustration: "low", techLevel: "high" },
-  { id: "switcher", name: "Switcher Insatisfecho", initials: "SI", avatarBg: "#F5F5EB", avatarColor: "#000000", description: "Viene de usar un competidor y busca algo mejor. Compara cada detalle con lo que ya conoce. Si algo es peor que su herramienta anterior, lo nota al instante.", traits: ["Compara con competencia", "Tiene expectativas altas", "Busca migración fácil", "Sensible a regresiones"], frustration: "medium", techLevel: "high" },
-  { id: "budget-owner", name: "Decisor de Compra", initials: "DC", avatarBg: "#FECACA", avatarColor: "#DC2625", description: "Es quien aprueba el presupuesto. No usa el producto directamente pero necesita entender el valor para justificar la inversión ante su equipo.", traits: ["Evalúa coste-beneficio", "Pricing transparente", "Necesita justificar compra", "Poco tiempo"], frustration: "high", techLevel: "low" },
-  { id: "mobile-first", name: "Mobile-First User", initials: "MF", avatarBg: "#DBEAFE", avatarColor: "#1447E6", description: "Hace todo desde el móvil. Si la experiencia no es responsive, abandona. Usa el pulgar, poco ancho de banda, cero paciencia con carga lenta.", traits: ["Solo usa móvil", "Sensible a rendimiento", "Gestos táctiles", "No tolera scroll horizontal"], frustration: "high", techLevel: "medium" },
+  { id: "early-adopter", name: "Early Adopter Tech", initials: "EA", avatarBg: "#EEFFC7", avatarColor: "#4D8605", avatarPhoto: "https://i.pravatar.cc/120?img=11", description: "Usuario técnico, tolera bugs, busca innovación. Evalúa si el concepto es potente aunque la ejecución sea rough.", traits: ["Tolerante con bugs", "Busca innovación", "Da feedback técnico", "Compara con alternativas"], frustration: "low", techLevel: "high" },
+  { id: "busy-manager", name: "Manager Ocupado", initials: "MO", avatarBg: "#FFEBC6", avatarColor: "#E89E1B", avatarPhoto: "https://i.pravatar.cc/120?img=33", description: "Poco tiempo, necesita entender el valor en 10 segundos. Si no lo ve claro, abandona.", traits: ["Impaciente", "Orientado a resultados", "Delega tareas", "Busca ROI claro"], frustration: "high", techLevel: "medium" },
+  { id: "skeptic", name: "Escéptico Pragmático", initials: "EP", avatarBg: "#DBEAFE", avatarColor: "#1447E6", avatarPhoto: "https://i.pravatar.cc/120?img=12", description: "Ha visto muchas herramientas fallar. Necesita pruebas concretas y casos de uso reales.", traits: ["Desconfiado", "Pide evidencia", "Compara precios", "Busca casos de éxito"], frustration: "medium", techLevel: "medium" },
+  { id: "non-tech", name: "Usuario No Técnico", initials: "NT", avatarBg: "#FFE0E0", avatarColor: "#DC2625", avatarPhoto: "https://i.pravatar.cc/120?img=20", description: "No entiende jerga técnica. Si la UI no es obvia, se pierde. Representa al mainstream.", traits: ["Necesita guía visual", "Se frustra fácil", "No lee instrucciones", "Pregunta mucho"], frustration: "high", techLevel: "low" },
+  { id: "power-user", name: "Power User", initials: "PU", avatarBg: "#DBFF95", avatarColor: "#4D8605", avatarPhoto: "https://i.pravatar.cc/120?img=5", description: "Usa el producto al máximo. Encuentra edge cases, quiere atajos y personalización.", traits: ["Explora todo", "Busca atajos", "Reporta bugs detallados", "Quiere API/integraciones"], frustration: "low", techLevel: "high" },
+  { id: "switcher", name: "Switcher Insatisfecho", initials: "SI", avatarBg: "#F5F5EB", avatarColor: "#000000", avatarPhoto: "https://i.pravatar.cc/120?img=47", description: "Viene de usar un competidor y busca algo mejor. Compara cada detalle con lo que ya conoce. Si algo es peor que su herramienta anterior, lo nota al instante.", traits: ["Compara con competencia", "Tiene expectativas altas", "Busca migración fácil", "Sensible a regresiones"], frustration: "medium", techLevel: "high" },
+  { id: "budget-owner", name: "Decisor de Compra", initials: "DC", avatarBg: "#FECACA", avatarColor: "#DC2625", avatarPhoto: "https://i.pravatar.cc/120?img=60", description: "Es quien aprueba el presupuesto. No usa el producto directamente pero necesita entender el valor para justificar la inversión ante su equipo.", traits: ["Evalúa coste-beneficio", "Pricing transparente", "Necesita justificar compra", "Poco tiempo"], frustration: "high", techLevel: "low" },
+  { id: "mobile-first", name: "Mobile-First User", initials: "MF", avatarBg: "#DBEAFE", avatarColor: "#1447E6", avatarPhoto: "https://i.pravatar.cc/120?img=15", description: "Hace todo desde el móvil. Si la experiencia no es responsive, abandona. Usa el pulgar, poco ancho de banda, cero paciencia con carga lenta.", traits: ["Solo usa móvil", "Sensible a rendimiento", "Gestos táctiles", "No tolera scroll horizontal"], frustration: "high", techLevel: "medium" },
 ];
 
-type AvatarPersona = Pick<Persona, "avatarBg" | "avatarColor" | "initials" | "name">;
+type AvatarPersona = Pick<Persona, "avatarBg" | "avatarColor" | "initials" | "name" | "avatarPhoto">;
 
 interface AvatarProps {
   persona: AvatarPersona;
   size?: number;
+  border?: string;
 }
 
-function Avatar({ persona, size = 40 }: AvatarProps) {
+function Avatar({ persona, size = 40, border }: AvatarProps) {
   const bg = persona.avatarBg || T.accent100;
   const color = persona.avatarColor || T.accent700;
   const initials = persona.initials || persona.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
   const fontSize = size * 0.38;
+  const baseStyle: CSSProperties = {
+    width: size, height: size, borderRadius: "50%", flexShrink: 0, overflow: "hidden",
+    border: border || "none", boxSizing: "border-box",
+  };
+  if (persona.avatarPhoto) {
+    return (
+      <div style={{ ...baseStyle, background: bg }}>
+        <img src={persona.avatarPhoto} alt={persona.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+      </div>
+    );
+  }
   return (
     <div style={{
-      width: size, height: size, borderRadius: "50%", flexShrink: 0,
+      ...baseStyle,
       background: bg, display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize, fontWeight: 800, color, letterSpacing: "-0.02em",
-      fontFamily: T.font, lineHeight: 1,
+      fontSize, fontWeight: 800, color, letterSpacing: "-0.02em", fontFamily: T.font, lineHeight: 1,
     }}>{initials}</div>
   );
 }
@@ -252,38 +255,40 @@ interface PersonaCardProps {
 }
 
 function PersonaCard({ persona, selected, onToggle }: PersonaCardProps) {
+  const techLabel = persona.techLevel === "high" ? "Técnico" : persona.techLevel === "medium" ? "Intermedio" : "No técnico";
+  const frustLabel = persona.frustration === "high" ? "alta" : persona.frustration === "medium" ? "media" : "baja";
   return (
     <button onClick={() => onToggle(persona.id)} aria-pressed={selected} style={{
-      display: "flex", flexDirection: "column", gap: "10px",
-      padding: "16px", width: "100%", textAlign: "left",
-      background: selected ? T.accent100 : T.white,
-      border: selected ? `2px solid ${T.accent300}` : `1px solid ${T.tertiaryBorder}`,
+      display: "flex", flexDirection: "column", gap: "0",
+      padding: "17px", width: "100%", textAlign: "left",
+      background: T.white,
+      border: selected ? `2px solid ${T.black}` : `1px solid ${T.tertiaryBorder}`,
       borderRadius: T.rXl, cursor: "pointer", outline: "none",
       transition: "all 0.15s", boxShadow: T.shadowSm,
     }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-        <Avatar persona={persona} size={40} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: "15px", fontWeight: 700, color: T.black, lineHeight: 1.2 }}>{persona.name}</div>
-          <div style={{ fontSize: "12px", color: T.textSecondary, marginTop: "2px" }}>
-            {persona.techLevel === "high" ? "Técnico" : persona.techLevel === "medium" ? "Intermedio" : "No técnico"} · Frustración {persona.frustration === "high" ? "alta" : persona.frustration === "medium" ? "media" : "baja"}
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", width: "100%" }}>
+        <Avatar persona={persona} size={60} border={`2px solid ${T.beige25}`} />
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
+          <div style={{ fontSize: "12px", fontWeight: 400, color: T.black, lineHeight: "18px" }}>
+            {techLabel} · Frustración {frustLabel}
+          </div>
+          <div style={{ fontSize: "15px", fontWeight: 700, color: T.black, lineHeight: "18px" }}>{persona.name}</div>
+          <p style={{ margin: 0, fontSize: "13px", lineHeight: "19.5px", color: T.black }}>{persona.description}</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+            {persona.traits.map(t => (
+              <span key={t} style={{
+                display: "inline-block", padding: "3px 10px",
+                fontSize: "11px", fontWeight: 700, borderRadius: T.rFull,
+                background: selected ? T.accent200 : T.beige50, color: T.black, lineHeight: "16px",
+              }}>{t}</span>
+            ))}
           </div>
         </div>
         {selected && <span style={{
           width: "22px", height: "22px", borderRadius: "50%", background: T.primary,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: "12px", color: T.white, fontWeight: 700, flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+          fontSize: "12px", color: T.white, fontWeight: 700,
         }}>✓</span>}
-      </div>
-      <p style={{ margin: 0, fontSize: "13px", lineHeight: 1.5, color: T.textSecondary }}>{persona.description}</p>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
-        {persona.traits.map(t => (
-          <span key={t} style={{
-            display: "inline-block", padding: "3px 10px",
-            fontSize: "11px", fontWeight: 700, borderRadius: T.rFull,
-            background: selected ? T.accent200 : T.beige50, color: T.black, lineHeight: "16px",
-          }}>{t}</span>
-        ))}
       </div>
     </button>
   );
@@ -578,19 +583,18 @@ Responde SOLO JSON válido (sin markdown ni backticks):
 
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "36px" }}>
-          <div style={{
-            display: "inline-flex", alignItems: "center", justifyContent: "center",
-            width: "48px", height: "48px", borderRadius: T.rLg,
-            background: T.accent100, marginBottom: "16px",
-          }}>
-            <span style={{ fontSize: "24px" }}>🧪</span>
+          {/* Overlapping avatars */}
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
+            <div style={{ display: "flex", paddingRight: "24px" }}>
+              {PRESET_PERSONAS.slice(0, 5).map((p, i) => (
+                <div key={p.id} style={{ marginRight: "-24px", zIndex: 5 - i, borderRadius: "50%" }}>
+                  <Avatar persona={p} size={60} border={`2px solid ${T.beige25}`} />
+                </div>
+              ))}
+            </div>
           </div>
-          <h1 style={{ margin: "0 0 8px", fontSize: "28px", fontWeight: 800, color: T.black, letterSpacing: "-0.02em" }}>Synthetic Users Lab</h1>
-          <p style={{ margin: "0 0 20px", fontSize: "16px", color: T.textSecondary }}>Simula usuarios reales testeando tus flujos.</p>
-          <BtnSecondary onClick={() => setShowModal(true)} style={{ gap: "6px" }}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-            Crear usuario personalizado
-          </BtnSecondary>
+          <h1 style={{ margin: "0 0 8px", fontSize: "42px", fontWeight: 800, color: T.black, letterSpacing: "-0.56px" }}>Synthetic Users Lab</h1>
+          <p style={{ margin: 0, fontSize: "16px", color: T.black }}>Simula usuarios reales testeando tus flujos.</p>
         </div>
 
         {/* Modal */}
@@ -624,8 +628,14 @@ Responde SOLO JSON válido (sin markdown ni backticks):
 
         {/* Step 0 */}
         {step === 0 && <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <p style={{ margin: 0, fontSize: "14px", color: T.textSecondary }}>{selectedPersonas.length} perfil{selectedPersonas.length !== 1 && "es"} seleccionado{selectedPersonas.length !== 1 && "s"}</p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <p style={{ margin: 0, fontSize: "14px", color: T.black }}>{selectedPersonas.length} perfil{selectedPersonas.length !== 1 && "es"} seleccionado{selectedPersonas.length !== 1 && "s"}</p>
+            <BtnSecondary onClick={() => setShowModal(true)} style={{ gap: "6px", height: "36px", padding: "0 16px", fontSize: "14px" }}>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+              Nuevo
+            </BtnSecondary>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             {PRESET_PERSONAS.map(p => <PersonaCard key={p.id} persona={p} selected={selectedPersonas.includes(p.id)} onToggle={toggle} />)}
           </div>
           <BtnPrimary onClick={() => setStep(1)} disabled={!selectedPersonas.length} block>Siguiente</BtnPrimary>
