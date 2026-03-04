@@ -16,7 +16,7 @@ Herramienta de testing con usuarios sintéticos powered by Claude API. Permite d
 
 ```bash
 # Clonar
-git clone https://github.com/tu-usuario/synthetic-users-lab.git
+git clone https://github.com/marcomarinodesign/synthetic-users-lab.git
 cd synthetic-users-lab
 
 # Instalar
