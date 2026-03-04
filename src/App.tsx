@@ -1,43 +1,11 @@
 import { useState, useCallback, useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import type { Persona, SimulationResult, SourceType } from "@/types";
+import { PRESET_PERSONAS, SOURCE_TYPES } from "@/lib/personas";
+import { simulatePersona } from "@/lib/simulation";
 
 /* ─── Types ─── */
-type FrustrationLevel = "low" | "medium" | "high";
-type TechLevel = "low" | "medium" | "high";
 type IssueSeverity = "critical" | "warning" | "info";
 type BadgeVariant = "default" | "success" | "warning" | "error" | "info";
-
-interface Persona {
-  id: string;
-  name: string;
-  initials: string;
-  avatarBg: string;
-  avatarColor: string;
-  avatarPhoto?: string;
-  description: string;
-  traits: string[];
-  frustration: FrustrationLevel;
-  techLevel: TechLevel;
-}
-
-interface SimStep {
-  action: string;
-  reaction: string;
-}
-
-interface Issue {
-  severity: IssueSeverity;
-  description: string;
-}
-
-interface SimulationResult {
-  personaId: string;
-  score: number;
-  summary: string;
-  steps: SimStep[];
-  issues: Issue[];
-  wouldReturn: boolean | null;
-  verbatim?: string;
-}
 
 /* ─── Plinng DS Tokens ─── */
 const T = {
@@ -85,17 +53,6 @@ const T = {
   font: "'Inter', sans-serif",
 };
 
-const PRESET_PERSONAS: Persona[] = [
-  { id: "early-adopter", name: "Early Adopter Tech", initials: "EA", avatarBg: "#EEFFC7", avatarColor: "#4D8605", avatarPhoto: "https://i.pravatar.cc/120?img=11", description: "Usuario técnico, tolera bugs, busca innovación. Evalúa si el concepto es potente aunque la ejecución sea rough.", traits: ["Tolerante con bugs", "Busca innovación", "Da feedback técnico", "Compara con alternativas"], frustration: "low", techLevel: "high" },
-  { id: "busy-manager", name: "Manager Ocupado", initials: "MO", avatarBg: "#FFEBC6", avatarColor: "#E89E1B", avatarPhoto: "https://i.pravatar.cc/120?img=33", description: "Poco tiempo, necesita entender el valor en 10 segundos. Si no lo ve claro, abandona.", traits: ["Impaciente", "Orientado a resultados", "Delega tareas", "Busca ROI claro"], frustration: "high", techLevel: "medium" },
-  { id: "skeptic", name: "Escéptico Pragmático", initials: "EP", avatarBg: "#DBEAFE", avatarColor: "#1447E6", avatarPhoto: "https://i.pravatar.cc/120?img=12", description: "Ha visto muchas herramientas fallar. Necesita pruebas concretas y casos de uso reales.", traits: ["Desconfiado", "Pide evidencia", "Compara precios", "Busca casos de éxito"], frustration: "medium", techLevel: "medium" },
-  { id: "non-tech", name: "Usuario No Técnico", initials: "NT", avatarBg: "#FFE0E0", avatarColor: "#DC2625", avatarPhoto: "https://i.pravatar.cc/120?img=20", description: "No entiende jerga técnica. Si la UI no es obvia, se pierde. Representa al mainstream.", traits: ["Necesita guía visual", "Se frustra fácil", "No lee instrucciones", "Pregunta mucho"], frustration: "high", techLevel: "low" },
-  { id: "power-user", name: "Power User", initials: "PU", avatarBg: "#DBFF95", avatarColor: "#4D8605", avatarPhoto: "https://i.pravatar.cc/120?img=5", description: "Usa el producto al máximo. Encuentra edge cases, quiere atajos y personalización.", traits: ["Explora todo", "Busca atajos", "Reporta bugs detallados", "Quiere API/integraciones"], frustration: "low", techLevel: "high" },
-  { id: "switcher", name: "Switcher Insatisfecho", initials: "SI", avatarBg: "#F5F5EB", avatarColor: "#000000", avatarPhoto: "https://i.pravatar.cc/120?img=47", description: "Viene de usar un competidor y busca algo mejor. Compara cada detalle con lo que ya conoce. Si algo es peor que su herramienta anterior, lo nota al instante.", traits: ["Compara con competencia", "Tiene expectativas altas", "Busca migración fácil", "Sensible a regresiones"], frustration: "medium", techLevel: "high" },
-  { id: "budget-owner", name: "Decisor de Compra", initials: "DC", avatarBg: "#FECACA", avatarColor: "#DC2625", avatarPhoto: "https://i.pravatar.cc/120?img=60", description: "Es quien aprueba el presupuesto. No usa el producto directamente pero necesita entender el valor para justificar la inversión ante su equipo.", traits: ["Evalúa coste-beneficio", "Pricing transparente", "Necesita justificar compra", "Poco tiempo"], frustration: "high", techLevel: "low" },
-  { id: "mobile-first", name: "Mobile-First User", initials: "MF", avatarBg: "#DBEAFE", avatarColor: "#1447E6", avatarPhoto: "https://i.pravatar.cc/120?img=15", description: "Hace todo desde el móvil. Si la experiencia no es responsive, abandona. Usa el pulgar, poco ancho de banda, cero paciencia con carga lenta.", traits: ["Solo usa móvil", "Sensible a rendimiento", "Gestos táctiles", "No tolera scroll horizontal"], frustration: "high", techLevel: "medium" },
-];
-
 type AvatarPersona = Pick<Persona, "avatarBg" | "avatarColor" | "initials" | "name" | "avatarPhoto">;
 
 interface AvatarProps {
@@ -128,13 +85,6 @@ function Avatar({ persona, size = 40, border }: AvatarProps) {
     }}>{initials}</div>
   );
 }
-
-const SOURCE_TYPES = [
-  { id: "url", label: "URL", icon: "🌐", placeholder: "https://tu-app.com/flujo-onboarding" },
-  { id: "figma", label: "Figma", icon: "🎨", placeholder: "Describe las pantallas del flujo en Figma..." },
-  { id: "repo", label: "Repo", icon: "📦", placeholder: "Describe la estructura de rutas y componentes..." },
-  { id: "description", label: "Manual", icon: "📝", placeholder: "Describe el flujo paso a paso..." },
-];
 
 /* ─── DS-aligned styles ─── */
 const inputStyle: CSSProperties = {
@@ -284,13 +234,85 @@ function PersonaCard({ persona, selected, onToggle }: PersonaCardProps) {
             ))}
           </div>
         </div>
-        {selected && <span style={{
-          width: "22px", height: "22px", borderRadius: "50%", background: T.primary,
-          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-          fontSize: "12px", color: T.white, fontWeight: 700,
-        }}>✓</span>}
       </div>
     </button>
+  );
+}
+
+interface ApiKeyBannerProps {
+  apiKey: string;
+  onSave: (key: string) => void;
+  onClear: () => void;
+}
+
+function ApiKeyBanner({ apiKey, onSave, onClear }: ApiKeyBannerProps) {
+  const [input, setInput] = useState("");
+  const [show, setShow] = useState(false);
+
+  if (apiKey) {
+    const masked = `${apiKey.slice(0, 10)}••••••••••••${apiKey.slice(-4)}`;
+    return (
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "10px 14px", marginBottom: "20px",
+        background: T.accent100, border: `1px solid ${T.accent300}`,
+        borderRadius: T.rMd, gap: "10px",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M11 7V5a3 3 0 10-6 0v2M5 7h6a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V8a1 1 0 011-1z" stroke={T.accent700} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <span style={{ fontSize: "13px", fontWeight: 600, color: T.accent700, fontFamily: T.font }}>API Key</span>
+          <span style={{ fontSize: "12px", color: T.accent700, fontFamily: "monospace" }}>{masked}</span>
+        </div>
+        <button onClick={onClear} style={{
+          fontSize: "12px", fontWeight: 600, color: T.accent700, background: "none",
+          border: "none", cursor: "pointer", fontFamily: T.font, padding: "2px 6px",
+          borderRadius: T.rSm, textDecoration: "underline",
+        }}>Eliminar</button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      padding: "14px", marginBottom: "20px",
+      background: T.warning2, border: `1px solid ${T.warning1}`,
+      borderRadius: T.rMd,
+    }}>
+      <div style={{ fontSize: "13px", fontWeight: 600, color: T.black, marginBottom: "8px", fontFamily: T.font }}>
+        🔑 Necesitas una API key de Anthropic para lanzar simulaciones
+      </div>
+      <div style={{ display: "flex", gap: "8px", marginBottom: "6px" }}>
+        <div style={{ position: "relative", flex: 1 }}>
+          <input
+            type={show ? "text" : "password"}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && input.startsWith("sk-ant-") && onSave(input)}
+            placeholder="sk-ant-api03-..."
+            style={{ ...inputStyle, paddingRight: "40px", fontSize: "13px" }}
+          />
+          <button onClick={() => setShow(s => !s)} style={{
+            position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)",
+            background: "none", border: "none", cursor: "pointer", color: T.greyDark, padding: "2px",
+          }}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              {show
+                ? <><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" strokeWidth="1.3"/><circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.3"/><path d="M2 2l12 12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></>
+                : <><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" strokeWidth="1.3"/><circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.3"/></>
+              }
+            </svg>
+          </button>
+        </div>
+        <BtnPrimary onClick={() => onSave(input)} disabled={!input.startsWith("sk-ant-")} style={{ flexShrink: 0, fontSize: "14px", height: "40px", padding: "0 16px" }}>
+          Guardar
+        </BtnPrimary>
+      </div>
+      <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noreferrer" style={{
+        fontSize: "12px", color: T.warning1, fontFamily: T.font, textDecoration: "underline",
+      }}>
+        Obtener API key en console.anthropic.com →
+      </a>
+    </div>
   );
 }
 
@@ -491,13 +513,24 @@ export default function SyntheticUsersLab() {
   const [step, setStep] = useState(0);
   const [selectedPersonas, setSelectedPersonas] = useState<string[]>(["early-adopter", "busy-manager"]);
   const [customPersona, setCustomPersona] = useState({ name: "", description: "", traits: "" });
-  const [sourceType, setSourceType] = useState("description");
+  const [sourceType, setSourceType] = useState<SourceType>("description");
   const [flowInput, setFlowInput] = useState("");
   const [productContext, setProductContext] = useState("");
   const [results, setResults] = useState<SimulationResult[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0, currentPersona: "" });
   const [showModal, setShowModal] = useState(false);
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem("sul_api_key") || "");
+
+  const saveApiKey = (key: string) => {
+    const trimmed = key.trim();
+    setApiKey(trimmed);
+    localStorage.setItem("sul_api_key", trimmed);
+  };
+  const clearApiKey = () => {
+    setApiKey("");
+    localStorage.removeItem("sul_api_key");
+  };
 
   const toggle = (id: string) => setSelectedPersonas(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
   const canAdd = customPersona.name && customPersona.description;
@@ -519,56 +552,16 @@ export default function SyntheticUsersLab() {
     for (let i = 0; i < personas.length; i++) {
       const p = personas[i];
       setProgress({ current: i + 1, total: personas.length, currentPersona: p.name });
-      const sys = `Eres un simulador de usuario sintético para testing de productos digitales.
-Actúa EXACTAMENTE como este perfil evaluando un flujo de producto.
-
-PERFIL: ${p.name}
-Descripción: ${p.description}
-Rasgos: ${p.traits.join(", ")}
-Frustración: ${p.frustration} | Nivel técnico: ${p.techLevel}
-
-PRODUCTO: ${productContext || "Sin contexto adicional."}
-
-INSTRUCCIONES:
-1. Recorre el flujo paso a paso como este usuario
-2. Describe qué haría, pensaría y sentiría en cada paso
-3. Identifica fricciones, confusiones y momentos de abandono
-4. Sé BRUTALMENTE HONESTO desde esta perspectiva
-
-Responde SOLO JSON válido (sin markdown ni backticks):
-{"score":<1-10>,"summary":"<2-3 frases>","steps":[{"action":"<qué hace>","reaction":"<qué piensa>"}],"issues":[{"severity":"critical|warning|info","description":"<problema>"}],"wouldReturn":<bool>,"verbatim":"<frase textual>"}`;
       try {
-        const res = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 4096, system: sys, messages: [{ role: "user", content: `FUENTE: ${sourceType.toUpperCase()}\n\nFLUJO:\n${flowInput}` }] })
-        });
-        if (!res.ok) throw new Error(`API ${res.status}`);
-        const data = await res.json();
-        const text = data.content?.map((c: { text?: string }) => c.text || "").join("") || "";
-        const clean = text.replace(/```json|```/g, "").trim();
-        let parsed: Omit<SimulationResult, "personaId"> = { score: 5, summary: "Sin datos.", steps: [], issues: [], wouldReturn: null };
-        try { parsed = JSON.parse(clean); } catch {
-          let r = clean;
-          if ((r.match(/(?<!\\)"/g) || []).length % 2 !== 0) r += '"';
-          r = r.replace(/,\s*$/, '');
-          const o = (r.match(/[{[]/g) || []).length;
-          const c = (r.match(/[\]}]/g) || []).length;
-          for (let j = 0; j < o - c; j++) r += r.lastIndexOf('[') > r.lastIndexOf('{') ? ']' : '}';
-          try { parsed = JSON.parse(r); } catch {
-            const sm = clean.match(/"score"\s*:\s*(\d+)/);
-            const su = clean.match(/"summary"\s*:\s*"([^"]*)/);
-            const wr = clean.match(/"wouldReturn"\s*:\s*(true|false)/);
-            parsed = { score: sm ? parseInt(sm[1]!) : 5, summary: su ? su[1]! : "Respuesta parcial.", steps: [], issues: [{ severity: "warning", description: "Respuesta truncada — datos parciales." }], wouldReturn: wr ? wr[1] === "true" : null };
-          }
-        }
-        all.push({ ...parsed, personaId: p.id });
+        const result = await simulatePersona(p, sourceType, flowInput, productContext, apiKey);
+        all.push(result);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         all.push({ personaId: p.id, score: 0, summary: `Error: ${msg}`, steps: [], issues: [{ severity: "critical", description: msg }], wouldReturn: false });
       }
     }
     setResults(all); setLoading(false); setStep(3);
-  }, [selectedPersonas, sourceType, flowInput, productContext]);
+  }, [selectedPersonas, sourceType, flowInput, productContext, apiKey]);
 
   const avgScore = results ? results.reduce((a, r) => a + (r.score || 0), 0) / results.length : 0;
   const avg = avgScore.toFixed(1);
@@ -596,6 +589,9 @@ Responde SOLO JSON válido (sin markdown ni backticks):
           <h1 style={{ margin: "0 0 8px", fontSize: "42px", fontWeight: 800, color: T.black, letterSpacing: "-0.56px" }}>Synthetic Users Lab</h1>
           <p style={{ margin: 0, fontSize: "16px", color: T.black }}>Simula usuarios reales testeando tus flujos.</p>
         </div>
+
+        {/* API Key Banner */}
+        <ApiKeyBanner apiKey={apiKey} onSave={saveApiKey} onClear={clearApiKey} />
 
         {/* Modal */}
         <Modal
@@ -670,7 +666,7 @@ Responde SOLO JSON válido (sin markdown ni backticks):
           </div>
           <div style={{ display: "flex", gap: "10px" }}>
             <BtnTertiary onClick={() => setStep(0)}>Atrás</BtnTertiary>
-            <BtnPrimary onClick={() => { setStep(2); run(); }} disabled={!flowInput.trim()} block>Lanzar simulación</BtnPrimary>
+            <BtnPrimary onClick={() => { setStep(2); run(); }} disabled={!flowInput.trim() || !apiKey} block>Lanzar simulación</BtnPrimary>
           </div>
         </div>}
 

@@ -71,6 +71,7 @@ export async function simulatePersona(
 ): Promise<SimulationResult> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    "anthropic-dangerous-allow-browser": "true",
   };
   if (apiKey) {
     headers["x-api-key"] = apiKey;

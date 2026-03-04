@@ -4,6 +4,7 @@ export interface Persona {
   initials: string;
   avatarBg: string;
   avatarColor: string;
+  avatarPhoto?: string;
   description: string;
   traits: string[];
   frustration: "low" | "medium" | "high";
