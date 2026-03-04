@@ -1,0 +1,34 @@
+# Synthetic Users Lab — Cursor Rules
+
+## Design System
+- Use Plinng DS tokens from `src/styles/tokens.ts` for ALL styling
+- Never hardcode colors — always reference token constants
+- Buttons are pill-shaped (border-radius: 9999px)
+- Three button variants: Primary (black), Secondary (lime #BEFF50), Tertiary (white + border)
+- Cards use `shadowSm` only, `borderRadius: rXl` (16px), border `#EBEBEB`
+- Font: Inter at weights 400, 600, 700, 800
+- Background: beige-25 (#FBFBF7), cards: white
+
+## Architecture
+- Components in `src/components/` — keep them small and focused
+- Business logic in `src/lib/` — simulation, data, utils
+- Types in `src/types/` — shared interfaces
+- Tokens in `src/styles/tokens.ts` — mirror of CSS @theme tokens
+
+## Patterns
+- Modal follows plinng-ds Modal pattern: focus trap, backdrop blur, escape to close
+- Badge uses dot indicator system with 5 variants (default, success, warning, error, info)
+- Avatar component generates initials with persona-specific colors
+- All status colors mapped to DS tokens (error-1, warning-1, accent-700, info-1)
+
+## API
+- Claude Sonnet 4 via Anthropic API
+- max_tokens: 4096
+- JSON response with repair/fallback logic in `src/lib/simulation.ts`
+- Response schema: { score, summary, steps, issues, wouldReturn, verbatim }
+
+## Conventions
+- TypeScript strict mode
+- Path aliases: `@/` → `src/`
+- Functional components only
+- Inline styles matching plinng-ds token system (migrating to Tailwind classes is a good next step)
