@@ -22,9 +22,9 @@
 - All status colors mapped to DS tokens (error-1, warning-1, accent-700, info-1)
 
 ## API
-- Claude Sonnet 4 via Anthropic API
-- max_tokens: 4096
-- JSON response with repair/fallback logic in `src/lib/simulation.ts`
+- Google Gemini 2.0 Flash via backend (`api/simulate.ts` for Vercel, `server.js` for local dev)
+- GEMINI_API_KEY in .env.local (server-side only)
+- Frontend calls `/api/simulate` — Vite proxies to server.js:3001 in dev
 - Response schema: { score, summary, steps, issues, wouldReturn, verbatim }
 
 ## Conventions

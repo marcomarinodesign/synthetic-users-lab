@@ -2,7 +2,7 @@
 
 Simula usuarios reales testeando tus flujos de producto — desde Figma, URL, repo o descripción manual.
 
-Herramienta de testing con usuarios sintéticos powered by Claude API. Permite definir perfiles de usuario (personas), describir flujos de producto, y obtener feedback detallado simulado desde la perspectiva de cada perfil.
+Herramienta de testing con usuarios sintéticos powered by Google Gemini API. Permite definir perfiles de usuario (personas), describir flujos de producto, y obtener feedback detallado simulado desde la perspectiva de cada perfil.
 
 ## Stack
 
@@ -10,7 +10,7 @@ Herramienta de testing con usuarios sintéticos powered by Claude API. Permite d
 - **Vite 6** con HMR
 - **Tailwind CSS v4** con `@theme` tokens
 - **Plinng Design System** — tokens, componentes y patrones
-- **Claude API** (Sonnet 4) — simulación de usuarios
+- **Google Gemini API** (2.0 Flash) — simulación de usuarios
 
 ## Quick Start
 
@@ -22,19 +22,21 @@ cd synthetic-users-lab
 # Instalar
 npm install
 
-# Configurar API key (opcional para dev local)
+# Configurar API key (backend)
 cp .env.example .env.local
-# Editar .env.local con tu VITE_ANTHROPIC_API_KEY
+# Editar .env.local con tu GEMINI_API_KEY (https://aistudio.google.com/app/apikey)
 
-# Desarrollo
+# Desarrollo (frontend + API)
 npm run dev
 ```
 
-> **Nota**: En Claude.ai artifacts, la API key se gestiona automáticamente. Para desarrollo local necesitas configurar tu propia key.
+> **Nota**: La API key se usa solo en el backend. `npm run dev` ejecuta `vercel dev` para servir frontend y API juntos.
 
 ## Arquitectura
 
 ```
+api/
+├── simulate.ts        # Serverless: Gemini API (GEMINI_API_KEY)
 src/
 ├── components/        # UI components (DS-aligned)
 │   ├── Avatar.tsx     # Avatar con iniciales + colores por persona
@@ -92,7 +94,7 @@ Se pueden crear **personas personalizadas** desde el modal.
 
 1. **Seleccionar personas** — elige qué perfiles van a testear
 2. **Definir flujo** — describe los pasos del flujo (URL, Figma, repo o manual)
-3. **Simulación** — cada persona recorre el flujo vía Claude API
+3. **Simulación** — cada persona recorre el flujo vía Gemini API
 4. **Resultados** — score, steps, issues por severidad, retención
 
 ## Desarrollo en Cursor

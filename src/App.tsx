@@ -239,83 +239,6 @@ function PersonaCard({ persona, selected, onToggle }: PersonaCardProps) {
   );
 }
 
-interface ApiKeyBannerProps {
-  apiKey: string;
-  onSave: (key: string) => void;
-  onClear: () => void;
-}
-
-function ApiKeyBanner({ apiKey, onSave, onClear }: ApiKeyBannerProps) {
-  const [input, setInput] = useState("");
-  const [show, setShow] = useState(false);
-
-  if (apiKey) {
-    const masked = `${apiKey.slice(0, 10)}••••••••••••${apiKey.slice(-4)}`;
-    return (
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "10px 14px", marginBottom: "20px",
-        background: T.accent100, border: `1px solid ${T.accent300}`,
-        borderRadius: T.rMd, gap: "10px",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M11 7V5a3 3 0 10-6 0v2M5 7h6a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V8a1 1 0 011-1z" stroke={T.accent700} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          <span style={{ fontSize: "13px", fontWeight: 600, color: T.accent700, fontFamily: T.font }}>API Key</span>
-          <span style={{ fontSize: "12px", color: T.accent700, fontFamily: "monospace" }}>{masked}</span>
-        </div>
-        <button onClick={onClear} style={{
-          fontSize: "12px", fontWeight: 600, color: T.accent700, background: "none",
-          border: "none", cursor: "pointer", fontFamily: T.font, padding: "2px 6px",
-          borderRadius: T.rSm, textDecoration: "underline",
-        }}>Eliminar</button>
-      </div>
-    );
-  }
-
-  return (
-    <div style={{
-      padding: "14px", marginBottom: "20px",
-      background: T.warning2, border: `1px solid ${T.warning1}`,
-      borderRadius: T.rMd,
-    }}>
-      <div style={{ fontSize: "13px", fontWeight: 600, color: T.black, marginBottom: "8px", fontFamily: T.font }}>
-        🔑 Necesitas una API key de Anthropic para lanzar simulaciones
-      </div>
-      <div style={{ display: "flex", gap: "8px", marginBottom: "6px" }}>
-        <div style={{ position: "relative", flex: 1 }}>
-          <input
-            type={show ? "text" : "password"}
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && input.startsWith("sk-ant-") && onSave(input)}
-            placeholder="sk-ant-api03-..."
-            style={{ ...inputStyle, paddingRight: "40px", fontSize: "13px" }}
-          />
-          <button onClick={() => setShow(s => !s)} style={{
-            position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)",
-            background: "none", border: "none", cursor: "pointer", color: T.greyDark, padding: "2px",
-          }}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              {show
-                ? <><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" strokeWidth="1.3"/><circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.3"/><path d="M2 2l12 12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></>
-                : <><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" strokeWidth="1.3"/><circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.3"/></>
-              }
-            </svg>
-          </button>
-        </div>
-        <BtnPrimary onClick={() => onSave(input)} disabled={!input.startsWith("sk-ant-")} style={{ flexShrink: 0, fontSize: "14px", height: "40px", padding: "0 16px" }}>
-          Guardar
-        </BtnPrimary>
-      </div>
-      <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noreferrer" style={{
-        fontSize: "12px", color: T.warning1, fontFamily: T.font, textDecoration: "underline",
-      }}>
-        Obtener API key en console.anthropic.com →
-      </a>
-    </div>
-  );
-}
-
 interface ProgressBarProps {
   steps: string[];
   current: number;
@@ -520,17 +443,6 @@ export default function SyntheticUsersLab() {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0, currentPersona: "" });
   const [showModal, setShowModal] = useState(false);
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem("sul_api_key") || "");
-
-  const saveApiKey = (key: string) => {
-    const trimmed = key.trim();
-    setApiKey(trimmed);
-    localStorage.setItem("sul_api_key", trimmed);
-  };
-  const clearApiKey = () => {
-    setApiKey("");
-    localStorage.removeItem("sul_api_key");
-  };
 
   const toggle = (id: string) => setSelectedPersonas(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
   const canAdd = customPersona.name && customPersona.description;
@@ -553,7 +465,7 @@ export default function SyntheticUsersLab() {
       const p = personas[i];
       setProgress({ current: i + 1, total: personas.length, currentPersona: p.name });
       try {
-        const result = await simulatePersona(p, sourceType, flowInput, productContext, apiKey);
+        const result = await simulatePersona(p, sourceType, flowInput, productContext);
         all.push(result);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -561,7 +473,7 @@ export default function SyntheticUsersLab() {
       }
     }
     setResults(all); setLoading(false); setStep(3);
-  }, [selectedPersonas, sourceType, flowInput, productContext, apiKey]);
+  }, [selectedPersonas, sourceType, flowInput, productContext]);
 
   const avgScore = results ? results.reduce((a, r) => a + (r.score || 0), 0) / results.length : 0;
   const avg = avgScore.toFixed(1);
@@ -589,9 +501,6 @@ export default function SyntheticUsersLab() {
           <h1 style={{ margin: "0 0 8px", fontSize: "42px", fontWeight: 800, color: T.black, letterSpacing: "-0.56px" }}>Synthetic Users Lab</h1>
           <p style={{ margin: 0, fontSize: "16px", color: T.black }}>Simula usuarios reales testeando tus flujos.</p>
         </div>
-
-        {/* API Key Banner */}
-        <ApiKeyBanner apiKey={apiKey} onSave={saveApiKey} onClear={clearApiKey} />
 
         {/* Modal */}
         <Modal
@@ -666,7 +575,7 @@ export default function SyntheticUsersLab() {
           </div>
           <div style={{ display: "flex", gap: "10px" }}>
             <BtnTertiary onClick={() => setStep(0)}>Atrás</BtnTertiary>
-            <BtnPrimary onClick={() => { setStep(2); run(); }} disabled={!flowInput.trim() || !apiKey} block>Lanzar simulación</BtnPrimary>
+            <BtnPrimary onClick={() => { setStep(2); run(); }} disabled={!flowInput.trim()} block>Lanzar simulación</BtnPrimary>
           </div>
         </div>}
 
