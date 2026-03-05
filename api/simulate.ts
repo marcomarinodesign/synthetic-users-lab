@@ -92,10 +92,11 @@ Responde SOLO JSON válido (sin markdown ni backticks):
       return res.status(response.status === 400 ? 400 : 502).json({ error: msg });
     }
 
+    interface GeminiPart {
+      text?: string;
+    }
     const data = (await response.json()) as {
-      candidates?: Array<{
-        content?: { parts?: Array<{ text?: string }> };
-      };
+      candidates?: { content?: { parts?: GeminiPart[] } }[];
     };
 
     const text =
