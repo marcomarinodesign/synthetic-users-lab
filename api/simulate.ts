@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-const GEMINI_MODEL = "gemini-2.0-flash";
+const GEMINI_MODEL = "gemini-2.5-flash";
 
 interface SimulateBody {
   persona: {
@@ -56,10 +56,13 @@ Responde SOLO JSON válido (sin markdown ni backticks):
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey.trim())}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey.trim(),
+        },
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: systemPrompt }] },
           contents: [{ parts: [{ text: userPrompt }] }],
@@ -79,7 +82,7 @@ Responde SOLO JSON válido (sin markdown ni backticks):
         const errJson = JSON.parse(errText) as { error?: { message?: string } };
         const geminiMsg = errJson?.error?.message || "";
         if (response.status === 400 && (geminiMsg.includes("API key") || geminiMsg.includes("invalid"))) {
-          msg = "API key de Gemini inválida. Revisa GEMINI_API_KEY en las variables de entorno de Vercel.";
+          msg = "API key inválida o bloqueada. Crea una NUEVA key en https://aistudio.google.com/app/apikey";
         } else if (geminiMsg) {
           msg = geminiMsg;
         }

@@ -9,7 +9,7 @@ import express from "express";
 const app = express();
 app.use(express.json());
 
-const GEMINI_MODEL = "gemini-2.0-flash";
+const GEMINI_MODEL = "gemini-2.5-flash";
 const PORT = 3001;
 
 function repairJSON(raw) {
@@ -77,10 +77,13 @@ Responde SOLO JSON válido (sin markdown ni backticks):
   const userPrompt = `FUENTE: ${(sourceType || "description").toUpperCase()}\n\nFLUJO:\n${flowInput}`;
 
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
     const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
+      },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: systemPrompt }] },
         contents: [{ parts: [{ text: userPrompt }] }],
@@ -99,7 +102,7 @@ Responde SOLO JSON válido (sin markdown ni backticks):
         const errJson = JSON.parse(errText);
         const geminiMsg = errJson?.error?.message || "";
         if (response.status === 400 && (geminiMsg.includes("API key") || geminiMsg.includes("invalid"))) {
-          msg = "API key de Gemini inválida. Revisa GEMINI_API_KEY en .env.local (https://aistudio.google.com/app/apikey)";
+          msg = "API key inválida o bloqueada. Crea una NUEVA key en https://aistudio.google.com/app/apikey (las keys expuestas en repos se bloquean automáticamente)";
         } else if (geminiMsg) {
           msg = geminiMsg;
         }
