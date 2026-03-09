@@ -212,7 +212,7 @@ function PersonaCard({ persona, selected, onToggle }: PersonaCardProps) {
       display: "flex", flexDirection: "column", gap: "0",
       padding: "17px", width: "100%", textAlign: "left",
       background: T.white,
-      border: selected ? `2px solid ${T.black}` : `1px solid ${T.tertiaryBorder}`,
+      border: `2px solid ${selected ? T.black : T.tertiaryBorder}`,
       borderRadius: T.rXl, cursor: "pointer", outline: "none",
       transition: "all 0.15s", boxShadow: T.shadowSm,
     }}>
@@ -434,7 +434,7 @@ function ResultCard({ result, index }: ResultCardProps) {
 /* ─── Main ─── */
 export default function SyntheticUsersLab() {
   const [step, setStep] = useState(0);
-  const [selectedPersonas, setSelectedPersonas] = useState<string[]>(["early-adopter", "busy-manager"]);
+  const [selectedPersonas, setSelectedPersonas] = useState<string[]>([]);
   const [customPersona, setCustomPersona] = useState({ name: "", description: "", traits: "" });
   const [sourceType, setSourceType] = useState<SourceType>("description");
   const [flowInput, setFlowInput] = useState("");
