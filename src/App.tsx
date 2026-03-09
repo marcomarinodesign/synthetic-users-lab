@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import type { Persona, SimulationResult, SourceType } from "@/types";
-import { PRESET_PERSONAS, SOURCE_TYPES } from "@/lib/personas";
+import { PRESET_PERSONAS } from "@/lib/personas";
 import { simulatePersona } from "@/lib/simulation";
 
 /* ─── Types ─── */
@@ -436,7 +436,6 @@ export default function SyntheticUsersLab() {
   const [step, setStep] = useState(0);
   const [selectedPersonas, setSelectedPersonas] = useState<string[]>([]);
   const [customPersona, setCustomPersona] = useState({ name: "", description: "", traits: "" });
-  const [sourceType, setSourceType] = useState<SourceType>("description");
   const [flowInput, setFlowInput] = useState("");
   const [productContext, setProductContext] = useState("");
   const [results, setResults] = useState<SimulationResult[] | null>(null);
@@ -459,6 +458,7 @@ export default function SyntheticUsersLab() {
   const run = useCallback(async () => {
     setLoading(true); setResults(null);
     const personas = PRESET_PERSONAS.filter(p => selectedPersonas.includes(p.id));
+    const sourceType: SourceType = flowInput.toLowerCase().includes("github.com") ? "repo" : "url";
     setProgress({ current: 0, total: personas.length, currentPersona: "" });
     const all: SimulationResult[] = [];
     for (let i = 0; i < personas.length; i++) {
@@ -473,7 +473,7 @@ export default function SyntheticUsersLab() {
       }
     }
     setResults(all); setLoading(false); setStep(3);
-  }, [selectedPersonas, sourceType, flowInput, productContext]);
+  }, [selectedPersonas, flowInput, productContext]);
 
   const avgScore = results ? results.reduce((a, r) => a + (r.score || 0), 0) / results.length : 0;
   const avg = avgScore.toFixed(1);
@@ -543,39 +543,24 @@ export default function SyntheticUsersLab() {
           <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             {PRESET_PERSONAS.map(p => <PersonaCard key={p.id} persona={p} selected={selectedPersonas.includes(p.id)} onToggle={toggle} />)}
           </div>
-          <BtnPrimary onClick={() => setStep(1)} disabled={!selectedPersonas.length} block>Siguiente</BtnPrimary>
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignSelf: "center", alignItems: "stretch" }}>
+            <BtnPrimary onClick={() => setStep(1)} disabled={!selectedPersonas.length}>Siguiente</BtnPrimary>
+          </div>
         </div>}
 
         {/* Step 1 */}
         {step === 1 && <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           <div>
-            <label style={labelStyle}>Fuente</label>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "8px" }}>
-              {SOURCE_TYPES.map(s => (
-                <button key={s.id} onClick={() => setSourceType(s.id)} style={{
-                  padding: "12px 8px", display: "flex", flexDirection: "column", alignItems: "center", gap: "6px",
-                  fontSize: "14px", fontWeight: 600, fontFamily: T.font,
-                  background: sourceType === s.id ? T.accent100 : T.white,
-                  border: sourceType === s.id ? `2px solid ${T.accent300}` : `1px solid ${T.tertiaryBorder}`,
-                  borderRadius: T.rLg, color: T.black,
-                  cursor: "pointer", outline: "none", transition: "all 0.15s",
-                }}>
-                  <span style={{ fontSize: "20px" }}>{s.icon}</span>{s.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label style={labelStyle}>Descripción del flujo</label>
-            <textarea value={flowInput} onChange={e => setFlowInput(e.target.value)} placeholder={SOURCE_TYPES.find(s => s.id === sourceType)?.placeholder} rows={7} style={textareaStyle} />
+            <label style={labelStyle}>Link (web o repo)</label>
+            <input value={flowInput} onChange={e => setFlowInput(e.target.value)} placeholder="https://tu-web.com o https://github.com/user/repo" style={inputStyle} />
           </div>
           <div>
             <label style={labelStyle}>Contexto del producto <span style={{ fontWeight: 400, color: T.textSecondary }}>(opcional)</span></label>
-            <textarea value={productContext} onChange={e => setProductContext(e.target.value)} placeholder="Qué es, para quién, qué problema resuelve..." rows={3} style={textareaStyle} />
+            <textarea value={productContext} onChange={e => setProductContext(e.target.value)} placeholder="Qué es, para quién, qué problema resuelve..." rows={7} style={textareaStyle} />
           </div>
-          <div style={{ display: "flex", gap: "10px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignSelf: "center", alignItems: "stretch" }}>
+            <BtnPrimary onClick={() => { setStep(2); run(); }} disabled={!flowInput.trim()}>Lanzar simulación</BtnPrimary>
             <BtnTertiary onClick={() => setStep(0)}>Atrás</BtnTertiary>
-            <BtnPrimary onClick={() => { setStep(2); run(); }} disabled={!flowInput.trim()} block>Lanzar simulación</BtnPrimary>
           </div>
         </div>}
 
@@ -613,9 +598,9 @@ export default function SyntheticUsersLab() {
           </div>
           <div style={{ fontSize: "16px", fontWeight: 700, color: T.black }}>Resultados por usuario</div>
           {results.map((r, i) => <ResultCard key={i} result={r} index={i} />)}
-          <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
-            <BtnTertiary onClick={() => { setStep(1); setResults(null); }}>Editar flujo</BtnTertiary>
-            <BtnSecondary onClick={() => { setStep(0); setResults(null); }} block>Nuevo test</BtnSecondary>
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignSelf: "center", alignItems: "stretch", marginTop: "8px" }}>
+            <BtnPrimary onClick={() => { setStep(0); setResults(null); }}>Nuevo test</BtnPrimary>
+            <BtnSecondary onClick={() => { setStep(1); setResults(null); }}>Editar flujo</BtnSecondary>
           </div>
         </div>}
       </div>
