@@ -1,5 +1,19 @@
 import type { Persona, SimulationResult, SourceType } from "@/types";
 
+export async function fetchUrlContent(url: string): Promise<string> {
+  const response = await fetch("/api/fetch-content", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url }),
+  });
+  if (!response.ok) {
+    const err = (await response.json().catch(() => ({}))) as { error?: string };
+    throw new Error(err.error || `HTTP ${response.status}`);
+  }
+  const data = (await response.json()) as { content: string };
+  return data.content;
+}
+
 export async function simulatePersona(
   persona: Persona,
   sourceType: SourceType,

@@ -42,6 +42,40 @@ function repairJSON(raw) {
   };
 }
 
+async function fetchUrlContent(url) {
+  const response = await fetch(url, {
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; SyntheticUsersBot/1.0)" },
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status} al obtener ${url}`);
+  const html = await response.text();
+  const text = html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, " ")
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 8000);
+  return text;
+}
+
+app.post("/api/fetch-content", async (req, res) => {
+  const { url } = req.body || {};
+  if (!url) return res.status(400).json({ error: "Missing url" });
+  try {
+    const content = await fetchUrlContent(url);
+    return res.json({ content });
+  } catch (err) {
+    return res.status(502).json({ error: err.message || "Failed to fetch URL" });
+  }
+});
+
 app.post("/api/simulate", async (req, res) => {
   const apiKey = process.env.GEMINI_API_KEY?.trim();
   if (!apiKey) {
