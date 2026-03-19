@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import type { Persona, SimulationResult, SourceType } from "@/types";
 import { PRESET_PERSONAS } from "@/lib/personas";
-import { simulatePersona } from "@/lib/simulation";
+import { simulatePersona, fetchUrlContent } from "@/lib/simulation";
 
 /* ─── Types ─── */
 type IssueSeverity = "critical" | "warning" | "info";
@@ -440,6 +440,7 @@ export default function SyntheticUsersLab() {
   const [productContext, setProductContext] = useState("");
   const [results, setResults] = useState<SimulationResult[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingPhase, setLoadingPhase] = useState<"fetching" | "analyzing">("fetching");
   const [progress, setProgress] = useState({ current: 0, total: 0, currentPersona: "" });
   const [showModal, setShowModal] = useState(false);
 
@@ -459,13 +460,27 @@ export default function SyntheticUsersLab() {
     setLoading(true); setResults(null);
     const personas = PRESET_PERSONAS.filter(p => selectedPersonas.includes(p.id));
     const sourceType: SourceType = flowInput.toLowerCase().includes("github.com") ? "repo" : "url";
+
+    // Phase 1: fetch URL content
+    setLoadingPhase("fetching");
+    let contentToAnalyze = flowInput;
+    if (flowInput.trim().startsWith("http")) {
+      try {
+        contentToAnalyze = await fetchUrlContent(flowInput.trim());
+      } catch {
+        contentToAnalyze = flowInput;
+      }
+    }
+
+    // Phase 2: analyze with Gemini
+    setLoadingPhase("analyzing");
     setProgress({ current: 0, total: personas.length, currentPersona: "" });
     const all: SimulationResult[] = [];
     for (let i = 0; i < personas.length; i++) {
       const p = personas[i];
       setProgress({ current: i + 1, total: personas.length, currentPersona: p.name });
       try {
-        const result = await simulatePersona(p, sourceType, flowInput, productContext);
+        const result = await simulatePersona(p, sourceType, contentToAnalyze, productContext);
         all.push(result);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -566,19 +581,48 @@ export default function SyntheticUsersLab() {
 
         {/* Step 2 */}
         {step === 2 && loading && <div style={{
-          display: "flex", flexDirection: "column", alignItems: "center", gap: "24px",
-          padding: "80px 20px", background: T.white, borderRadius: T.rXl,
+          display: "flex", flexDirection: "column", alignItems: "center", gap: "28px",
+          padding: "60px 20px", background: T.white, borderRadius: T.rXl,
           border: `1px solid ${T.tertiaryBorder}`, boxShadow: T.shadowSm,
         }}>
           <style>{`@keyframes pSpin{to{transform:rotate(360deg)}}`}</style>
-          <div style={{ width: "36px", height: "36px", borderRadius: "50%", border: `3px solid ${T.greySoft}`, borderTopColor: T.primary, animation: "pSpin 0.8s linear infinite" }} />
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "18px", fontWeight: 600, color: T.black }}>{progress.currentPersona}</div>
-            <div style={{ fontSize: "14px", color: T.textSecondary, marginTop: "4px" }}>Usuario {progress.current} de {progress.total}</div>
+          {/* Two-phase indicator */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "14px", width: "260px" }}>
+            {/* Phase 1 */}
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              {loadingPhase === "fetching" ? (
+                <div style={{ flexShrink: 0, width: "20px", height: "20px", borderRadius: "50%", border: `2px solid ${T.greySoft}`, borderTopColor: T.primary, animation: "pSpin 0.8s linear infinite" }} />
+              ) : (
+                <div style={{ flexShrink: 0, width: "20px", height: "20px", borderRadius: "50%", background: T.accent500, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="11" height="8" viewBox="0 0 11 8" fill="none"><path d="M1 4L4 7L10 1" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+              )}
+              <span style={{ fontSize: "14px", fontWeight: loadingPhase === "fetching" ? 600 : 400, color: loadingPhase === "fetching" ? T.black : T.greyDark, textDecoration: loadingPhase === "fetching" ? "none" : "line-through" }}>
+                Leyendo contenido de las URLs...
+              </span>
+            </div>
+            {/* Phase 2 */}
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              {loadingPhase === "analyzing" ? (
+                <div style={{ flexShrink: 0, width: "20px", height: "20px", borderRadius: "50%", border: `2px solid ${T.greySoft}`, borderTopColor: T.primary, animation: "pSpin 0.8s linear infinite" }} />
+              ) : (
+                <div style={{ flexShrink: 0, width: "20px", height: "20px", borderRadius: "50%", border: `2px solid ${T.greySoft}` }} />
+              )}
+              <span style={{ fontSize: "14px", fontWeight: loadingPhase === "analyzing" ? 600 : 400, color: loadingPhase === "analyzing" ? T.black : T.greyDark }}>
+                Analizando con Gemini...
+              </span>
+            </div>
           </div>
-          <div style={{ width: "180px", height: "6px", background: T.greySoft, borderRadius: "3px", overflow: "hidden" }}>
-            <div style={{ height: "100%", background: T.accent300, borderRadius: "3px", width: `${(progress.current / progress.total) * 100}%`, transition: "width 0.4s" }} />
-          </div>
+          {/* Persona progress (only visible during analyzing phase) */}
+          {loadingPhase === "analyzing" && progress.total > 0 && <>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: "16px", fontWeight: 600, color: T.black }}>{progress.currentPersona}</div>
+              <div style={{ fontSize: "13px", color: T.textSecondary, marginTop: "4px" }}>Usuario {progress.current} de {progress.total}</div>
+            </div>
+            <div style={{ width: "180px", height: "6px", background: T.greySoft, borderRadius: "3px", overflow: "hidden" }}>
+              <div style={{ height: "100%", background: T.accent300, borderRadius: "3px", width: `${(progress.current / progress.total) * 100}%`, transition: "width 0.4s" }} />
+            </div>
+          </>}
         </div>}
 
         {/* Step 3 */}
