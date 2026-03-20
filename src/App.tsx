@@ -502,13 +502,19 @@ interface ResultCardProps {
 
 function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) {
   const [open, setOpen] = useState(index === 0);
+  const [currentStep, setCurrentStep] = useState(0);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const persona: AvatarPersona = PRESET_PERSONAS.find(p => p.id === result.personaId) ?? { name: "Custom", initials: "CU", avatarBg: T.accent100, avatarColor: T.accent700 };
   const sc = result.score || 0;
   const scoreVariant: BadgeVariant = sc >= 7 ? "success" : sc >= 4 ? "warning" : "error";
   const sevMap: Record<IssueSeverity, BadgeVariant> = { critical: "error", warning: "warning", info: "info" };
   const catLabelMap: Record<IssueCategory, string> = { ux: "UX", ui: "UI", product: "Product", copy: "Copy" };
-  const catVariantMap: Record<IssueCategory, BadgeVariant> = { ux: "info", ui: "success", product: "warning", copy: "default" };
   const issuesToShow = issueCategoryFilter === "all" ? result.issues : result.issues.filter(i => i.category === issueCategoryFilter);
+
+  useEffect(() => {
+    if (!open) return;
+    setCurrentStep(0);
+  }, [open, result.personaId]);
 
   return (
     <div style={{ background: T.white, border: `1px solid ${T.tertiaryBorder}`, borderRadius: T.rXl, overflow: "hidden", boxShadow: T.shadowSm }}>
@@ -541,53 +547,219 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
 
           {result.steps?.length > 0 && <div>
             <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: T.textSecondary, marginBottom: "8px" }}>{t.stepsLabel}</div>
-            <div style={{ borderRadius: T.rMd, overflow: "hidden", border: `1px solid ${T.tertiaryBorder}` }}>
-              {result.steps.map((s, si) => (
-                <div key={si} style={{ display: "flex", gap: "12px", padding: "12px 14px", background: si % 2 === 0 ? T.white : T.beige25, borderTop: si > 0 ? `1px solid ${T.tertiaryBorder}` : "none" }}>
-                  <span style={{ fontSize: "12px", fontWeight: 700, color: T.accent700, background: T.accent100, borderRadius: "6px", minWidth: "24px", height: "22px", display: "flex", alignItems: "center", justifyContent: "center" }}>{si + 1}</span>
-                  <div>
-                    <div style={{ fontSize: "14px", fontWeight: 600, color: T.black }}>{s.action}</div>
-                    <div style={{ fontSize: "14px", color: T.textSecondary, marginTop: "2px", lineHeight: 1.45 }}>{s.reaction}</div>
+            <div>
+              {/*
+                Carousel horizontal:
+                - Flechas laterales + dots
+                - Swipe en móvil (touch)
+                - Transición suave con translateX
+              */}
+              <div
+                style={{
+                  borderRadius: T.rMd,
+                  overflow: "hidden",
+                  border: `1px solid ${T.tertiaryBorder}`,
+                  position: "relative",
+                  background: T.white,
+                }}
+              >
+                <div
+                  style={{ overflow: "hidden" }}
+                  onTouchStart={(e) => {
+                    const t0 = e.touches[0];
+                    if (!t0) return;
+                    touchStartRef.current = { x: t0.clientX, y: t0.clientY };
+                  }}
+                  onTouchEnd={(e) => {
+                    const start = touchStartRef.current;
+                    if (!start) return;
+                    const t0 = e.changedTouches[0];
+                    if (!t0) return;
+                    const dx = t0.clientX - start.x;
+                    const dy = t0.clientY - start.y;
+                    touchStartRef.current = null;
+
+                    if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy)) return;
+                    const total = result.steps.length;
+                    if (dx < 0) setCurrentStep((s) => Math.min(total - 1, s + 1));
+                    else setCurrentStep((s) => Math.max(0, s - 1));
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      transform: `translateX(-${currentStep * 100}%)`,
+                      transition: "transform 0.3s ease",
+                    }}
+                  >
+                    {result.steps.map((s, si) => (
+                      <div
+                        key={si}
+                        style={{
+                          flex: "0 0 100%",
+                          padding: "20px",
+                          minHeight: "200px",
+                          boxSizing: "border-box",
+                          position: "relative",
+                        }}
+                      >
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: "12px",
+                            right: "14px",
+                            fontSize: "12px",
+                            fontWeight: 700,
+                            color: T.greyDark,
+                          }}
+                        >
+                          Paso {si + 1} de {result.steps.length}
+                        </div>
+
+                        <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+                          <Badge variant="success">{si + 1}</Badge>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: "15px", fontWeight: 800, color: T.black, lineHeight: "20px" }}>
+                              {s.action}
+                            </div>
+                            <div style={{ fontSize: "14px", color: T.textSecondary, marginTop: "6px", lineHeight: 1.5 }}>
+                              {s.reaction}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
+
+                <button
+                  aria-label="Paso anterior"
+                  onClick={() => setCurrentStep((s) => Math.max(0, s - 1))}
+                  disabled={currentStep === 0}
+                  style={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "10px",
+                    transform: "translateY(-50%)",
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: T.rFull,
+                    background: T.white,
+                    border: `1px solid ${T.tertiaryBorder}`,
+                    boxShadow: T.shadowSm,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: currentStep === 0 ? "not-allowed" : "pointer",
+                    opacity: currentStep === 0 ? 0.3 : 1,
+                    pointerEvents: currentStep === 0 ? "none" : "auto",
+                    transition: "opacity 0.15s",
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M9.5 3.5L5.5 8L9.5 12.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+
+                <button
+                  aria-label="Paso siguiente"
+                  onClick={() => setCurrentStep((s) => Math.min(result.steps.length - 1, s + 1))}
+                  disabled={currentStep >= result.steps.length - 1}
+                  style={{
+                    position: "absolute",
+                    top: "50%",
+                    right: "10px",
+                    transform: "translateY(-50%)",
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: T.rFull,
+                    background: T.white,
+                    border: `1px solid ${T.tertiaryBorder}`,
+                    boxShadow: T.shadowSm,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: currentStep >= result.steps.length - 1 ? "not-allowed" : "pointer",
+                    opacity: currentStep >= result.steps.length - 1 ? 0.3 : 1,
+                    pointerEvents: currentStep >= result.steps.length - 1 ? "none" : "auto",
+                    transition: "opacity 0.15s",
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M6.5 3.5L10.5 8L6.5 12.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "12px" }}>
+                {result.steps.map((_, si) => {
+                  const active = si === currentStep;
+                  return (
+                    <button
+                      key={si}
+                      aria-label={`Ir al paso ${si + 1}`}
+                      onClick={() => setCurrentStep(si)}
+                      style={{
+                        appearance: "none",
+                        border: "none",
+                        background: "transparent",
+                        padding: 0,
+                        width: active ? "8px" : "6px",
+                        height: active ? "8px" : "6px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <span
+                        style={{
+                          display: "block",
+                          width: active ? "8px" : "6px",
+                          height: active ? "8px" : "6px",
+                          borderRadius: "50%",
+                          background: active ? T.black : T.greyMiddle,
+                        }}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>}
 
           {result.issues?.length > 0 && <div>
             <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: T.textSecondary, marginBottom: "8px" }}>{t.issuesSectionLabel}</div>
             {issuesToShow.length > 0 ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {issuesToShow.map((issue, ii) => (
-                  <div key={ii} style={{ display: "flex", gap: "10px", alignItems: "flex-start", padding: "10px 14px" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "170px" }}>
-                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
-                        <Badge variant={sevMap[issue.severity]} dot>{t.sevLabels[issue.severity]}</Badge>
-                        <Badge variant={catVariantMap[issue.category]}>{catLabelMap[issue.category]}</Badge>
+                  <div key={ii} style={{ display: "flex", gap: "16px", padding: "16px 0" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px", flexShrink: 0 }}>
+                      <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
+                        <Badge variant={sevMap[issue.severity]}>{t.sevLabels[issue.severity]}</Badge>
+                        {issue.category ? <Badge variant="default">{catLabelMap[issue.category]}</Badge> : null}
                       </div>
                       {issue.component ? (
                         <span style={{
                           display: "inline-flex",
                           maxWidth: "100%",
-                          padding: "4px 10px",
-                          fontSize: "12px",
+                          padding: "3px 10px",
+                          fontSize: "11px",
                           fontWeight: 700,
                           borderRadius: T.rFull,
-                          background: T.beige50,
-                          color: T.black,
+                          background: T.primary,
+                          color: T.white,
                           lineHeight: "16px",
-                          border: `1px solid ${T.greySoftMiddle}`,
                           wordBreak: "break-word",
                         }}>{issue.component}</span>
                       ) : null}
                     </div>
-                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
-                      <span style={{ fontSize: "14px", color: T.black, lineHeight: 1.45 }}>{issue.description}</span>
+
+                    <div style={{ flex: 1 }}>
+                      <p style={{ margin: 0, fontSize: "14px", color: T.black, lineHeight: 1.5 }}>
+                        {issue.description}
+                      </p>
                       {issue.action ? (
-                        <div style={{ fontSize: "14px", color: T.textSecondary, lineHeight: 1.45 }}>
-                          <span style={{ fontWeight: 800, color: T.primary, marginRight: "6px" }}>→</span>
-                          {issue.action}
-                        </div>
+                        <p style={{ margin: "8px 0 0", fontSize: "13px", lineHeight: 1.5, color: T.textSecondary }}>
+                          → {issue.action}
+                        </p>
                       ) : null}
                     </div>
                   </div>

@@ -52,9 +52,6 @@ export async function simulatePersona(
       return {
         severity: "warning",
         description: "",
-        action: "",
-        component: "",
-        category: "ux",
       };
     }
 
@@ -65,11 +62,14 @@ export async function simulatePersona(
       severityRaw === "critical" || severityRaw === "warning" || severityRaw === "info" ? severityRaw : "warning";
 
     const categoryRaw = maybe.category;
-    const category: Issue["category"] = categoryRaw === "ux" || categoryRaw === "ui" || categoryRaw === "product" || categoryRaw === "copy" ? categoryRaw : "ux";
+    const category: Issue["category"] =
+      categoryRaw === "ux" || categoryRaw === "ui" || categoryRaw === "product" || categoryRaw === "copy"
+        ? categoryRaw
+        : undefined;
 
     const description = typeof maybe.description === "string" ? maybe.description : "";
-    const action = typeof maybe.action === "string" ? maybe.action : "";
-    const component = typeof maybe.component === "string" ? maybe.component : "";
+    const action = typeof maybe.action === "string" && maybe.action.trim() ? maybe.action : undefined;
+    const component = typeof maybe.component === "string" && maybe.component.trim() ? maybe.component : undefined;
 
     return { severity, description, action, component, category };
   };

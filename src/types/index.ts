@@ -19,9 +19,10 @@ export interface FlowStep {
 export interface Issue {
   severity: "critical" | "warning" | "info";
   description: string;
-  action: string;
-  component: string;
-  category: "ux" | "ui" | "product" | "copy";
+  // Campos opcionales: Gemini puede no enviarlos siempre.
+  action?: string;
+  component?: string;
+  category?: "ux" | "ui" | "product" | "copy";
 }
 
 export interface SimulationResult {
