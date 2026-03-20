@@ -28,6 +28,13 @@ export interface Issue {
 export interface SimulationResult {
   personaId: string;
   score: number;
+  /**
+   * Encaje producto-perfil (product-market fit para esta persona).
+   * 1-10 (1 = no encaja, 10 = encaja).
+   */
+  fit_score: number;
+  /** Nota corta explicando el encaje producto-perfil (PMF/fit). */
+  fit_note: string;
   summary: string;
   steps: FlowStep[];
   issues: Issue[];

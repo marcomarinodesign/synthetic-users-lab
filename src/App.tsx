@@ -506,7 +506,9 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const persona: AvatarPersona = PRESET_PERSONAS.find(p => p.id === result.personaId) ?? { name: "Custom", initials: "CU", avatarBg: T.accent100, avatarColor: T.accent700 };
   const sc = result.score || 0;
+  const fit = result.fit_score || 0;
   const scoreVariant: BadgeVariant = sc >= 7 ? "success" : sc >= 4 ? "warning" : "error";
+  const fitVariant: BadgeVariant = fit >= 7 ? "success" : fit >= 4 ? "warning" : "error";
   const sevMap: Record<IssueSeverity, BadgeVariant> = { critical: "error", warning: "warning", info: "info" };
   const catLabelMap: Record<IssueCategory, string> = { ux: "UX", ui: "UI", product: "Product", copy: "Copy" };
   const issuesToShow = issueCategoryFilter === "all" ? result.issues : result.issues.filter(i => i.category === issueCategoryFilter);
@@ -530,7 +532,10 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
             {result.issues?.length || 0} issues · {result.wouldReturn ? t.wouldReturnShort : t.wouldNotReturnShort}
           </div>
         </div>
-        <Badge variant={scoreVariant} dot>{sc}/10</Badge>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <Badge variant={scoreVariant} dot>UX {sc}/10</Badge>
+          <Badge variant={fitVariant}>{fit}/10</Badge>
+        </div>
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: T.greyDark, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
           <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
@@ -543,6 +548,10 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
           {result.summary && <div>
             <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: T.textSecondary, marginBottom: "8px" }}>{t.summaryLabel}</div>
             <p style={{ margin: 0, fontSize: "14px", lineHeight: 1.6, color: T.black }}>{result.summary}</p>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginTop: "10px" }}>
+              <Badge variant={fitVariant}>Fit {fit}/10</Badge>
+              {result.fit_note ? <span style={{ fontSize: "13px", color: T.textSecondary, lineHeight: 1.4 }}>{result.fit_note}</span> : null}
+            </div>
           </div>}
 
           {result.steps?.length > 0 && <div>
@@ -855,6 +864,8 @@ export default function SyntheticUsersLab() {
         all.push({
           personaId: p.id,
           score: 0,
+          fit_score: 0,
+          fit_note: "",
           summary: `Error: ${msg}`,
           steps: [],
           issues: [

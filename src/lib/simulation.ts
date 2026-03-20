@@ -77,9 +77,16 @@ export async function simulatePersona(
   const rawIssues: unknown = (data as unknown as { issues?: unknown }).issues;
   const issues: Issue[] = Array.isArray(rawIssues) ? rawIssues.map(normalizeIssue) : [];
 
+  const fitScoreRaw = (data as { fit_score?: unknown }).fit_score;
+  const fitNoteRaw = (data as { fit_note?: unknown }).fit_note;
+  const fit_score = typeof fitScoreRaw === "number" && Number.isFinite(fitScoreRaw) ? fitScoreRaw : 0;
+  const fit_note = typeof fitNoteRaw === "string" ? fitNoteRaw : "";
+
   return {
     personaId: persona.id,
     score: data.score ?? 0,
+    fit_score,
+    fit_note,
     summary: data.summary ?? "",
     steps: data.steps ?? [],
     issues,

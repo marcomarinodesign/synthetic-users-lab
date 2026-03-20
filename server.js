@@ -31,9 +31,13 @@ function repairJSON(raw) {
   } catch {}
   const scoreMatch = clean.match(/"score"\s*:\s*(\d+)/);
   const summaryMatch = clean.match(/"summary"\s*:\s*"([^"]*)/);
+  const fitScoreMatch = clean.match(/"fit_score"\s*:\s*(\d+)/);
+  const fitNoteMatch = clean.match(/"fit_note"\s*:\s*"([^"]*)/);
   const returnMatch = clean.match(/"wouldReturn"\s*:\s*(true|false)/);
   return {
     score: scoreMatch ? parseInt(scoreMatch[1]) : 5,
+    fit_score: fitScoreMatch ? parseInt(fitScoreMatch[1]) : 5,
+    fit_note: fitNoteMatch ? fitNoteMatch[1] : "",
     summary: summaryMatch ? summaryMatch[1] : "Respuesta parcial.",
     steps: [],
     issues: [
@@ -122,6 +126,19 @@ INSTRUCTIONS (PROFESSIONAL EVALUATION):
 3. Turn each issue into an implementable improvement ticket
 4. Be BRUTALLY HONEST from this expert's perspective
 
+IMPORTANTE — REGLA DE EVALUACIÓN (UX primero, PMF después):
+Tu trabajo es evaluar la EXPERIENCIA DE USO (UX/UI), NO si el producto te interesa personalmente.
+Incluso si el producto no encaja con tu perfil:
+- Evalúa igualmente el onboarding, la claridad de la propuesta de valor y la navegación
+- Identifica fricciones, confusiones y puntos de drop-off
+- Da feedback específico sobre CADA paso del recorrido
+- SIEMPRE completa el recorrido entero (mínimo 5 pasos) aunque el producto no encaje con tu perfil
+NUNCA concluyas con "no me interesa". Si el producto no es para ti, explica POR QUÉ la experiencia no te convenció y QUÉ cambiarías para que sí lo fuera.
+
+Además, separa dos métricas:
+- "score" (1-10) mide SOLO calidad UX (lo bien que funciona la experiencia)
+- "fit_score" (1-10) mide encaje producto-perfil (PMF para esta persona)
+
 IMPORTANTE — FORMATO DE ISSUES:
 Cada issue DEBE incluir:
 - "description": qué problema detectas y por qué impacta al usuario
@@ -134,7 +151,7 @@ Las acciones deben ser tan específicas que un diseñador o developer pueda impl
 LANGUAGE RULE: Write ALL text values in the JSON in ${langName}. This is mandatory — do not use any other language regardless of the source content language.
 
 Respond with ONLY valid JSON (no markdown, no backticks):
-{"score":<1-10>,"summary":"<2-3 sentences>","steps":[{"action":"<what they do>","reaction":"<what they think>"}],"issues":[${issuesSchema}],"wouldReturn":<bool>,"verbatim":"<literal quote from the persona>"}`
+{"score":<1-10>,"fit_score":<1-10>,"fit_note":"<1 sentence explaining the product-perf fit>","summary":"<2-3 sentences>","steps":[{"action":"<what they do>","reaction":"<what they think>"}],"issues":[${issuesSchema}],"wouldReturn":<bool>,"verbatim":"<literal quote from the persona>"}`
     : `You are a synthetic user simulator for digital product testing.
 Act EXACTLY as this profile when evaluating a product flow.
 
@@ -151,10 +168,23 @@ INSTRUCTIONS:
 3. Identify friction, confusion and drop-off moments
 4. Be BRUTALLY HONEST from this persona's perspective
 
+IMPORTANTE — REGLA DE EVALUACIÓN (UX primero, PMF después):
+Tu trabajo es evaluar la EXPERIENCIA DE USO (UX/UI), NO si el producto te interesa personalmente.
+Incluso si el producto no encaja con tu perfil:
+- Evalúa igualmente el onboarding, la claridad de la propuesta de valor y la navegación
+- Identifica fricciones, confusiones y puntos de drop-off
+- Da feedback específico sobre CADA paso del recorrido
+- SIEMPRE completa el recorrido entero (mínimo 5 pasos) aunque el producto no encaje con tu perfil
+NUNCA concluyas con "no me interesa". Si el producto no es para ti, explica POR QUÉ la experiencia no te convenció y QUÉ cambiarías para que sí lo fuera.
+
+Además, separa dos métricas:
+- "score" (1-10) mide SOLO calidad UX (lo bien que funciona la experiencia)
+- "fit_score" (1-10) mide encaje producto-perfil (PMF para esta persona)
+
 LANGUAGE RULE: Write ALL text values in the JSON in ${langName}. This is mandatory — do not use any other language regardless of the source content language.
 
 Respond with ONLY valid JSON (no markdown, no backticks):
-{"score":<1-10>,"summary":"<2-3 sentences>","steps":[{"action":"<what they do>","reaction":"<what they think>"}],"issues":[${issuesSchema}],"wouldReturn":<bool>,"verbatim":"<literal quote from the persona>"}`;
+{"score":<1-10>,"fit_score":<1-10>,"fit_note":"<1 sentence explaining the product-perf fit>","summary":"<2-3 sentences>","steps":[{"action":"<what they do>","reaction":"<what they think>"}],"issues":[${issuesSchema}],"wouldReturn":<bool>,"verbatim":"<literal quote from the persona>"}`;
 
   const userPrompt = `SOURCE: ${(sourceType || "description").toUpperCase()}\n\nFLOW:\n${flowInput}`;
 
