@@ -84,31 +84,36 @@ app.post("/api/simulate", async (req, res) => {
     });
   }
 
-  const { persona, sourceType, flowInput, productContext } = req.body || {};
+  const { persona, sourceType, flowInput, productContext, language = "es" } = req.body || {};
   if (!persona || !flowInput) {
     return res.status(400).json({ error: "Missing persona or flowInput" });
   }
 
-  const systemPrompt = `Eres un simulador de usuario sintético para testing de productos digitales.
-Actúa EXACTAMENTE como este perfil evaluando un flujo de producto.
+  const languageNames = { es: "español", en: "English", fr: "français", pt: "português", de: "Deutsch" };
+  const langName = languageNames[language] ?? language;
 
-PERFIL: ${persona.name}
-Descripción: ${persona.description}
-Rasgos: ${(persona.traits || []).join(", ")}
-Frustración: ${persona.frustration} | Nivel técnico: ${persona.techLevel}
+  const systemPrompt = `You are a synthetic user simulator for digital product testing.
+Act EXACTLY as this profile when evaluating a product flow.
 
-PRODUCTO: ${productContext || "Sin contexto adicional."}
+PROFILE: ${persona.name}
+Description: ${persona.description}
+Traits: ${(persona.traits || []).join(", ")}
+Frustration: ${persona.frustration} | Tech level: ${persona.techLevel}
 
-INSTRUCCIONES:
-1. Recorre el flujo paso a paso como este usuario
-2. Describe qué haría, pensaría y sentiría en cada paso
-3. Identifica fricciones, confusiones y momentos de abandono
-4. Sé BRUTALMENTE HONESTO desde esta perspectiva
+PRODUCT CONTEXT: ${productContext || "No additional context."}
 
-Responde SOLO JSON válido (sin markdown ni backticks):
-{"score":<1-10>,"summary":"<2-3 frases>","steps":[{"action":"<qué hace>","reaction":"<qué piensa>"}],"issues":[{"severity":"critical|warning|info","description":"<problema>"}],"wouldReturn":<bool>,"verbatim":"<frase textual>"}`;
+INSTRUCTIONS:
+1. Walk through the flow step by step as this user
+2. Describe what they would do, think and feel at each step
+3. Identify friction, confusion and drop-off moments
+4. Be BRUTALLY HONEST from this persona's perspective
 
-  const userPrompt = `FUENTE: ${(sourceType || "description").toUpperCase()}\n\nFLUJO:\n${flowInput}`;
+LANGUAGE RULE: Write ALL text values in the JSON in ${langName}. This is mandatory — do not use any other language regardless of the source content language.
+
+Respond with ONLY valid JSON (no markdown, no backticks):
+{"score":<1-10>,"summary":"<2-3 sentences>","steps":[{"action":"<what they do>","reaction":"<what they think>"}],"issues":[{"severity":"critical|warning|info","description":"<issue>"}],"wouldReturn":<bool>,"verbatim":"<literal quote from the persona>"}`;
+
+  const userPrompt = `SOURCE: ${(sourceType || "description").toUpperCase()}\n\nFLOW:\n${flowInput}`;
 
   try {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;

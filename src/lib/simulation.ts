@@ -18,7 +18,8 @@ export async function simulatePersona(
   persona: Persona,
   sourceType: SourceType,
   flowInput: string,
-  productContext: string
+  productContext: string,
+  language = "es"
 ): Promise<SimulationResult> {
   const response = await fetch("/api/simulate", {
     method: "POST",
@@ -35,6 +36,7 @@ export async function simulatePersona(
       sourceType,
       flowInput,
       productContext,
+      language,
     }),
   });
 
