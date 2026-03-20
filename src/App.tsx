@@ -827,21 +827,15 @@ export default function SyntheticUsersLab() {
           </div>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList
-              className="w-full bg-[var(--color-grey-soft)] rounded-xl p-1 mb-5"
+              className="bg-[var(--color-grey-soft)] mb-5"
             >
-              <TabsTrigger
-                value="simple"
-                className="flex flex-col items-start justify-start rounded-lg px-4 py-3"
-              >
+              <TabsTrigger value="simple">
                 <div className="text-sm font-bold text-[var(--color-basics-black)] mb-1">👤 Usuarios</div>
                 <div className="text-xs text-muted-foreground">
                   Simulan personas reales usando tu producto
                 </div>
               </TabsTrigger>
-              <TabsTrigger
-                value="pro"
-                className="flex flex-col items-start justify-start rounded-lg px-4 py-3"
-              >
+              <TabsTrigger value="pro">
                 <div className="text-sm font-bold text-[var(--color-basics-black)] mb-1">🔬 Pro</div>
                 <div className="text-xs text-muted-foreground">
                   Expertos UX/UI que dan feedback accionable
