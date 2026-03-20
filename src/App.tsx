@@ -644,18 +644,12 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
                         ) : null}
                       </div>
                       {issue.component ? (
-                        <span style={{
-                          display: "inline-flex",
-                          maxWidth: "100%",
-                          padding: "3px 10px",
-                          fontSize: "11px",
-                          fontWeight: 700,
-                          borderRadius: T.rFull,
-                          background: T.primary,
-                          color: T.white,
-                          lineHeight: "16px",
-                          wordBreak: "break-word",
-                        }}>{issue.component}</span>
+                        <ShadBadge
+                          variant="default"
+                          className="whitespace-normal break-words max-w-full"
+                        >
+                          {issue.component}
+                        </ShadBadge>
                       ) : null}
                     </div>
 
