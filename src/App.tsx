@@ -363,7 +363,7 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
       <button
         onClick={() => setOpen(!open)}
         aria-expanded={open}
-        className="w-full flex items-center gap-[14px] px-5 py-4 bg-transparent border-none cursor-pointer text-left outline-none font-[var(--font-sans)]"
+        className="w-full flex items-center gap-[14px] px-5 py-4 bg-transparent border-none cursor-pointer text-left outline-none font-sans"
       >
         <Avatar persona={persona} size={36} />
         <div className="flex-1">
@@ -719,7 +719,7 @@ export default function SyntheticUsersLab() {
   const overlapAvatarZ = ["z-[5]", "z-[4]", "z-[3]", "z-[2]", "z-[1]"] as const;
 
   return (
-    <div className="min-h-[100vh] bg-[var(--color-beige-25)] font-[var(--font-sans)] text-[var(--color-basics-black)] p-[40px_20px] antialiased">
+    <div className="min-h-[100vh] bg-[var(--color-beige-25)] font-sans text-[var(--color-basics-black)] p-[40px_20px] antialiased">
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
       <div className="max-w-[680px] mx-auto">
 
@@ -743,7 +743,7 @@ export default function SyntheticUsersLab() {
                 key={code}
                 onClick={() => setLanguage(code)}
                 className={[
-                  "px-[12px] py-[5px] rounded-[var(--radius-full)] text-[12px] cursor-pointer font-[var(--font-sans)] transition-all duration-150",
+                  "px-[12px] py-[5px] rounded-[var(--radius-full)] text-[12px] cursor-pointer font-sans transition-all duration-150",
                   language === code
                     ? "bg-[var(--color-primary)] text-[var(--color-primary-text)] font-semibold border border-[var(--color-primary)]"
                     : "bg-[var(--color-basics-white)] text-[var(--color-basics-black)] font-normal border border-[var(--color-grey-soft)]",
