@@ -111,24 +111,24 @@ body {
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.555 0.163 48.998);
-  --primary-foreground: oklch(0.987 0.022 95.277);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --background: var(--color-beige-25);
+  --foreground: var(--color-basics-black);
+  --card: var(--color-basics-white);
+  --card-foreground: var(--color-basics-black);
+  --popover: var(--color-basics-white);
+  --popover-foreground: var(--color-basics-black);
+  --primary: var(--color-primary);
+  --primary-foreground: var(--color-primary-text);
+  --secondary: var(--color-secondary);
+  --secondary-foreground: var(--color-secondary-text);
+  --muted: var(--color-beige-50);
+  --muted-foreground: var(--color-basics-text-secondary);
+  --accent: var(--color-accent-300);
+  --accent-foreground: var(--color-basics-black);
+  --destructive: var(--color-error-1);
+  --border: var(--color-tertiary-border);
+  --input: var(--color-tertiary-border);
+  --ring: var(--color-primary);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);

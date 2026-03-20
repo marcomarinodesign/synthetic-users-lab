@@ -1,10 +1,12 @@
-import { useState, useCallback, useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import { useState, useCallback, useEffect, useRef, type CSSProperties } from "react";
 import type { Persona, SimulationResult, SourceType } from "@/types";
 import { PRESET_PERSONAS } from "@/lib/personas";
 import { simulatePersona, fetchUrlContent } from "@/lib/simulation";
 
 import { Button as ShadButton } from "@/components/ui/button";
 import { Badge as ShadBadge } from "@/components/ui/badge";
+import { Card as ShadCard } from "@/components/ui/card";
+import { Progress as ShadProgress } from "@/components/ui/progress";
 import {
   Dialog,
   DialogContent,
@@ -254,117 +256,7 @@ function Avatar({ persona, size = 40, border }: AvatarProps) {
   );
 }
 
-/* ─── DS-aligned styles ─── */
-const inputStyle: CSSProperties = {
-  width: "100%", height: "40px", padding: "0 16px",
-  background: T.white, border: `1px solid ${T.tertiaryBorder}`,
-  borderRadius: T.rMd, color: T.black,
-  fontSize: "16px", lineHeight: "22px", fontFamily: T.font,
-  outline: "none", boxSizing: "border-box",
-  transition: "border-color 0.15s",
-};
-const textareaStyle: CSSProperties = {
-  ...inputStyle, height: "auto", padding: "10px 16px",
-  resize: "vertical", lineHeight: 1.5,
-};
-const labelStyle: CSSProperties = {
-  fontSize: "14px", fontWeight: 600, lineHeight: "1",
-  color: T.black, marginBottom: "6px", display: "block",
-};
-
 /* ─── DS Components ─── */
-
-interface BadgeProps {
-  children: ReactNode;
-  variant?: BadgeVariant;
-  dot?: boolean;
-}
-
-function Badge({ children, variant = "default", dot = false }: BadgeProps) {
-  const vars: Record<BadgeVariant, { bg: string; text: string; dotC: string }> = {
-    default: { bg: T.beige50, text: T.black, dotC: T.black },
-    success: { bg: T.accent100, text: T.accent700, dotC: T.accent700 },
-    warning: { bg: T.warning2, text: T.warning1, dotC: T.warning1 },
-    error: { bg: T.error3, text: T.error1, dotC: T.error1 },
-    info: { bg: T.info2, text: T.info1, dotC: T.info1 },
-  };
-  const v = vars[variant];
-  return (
-    <span style={{
-      display: "inline-flex", alignItems: "center", gap: "4px",
-      padding: "4px 10px", fontSize: "12px", fontWeight: 700,
-      lineHeight: "16px", borderRadius: T.rFull,
-      background: v.bg, color: v.text,
-    }}>
-      {dot && <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: v.dotC, flexShrink: 0 }} />}
-      {children}
-    </span>
-  );
-}
-
-interface BtnPrimaryProps {
-  children: ReactNode;
-  disabled?: boolean;
-  onClick?: () => void;
-  block?: boolean;
-  style?: CSSProperties;
-}
-
-function BtnPrimary({ children, disabled, onClick, block, style: s }: BtnPrimaryProps) {
-  return (
-    <button onClick={onClick} disabled={disabled} style={{
-      display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px",
-      height: "40px", padding: "0 24px",
-      background: disabled ? "rgba(0,0,0,0.5)" : T.primary,
-      color: T.primaryText, fontSize: "16px", fontWeight: 600, fontFamily: T.font,
-      lineHeight: "22px", border: "none", borderRadius: T.rFull,
-      cursor: disabled ? "not-allowed" : "pointer", outline: "none",
-      transition: "background 0.15s",
-      width: block ? "100%" : "auto", ...s,
-    }}>{children}</button>
-  );
-}
-
-interface BtnSecondaryProps {
-  children: ReactNode;
-  onClick?: () => void;
-  block?: boolean;
-  style?: CSSProperties;
-}
-
-function BtnSecondary({ children, onClick, block, style: s }: BtnSecondaryProps) {
-  return (
-    <button onClick={onClick} style={{
-      display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px",
-      height: "40px", padding: "0 24px",
-      background: T.secondary, color: T.secondaryText,
-      fontSize: "16px", fontWeight: 600, fontFamily: T.font,
-      lineHeight: "22px", border: "none", borderRadius: T.rFull,
-      cursor: "pointer", outline: "none", transition: "background 0.15s",
-      width: block ? "100%" : "auto", ...s,
-    }}>{children}</button>
-  );
-}
-
-interface BtnTertiaryProps {
-  children: ReactNode;
-  onClick?: () => void;
-  style?: CSSProperties;
-}
-
-function BtnTertiary({ children, onClick, style: s }: BtnTertiaryProps) {
-  return (
-    <button onClick={onClick} style={{
-      display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px",
-      height: "40px", padding: "0 24px",
-      background: T.white, color: T.black,
-      fontSize: "16px", fontWeight: 600, fontFamily: T.font,
-      lineHeight: "22px", border: `1px solid ${T.tertiaryBorder}`,
-      borderRadius: T.rFull, cursor: "pointer", outline: "none",
-      transition: "all 0.15s", ...s,
-    }}>{children}</button>
-  );
-}
 
 interface PersonaCardProps {
   persona: Persona;
@@ -403,11 +295,17 @@ function PersonaCard({ persona, selected, onToggle }: PersonaCardProps) {
           <p style={{ margin: 0, fontSize: "13px", lineHeight: "19.5px", color: T.black }}>{persona.description}</p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
             {persona.traits.map(t => (
-              <span key={t} style={{
-                display: "inline-block", padding: "3px 10px",
-                fontSize: "11px", fontWeight: 700, borderRadius: T.rFull,
-                background: selected ? T.accent200 : T.beige50, color: T.black, lineHeight: "16px",
-              }}>{t}</span>
+              <ShadBadge
+                key={t}
+                variant="outline"
+                className={
+                  selected
+                    ? "bg-[var(--color-accent-200)] text-[var(--color-basics-black)] border-[var(--color-accent-200)]"
+                    : "bg-[var(--color-beige-50)] text-[var(--color-basics-black)] border-[var(--color-tertiary-border)]"
+                }
+              >
+                {t}
+              </ShadBadge>
             ))}
           </div>
         </div>
@@ -425,12 +323,8 @@ function ProgressBar({ steps, current }: ProgressBarProps) {
   const pct = (current / (steps.length - 1)) * 100;
   return (
     <div style={{ marginBottom: "32px" }}>
-      <div style={{ position: "relative", height: "6px", background: T.greySoft, borderRadius: "3px", overflow: "hidden", marginBottom: "14px" }}>
-        <div style={{
-          position: "absolute", top: 0, left: 0, height: "100%",
-          width: `${pct}%`, background: T.primary, borderRadius: "3px",
-          transition: "width 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-        }} />
+      <div style={{ marginBottom: "14px" }}>
+        <ShadProgress value={pct} className="w-full gap-0" />
       </div>
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         {steps.map((s, i) => (
@@ -471,7 +365,26 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
   const fit = result.fit_score || 0;
   const scoreVariant: BadgeVariant = sc >= 7 ? "success" : sc >= 4 ? "warning" : "error";
   const fitVariant: BadgeVariant = fit >= 7 ? "success" : fit >= 4 ? "warning" : "error";
-  const sevMap: Record<IssueSeverity, BadgeVariant> = { critical: "error", warning: "warning", info: "info" };
+  const scoreBadgeClass =
+    scoreVariant === "success"
+      ? "bg-[var(--color-accent-100)] text-[var(--color-accent-700)] border-[var(--color-accent-300)]"
+      : scoreVariant === "warning"
+        ? "bg-[var(--color-warning-2)] text-[var(--color-warning-1)] border-[var(--color-warning-1)]"
+        : "bg-[var(--color-error-3)] text-[var(--color-error-1)] border-[var(--color-error-2)]";
+  const fitBadgeClass =
+    fitVariant === "success"
+      ? "bg-[var(--color-accent-100)] text-[var(--color-accent-700)] border-[var(--color-accent-300)]"
+      : fitVariant === "warning"
+        ? "bg-[var(--color-warning-2)] text-[var(--color-warning-1)] border-[var(--color-warning-1)]"
+        : "bg-[var(--color-error-3)] text-[var(--color-error-1)] border-[var(--color-error-2)]";
+  const issueSeverityBadgeClass =
+    (sev: IssueSeverity) =>
+      sev === "critical"
+        ? "bg-[var(--color-error-3)] text-[var(--color-error-1)] border-[var(--color-error-2)]"
+        : sev === "warning"
+          ? "bg-[var(--color-warning-2)] text-[var(--color-warning-1)] border-[var(--color-warning-1)]"
+          : "bg-[var(--color-info-2)] text-[var(--color-info-1)] border-[var(--color-info-1)]";
+  const issueCategoryBadgeClass = "bg-[var(--color-beige-50)] text-[var(--color-basics-black)] border-[var(--color-tertiary-border)]";
   const catLabelMap: Record<IssueCategory, string> = { ux: "UX", ui: "UI", product: "Product", copy: "Copy" };
   const issuesToShow = issueCategoryFilter === "all" ? result.issues : result.issues.filter(i => i.category === issueCategoryFilter);
 
@@ -495,8 +408,12 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <Badge variant={scoreVariant} dot>UX {sc}/10</Badge>
-          <Badge variant={fitVariant}>{fit}/10</Badge>
+          <ShadBadge variant="outline" className={scoreBadgeClass}>
+            UX {sc}/10
+          </ShadBadge>
+          <ShadBadge variant="outline" className={fitBadgeClass}>
+            Fit {fit}/10
+          </ShadBadge>
         </div>
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: T.greyDark, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
           <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -511,7 +428,9 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
             <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: T.textSecondary, marginBottom: "8px" }}>{t.summaryLabel}</div>
             <p style={{ margin: 0, fontSize: "14px", lineHeight: 1.6, color: T.black }}>{result.summary}</p>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginTop: "10px" }}>
-              <Badge variant={fitVariant}>Fit {fit}/10</Badge>
+              <ShadBadge variant="outline" className={fitBadgeClass}>
+                Fit {fit}/10
+              </ShadBadge>
               {result.fit_note ? <span style={{ fontSize: "13px", color: T.textSecondary, lineHeight: 1.4 }}>{result.fit_note}</span> : null}
             </div>
           </div>}
@@ -588,7 +507,12 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
                         </div>
 
                         <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-                          <Badge variant="success">{si + 1}</Badge>
+                          <ShadBadge
+                            variant="outline"
+                            className="bg-[var(--color-accent-100)] text-[var(--color-accent-700)] border-[var(--color-accent-300)]"
+                          >
+                            {si + 1}
+                          </ShadBadge>
                           <div style={{ flex: 1 }}>
                             <div style={{ fontSize: "15px", fontWeight: 800, color: T.black, lineHeight: "20px" }}>
                               {s.action}
@@ -704,8 +628,14 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
                   <div key={ii} style={{ display: "flex", gap: "16px", padding: "16px 0" }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: "6px", flexShrink: 0 }}>
                       <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
-                        <Badge variant={sevMap[issue.severity]}>{t.sevLabels[issue.severity]}</Badge>
-                        {issue.category ? <Badge variant="default">{catLabelMap[issue.category]}</Badge> : null}
+                        <ShadBadge variant="outline" className={issueSeverityBadgeClass(issue.severity)}>
+                          {t.sevLabels[issue.severity]}
+                        </ShadBadge>
+                        {issue.category ? (
+                          <ShadBadge variant="outline" className={issueCategoryBadgeClass}>
+                            {catLabelMap[issue.category]}
+                          </ShadBadge>
+                        ) : null}
                       </div>
                       {issue.component ? (
                         <span style={{
@@ -1012,16 +942,41 @@ export default function SyntheticUsersLab() {
         {/* Step 1 */}
         {step === 1 && <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           <div>
-            <label style={labelStyle}>{t.linkLabel}</label>
-            <input value={flowInput} onChange={e => setFlowInput(e.target.value)} placeholder={t.linkPlaceholder} style={inputStyle} />
+            <ShadLabel htmlFor="flow-input">{t.linkLabel}</ShadLabel>
+            <ShadInput
+              id="flow-input"
+              value={flowInput}
+              onChange={e => setFlowInput(e.target.value)}
+              placeholder={t.linkPlaceholder}
+            />
           </div>
           <div>
-            <label style={labelStyle}>{t.contextLabel} <span style={{ fontWeight: 400, color: T.textSecondary }}>{t.contextOptional}</span></label>
-            <textarea value={productContext} onChange={e => setProductContext(e.target.value)} placeholder={t.contextPlaceholder} rows={7} style={textareaStyle} />
+            <ShadLabel htmlFor="product-context">
+              {t.contextLabel} <span className="font-normal text-muted-foreground">{t.contextOptional}</span>
+            </ShadLabel>
+            <ShadTextarea
+              id="product-context"
+              value={productContext}
+              onChange={e => setProductContext(e.target.value)}
+              placeholder={t.contextPlaceholder}
+              rows={7}
+            />
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignSelf: "center", alignItems: "stretch" }}>
-            <BtnPrimary onClick={() => { setStep(2); run(); }} disabled={!flowInput.trim()}>{t.launchBtn}</BtnPrimary>
-            <BtnTertiary onClick={() => setStep(0)}>{t.backBtn}</BtnTertiary>
+            <ShadButton
+              onClick={() => { setStep(2); run(); }}
+              disabled={!flowInput.trim()}
+              className="w-full h-10"
+            >
+              {t.launchBtn}
+            </ShadButton>
+            <ShadButton
+              variant="outline"
+              onClick={() => setStep(0)}
+              className="w-full h-10"
+            >
+              {t.backBtn}
+            </ShadButton>
           </div>
         </div>}
 
@@ -1065,26 +1020,35 @@ export default function SyntheticUsersLab() {
               <div style={{ fontSize: "16px", fontWeight: 600, color: T.black }}>{progress.currentPersona}</div>
               <div style={{ fontSize: "13px", color: T.textSecondary, marginTop: "4px" }}>{t.userOf(progress.current, progress.total)}</div>
             </div>
-            <div style={{ width: "180px", height: "6px", background: T.greySoft, borderRadius: "3px", overflow: "hidden" }}>
-              <div style={{ height: "100%", background: T.accent300, borderRadius: "3px", width: `${(progress.current / progress.total) * 100}%`, transition: "width 0.4s" }} />
-            </div>
+            <ShadProgress value={(progress.current / progress.total) * 100} className="w-[180px]" />
           </>}
         </div>}
 
         {/* Step 3 */}
         {step === 3 && results && <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "10px" }}>
+          <div className="grid grid-cols-4 gap-2.5">
             {([
               { l: t.scoreLabel, v: avg, variant: (avgScore >= 7 ? "success" : avgScore >= 4 ? "warning" : "error") as BadgeVariant },
               { l: t.issuesLabel, v: issueCount, variant: "warning" as BadgeVariant },
               { l: t.criticalLabel, v: critCount, variant: "error" as BadgeVariant },
               { l: t.retentionLabel, v: `${retainCount}/${results.length}`, variant: "success" as BadgeVariant },
-            ]).map((m, i) => (
-              <div key={i} style={{ padding: "16px 12px", background: T.white, border: `1px solid ${T.tertiaryBorder}`, borderRadius: T.rLg, textAlign: "center", boxShadow: T.shadowSm }}>
-                <div style={{ fontSize: "24px", fontWeight: 800, color: T.black, marginBottom: "4px" }}>{m.v}</div>
-                <Badge variant={m.variant} dot>{m.l}</Badge>
-              </div>
-            ))}
+            ]).map((m, i) => {
+              const badgeClass =
+                m.variant === "success"
+                  ? "bg-[var(--color-accent-100)] text-[var(--color-accent-700)] border-[var(--color-accent-300)]"
+                  : m.variant === "warning"
+                    ? "bg-[var(--color-warning-2)] text-[var(--color-warning-1)] border-[var(--color-warning-1)]"
+                    : "bg-[var(--color-error-3)] text-[var(--color-error-1)] border-[var(--color-error-2)]";
+
+              return (
+                <ShadCard key={i} className="p-4 text-center border border-[var(--color-tertiary-border)] shadow-xs">
+                  <div className="text-3xl font-extrabold text-[var(--color-basics-black)] mb-1.5">{m.v}</div>
+                  <ShadBadge variant="outline" className={`border ${badgeClass}`}>
+                    {m.l}
+                  </ShadBadge>
+                </ShadCard>
+              );
+            })}
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
             <div style={{ fontSize: "16px", fontWeight: 700, color: T.black }}>{t.resultsByUser}</div>
@@ -1096,31 +1060,26 @@ export default function SyntheticUsersLab() {
                 { id: "product", label: "Product" },
                 { id: "copy", label: "Copy" },
               ] as { id: "all" | IssueCategory; label: string }[]).map(({ id, label }) => (
-                <button
+                <ShadButton
                   key={id}
                   onClick={() => setIssueCategoryFilter(id)}
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: T.rFull,
-                    border: `1.5px solid ${issueCategoryFilter === id ? T.primary : T.greySoft}`,
-                    background: issueCategoryFilter === id ? T.primary : T.white,
-                    color: issueCategoryFilter === id ? T.primaryText : T.black,
-                    fontSize: "12px",
-                    fontWeight: issueCategoryFilter === id ? 600 : 400,
-                    cursor: "pointer",
-                    fontFamily: T.font,
-                    transition: "all 0.15s",
-                  }}
+                  variant={issueCategoryFilter === id ? "default" : "outline"}
+                  size="sm"
+                  className="rounded-full"
                 >
                   {label}
-                </button>
+                </ShadButton>
               ))}
             </div>
           </div>
           {results.map((r, i) => <ResultCard key={i} result={r} index={i} t={t} issueCategoryFilter={issueCategoryFilter} />)}
           <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignSelf: "center", alignItems: "stretch", marginTop: "8px" }}>
-            <BtnPrimary onClick={() => { setStep(0); setResults(null); }}>{t.newTestBtn}</BtnPrimary>
-            <BtnSecondary onClick={() => { setStep(1); setResults(null); }}>{t.editFlowBtn}</BtnSecondary>
+            <ShadButton onClick={() => { setStep(0); setResults(null); }} className="rounded-full">
+              {t.newTestBtn}
+            </ShadButton>
+            <ShadButton variant="secondary" onClick={() => { setStep(1); setResults(null); }} className="rounded-full">
+              {t.editFlowBtn}
+            </ShadButton>
           </div>
         </div>}
       </div>
