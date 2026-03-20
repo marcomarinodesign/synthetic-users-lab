@@ -7,76 +7,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@theme {
-  --color-primary: #000000;
-  --color-primary-text: #ffffff;
-  --color-secondary: #beff50;
-  --color-secondary-text: #000000;
-  --color-tertiary: #ffffff;
-  --color-tertiary-text: #000000;
-  --color-tertiary-border: #EBEBEB;
-  --color-disabled: #949494;
-
-  --font-sans: "Inter", sans-serif;
-
-  /* ── Spacing — 4px base grid ── */
-  --space-1:  4px;
-  --space-2:  8px;
-  --space-3:  12px;
-  --space-4:  16px;
-  --space-5:  20px;
-  --space-6:  24px;
-  --space-8:  32px;
-  --space-10: 40px;
-  --space-12: 48px;
-  --space-16: 64px;
-
-  /* ── Border radius ── */
-  --radius-none: 0px;
-  --radius-xs:   2px;
-  --radius-sm:   4px;
-  --radius-md:   8px;
-  --radius-lg:   12px;
-  --radius-xl:   16px;
-  --radius-2xl:  24px;
-  --radius-full: 9999px;
-
-  /* ── Shadow / Elevation ── */
-  --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.10), 0 2px 4px -2px rgba(0,0,0,0.10);
-  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.10), 0 4px 6px -4px rgba(0,0,0,0.10);
-
-  /* ── Foundation palette ── */
-  --color-accent-100: #EEFFC7;
-  --color-accent-200: #DBFF95;
-  --color-accent-300: #BEFF50;
-  --color-accent-500: #86DD05;
-  --color-accent-700: #4D8605;
-
-  --color-basics-black:          #000000;
-  --color-basics-white:          #FFFFFF;
-  --color-basics-text-secondary: #95958F;
-
-  --color-beige-25:  #FBFBF7;
-  --color-beige-50:  #F5F5EB;
-  --color-beige-100: #DCDCCB;
-  --color-beige-200: #D0CFB8;
-  --color-beige-300: #B4B290;
-
-  --color-grey-soft:        #EBEBEB;
-  --color-grey-soft-middle: #D8D8D8;
-  --color-grey-middle:      #C3C3C3;
-  --color-grey-dark:        #949494;
-
-  --color-error-1:   #DC2625;
-  --color-error-2:   #FECACA;
-  --color-error-3:   #FFE0E0;
-  --color-warning-1: #E89E1B;
-  --color-warning-2: #FFEBC6;
-  --color-info-1:    #1447E6;
-  --color-info-2:    #DBEAFE;
-}
-
 *,
 *::before,
 *::after {
@@ -232,4 +162,75 @@ body {
   html {
     @apply font-sans;
   }
+}
+
+/* ── Custom design tokens (must come AFTER @theme inline to avoid circular refs) ── */
+@theme {
+  --color-primary: #000000;
+  --color-primary-text: #ffffff;
+  --color-secondary: #beff50;
+  --color-secondary-text: #000000;
+  --color-tertiary: #ffffff;
+  --color-tertiary-text: #000000;
+  --color-tertiary-border: #EBEBEB;
+  --color-disabled: #949494;
+
+  --font-sans: "Inter", sans-serif;
+
+  /* ── Spacing — 4px base grid ── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ── Border radius ── */
+  --radius-none: 0px;
+  --radius-xs:   2px;
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-2xl:  24px;
+  --radius-full: 9999px;
+
+  /* ── Shadow / Elevation ── */
+  --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.10), 0 2px 4px -2px rgba(0,0,0,0.10);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.10), 0 4px 6px -4px rgba(0,0,0,0.10);
+
+  /* ── Foundation palette ── */
+  --color-accent-100: #EEFFC7;
+  --color-accent-200: #DBFF95;
+  --color-accent-300: #BEFF50;
+  --color-accent-500: #86DD05;
+  --color-accent-700: #4D8605;
+
+  --color-basics-black:          #000000;
+  --color-basics-white:          #FFFFFF;
+  --color-basics-text-secondary: #95958F;
+
+  --color-beige-25:  #FBFBF7;
+  --color-beige-50:  #F5F5EB;
+  --color-beige-100: #DCDCCB;
+  --color-beige-200: #D0CFB8;
+  --color-beige-300: #B4B290;
+
+  --color-grey-soft:        #EBEBEB;
+  --color-grey-soft-middle: #D8D8D8;
+  --color-grey-middle:      #C3C3C3;
+  --color-grey-dark:        #949494;
+
+  --color-error-1:   #DC2625;
+  --color-error-2:   #FECACA;
+  --color-error-3:   #FFE0E0;
+  --color-warning-1: #E89E1B;
+  --color-warning-2: #FFEBC6;
+  --color-info-1:    #1447E6;
+  --color-info-2:    #DBEAFE;
 }

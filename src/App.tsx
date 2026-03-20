@@ -850,12 +850,12 @@ export default function SyntheticUsersLab() {
             </TabsList>
           </Tabs>
 
-          <div className="flex flex-col gap-[20px]">
+          <div className="flex flex-col gap-[20px] max-h-[48vh] lg:max-h-[60vh] overflow-y-auto pr-1">
             {PRESET_PERSONAS.filter(p => p.category === activeTab).map(p => (
               <PersonaCard key={p.id} persona={p} selected={selectedPersonas.includes(p.id)} onToggle={toggle} />
             ))}
           </div>
-          <div className="flex flex-col gap-[10px] self-center items-stretch sticky bottom-0 z-[10] bg-[var(--color-beige-25)] pt-[10px] pb-[12px]">
+          <div className="flex flex-col gap-[10px] self-center items-stretch">
             <ShadButton
               size="lg"
               onClick={() => setStep(1)}
