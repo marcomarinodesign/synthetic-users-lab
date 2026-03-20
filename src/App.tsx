@@ -653,7 +653,20 @@ export default function SyntheticUsersLab() {
   const addCustom = () => {
     if (!canAdd) return;
     const id = `custom-${Date.now()}`;
-    PRESET_PERSONAS.push({ id, name: customPersona.name, category: "simple", initials: customPersona.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase(), avatarBg: "var(--color-beige-50)", avatarColor: "var(--color-basics-black)", description: customPersona.description, traits: customPersona.traits.split(",").map(t => t.trim()).filter(Boolean), frustration: "medium", techLevel: "medium" });
+    const category = activeTab;
+    PRESET_PERSONAS.push({
+      id,
+      name: customPersona.name,
+      category,
+      initials: customPersona.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase(),
+      avatarBg: "var(--color-beige-50)",
+      avatarColor: "var(--color-basics-black)",
+      description: customPersona.description,
+      traits: customPersona.traits.split(",").map(t => t.trim()).filter(Boolean),
+      // Defaults alineados con la intención de la pestaña activa.
+      frustration: category === "pro" ? "low" : "medium",
+      techLevel: category === "pro" ? "high" : "medium",
+    });
     setSelectedPersonas(p => [...p, id]);
     setCustomPersona({ name: "", description: "", traits: "" });
     setShowModal(false);
