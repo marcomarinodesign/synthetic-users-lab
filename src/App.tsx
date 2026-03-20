@@ -1027,10 +1027,10 @@ export default function SyntheticUsersLab() {
           </div>
           {results.map((r, i) => <ResultCard key={i} result={r} index={i} t={t} issueCategoryFilter={issueCategoryFilter} />)}
           <div className="flex flex-col gap-[10px] self-center items-stretch mt-[8px]">
-            <ShadButton onClick={() => { setStep(0); setResults(null); }} className="rounded-full">
+            <ShadButton onClick={() => { setStep(0); setResults(null); }} className="w-full rounded-full">
               {t.newTestBtn}
             </ShadButton>
-            <ShadButton variant="secondary" onClick={() => { setStep(1); setResults(null); }} className="rounded-full">
+            <ShadButton variant="secondary" onClick={() => { setStep(1); setResults(null); }} className="w-full rounded-full">
               {t.editFlowBtn}
             </ShadButton>
           </div>
