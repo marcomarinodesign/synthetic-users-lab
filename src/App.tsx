@@ -987,48 +987,58 @@ export default function SyntheticUsersLab() {
         </div>}
 
         {/* Step 2 */}
-        {step === 2 && loading && <div style={{
-          display: "flex", flexDirection: "column", alignItems: "center", gap: "28px",
-          padding: "60px 20px", background: T.white, borderRadius: T.rXl,
-          border: `1px solid ${T.tertiaryBorder}`, boxShadow: T.shadowSm,
-        }}>
-          <style>{`@keyframes pSpin{to{transform:rotate(360deg)}}`}</style>
-          {/* Two-phase indicator */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "14px", width: "260px" }}>
-            {/* Phase 1 */}
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              {loadingPhase === "fetching" ? (
-                <div style={{ flexShrink: 0, width: "20px", height: "20px", borderRadius: "50%", border: `2px solid ${T.greySoft}`, borderTopColor: T.primary, animation: "pSpin 0.8s linear infinite" }} />
-              ) : (
-                <div style={{ flexShrink: 0, width: "20px", height: "20px", borderRadius: "50%", background: T.accent500, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <svg width="11" height="8" viewBox="0 0 11 8" fill="none"><path d="M1 4L4 7L10 1" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        {step === 2 && loading && (
+          <ShadCard className="p-0 border border-[var(--color-tertiary-border)] shadow-xs">
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "28px",
+                padding: "60px 20px",
+              }}
+            >
+              <style>{`@keyframes pSpin{to{transform:rotate(360deg)}}`}</style>
+              {/* Two-phase indicator */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "14px", width: "260px" }}>
+                {/* Phase 1 */}
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  {loadingPhase === "fetching" ? (
+                    <div style={{ flexShrink: 0, width: "20px", height: "20px", borderRadius: "50%", border: `2px solid ${T.greySoft}`, borderTopColor: T.primary, animation: "pSpin 0.8s linear infinite" }} />
+                  ) : (
+                    <div style={{ flexShrink: 0, width: "20px", height: "20px", borderRadius: "50%", background: T.accent500, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg width="11" height="8" viewBox="0 0 11 8" fill="none"><path d="M1 4L4 7L10 1" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </div>
+                  )}
+                  <span style={{ fontSize: "14px", fontWeight: loadingPhase === "fetching" ? 600 : 400, color: loadingPhase === "fetching" ? T.black : T.greyDark, textDecoration: loadingPhase === "fetching" ? "none" : "line-through" }}>
+                    {t.fetchingPhase}
+                  </span>
                 </div>
+                {/* Phase 2 */}
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  {loadingPhase === "analyzing" ? (
+                    <div style={{ flexShrink: 0, width: "20px", height: "20px", borderRadius: "50%", border: `2px solid ${T.greySoft}`, borderTopColor: T.primary, animation: "pSpin 0.8s linear infinite" }} />
+                  ) : (
+                    <div style={{ flexShrink: 0, width: "20px", height: "20px", borderRadius: "50%", border: `2px solid ${T.greySoft}` }} />
+                  )}
+                  <span style={{ fontSize: "14px", fontWeight: loadingPhase === "analyzing" ? 600 : 400, color: loadingPhase === "analyzing" ? T.black : T.greyDark }}>
+                    {t.analyzingPhase}
+                  </span>
+                </div>
+              </div>
+              {/* Persona progress (only visible during analyzing phase) */}
+              {loadingPhase === "analyzing" && progress.total > 0 && (
+                <>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: "16px", fontWeight: 600, color: T.black }}>{progress.currentPersona}</div>
+                    <div style={{ fontSize: "13px", color: T.textSecondary, marginTop: "4px" }}>{t.userOf(progress.current, progress.total)}</div>
+                  </div>
+                  <ShadProgress value={(progress.current / progress.total) * 100} className="w-[180px]" />
+                </>
               )}
-              <span style={{ fontSize: "14px", fontWeight: loadingPhase === "fetching" ? 600 : 400, color: loadingPhase === "fetching" ? T.black : T.greyDark, textDecoration: loadingPhase === "fetching" ? "none" : "line-through" }}>
-                {t.fetchingPhase}
-              </span>
             </div>
-            {/* Phase 2 */}
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              {loadingPhase === "analyzing" ? (
-                <div style={{ flexShrink: 0, width: "20px", height: "20px", borderRadius: "50%", border: `2px solid ${T.greySoft}`, borderTopColor: T.primary, animation: "pSpin 0.8s linear infinite" }} />
-              ) : (
-                <div style={{ flexShrink: 0, width: "20px", height: "20px", borderRadius: "50%", border: `2px solid ${T.greySoft}` }} />
-              )}
-              <span style={{ fontSize: "14px", fontWeight: loadingPhase === "analyzing" ? 600 : 400, color: loadingPhase === "analyzing" ? T.black : T.greyDark }}>
-                {t.analyzingPhase}
-              </span>
-            </div>
-          </div>
-          {/* Persona progress (only visible during analyzing phase) */}
-          {loadingPhase === "analyzing" && progress.total > 0 && <>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "16px", fontWeight: 600, color: T.black }}>{progress.currentPersona}</div>
-              <div style={{ fontSize: "13px", color: T.textSecondary, marginTop: "4px" }}>{t.userOf(progress.current, progress.total)}</div>
-            </div>
-            <ShadProgress value={(progress.current / progress.total) * 100} className="w-[180px]" />
-          </>}
-        </div>}
+          </ShadCard>
+        )}
 
         {/* Step 3 */}
         {step === 3 && results && <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
