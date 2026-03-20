@@ -3,6 +3,21 @@ import type { Persona, SimulationResult, SourceType } from "@/types";
 import { PRESET_PERSONAS } from "@/lib/personas";
 import { simulatePersona, fetchUrlContent } from "@/lib/simulation";
 
+import { Button as ShadButton } from "@/components/ui/button";
+import { Badge as ShadBadge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input as ShadInput } from "@/components/ui/input";
+import { Label as ShadLabel } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea as ShadTextarea } from "@/components/ui/textarea";
+
 /* ─── Types ─── */
 type IssueSeverity = "critical" | "warning" | "info";
 type IssueCategory = "ux" | "ui" | "product" | "copy";
@@ -375,7 +390,16 @@ function PersonaCard({ persona, selected, onToggle }: PersonaCardProps) {
           <div style={{ fontSize: "12px", fontWeight: 400, color: T.black, lineHeight: "18px" }}>
             {techLabel} · Frustración {frustLabel}
           </div>
-          <div style={{ fontSize: "15px", fontWeight: 700, color: T.black, lineHeight: "18px" }}>{persona.name}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+            <div style={{ fontSize: "15px", fontWeight: 700, color: T.black, lineHeight: "18px" }}>{persona.name}</div>
+            {persona.category === "pro" && (
+              <ShadBadge
+                className="bg-[var(--color-basics-black)] text-[var(--color-basics-white)] hover:bg-[var(--color-basics-black)] border-[var(--color-basics-black)]"
+              >
+                PRO
+              </ShadBadge>
+            )}
+          </div>
           <p style={{ margin: 0, fontSize: "13px", lineHeight: "19.5px", color: T.black }}>{persona.description}</p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
             {persona.traits.map(t => (
@@ -426,68 +450,6 @@ function ProgressBar({ steps, current }: ProgressBarProps) {
             }}>{s}</span>
           </div>
         ))}
-      </div>
-    </div>
-  );
-}
-
-interface ModalProps {
-  open: boolean;
-  onClose: () => void;
-  title?: string;
-  description?: string;
-  children?: ReactNode;
-  footer?: ReactNode;
-}
-
-function Modal({ open, onClose, title, description, children, footer }: ModalProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const el = ref.current;
-    if (el) {
-      const f = el.querySelectorAll("input,textarea,button:not([disabled])");
-      if (f.length) (f[0] as HTMLElement).focus();
-    }
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = prev; };
-  }, [open]);
-  if (!open) return null;
-  return (
-    <div onClick={e => { if (e.target === e.currentTarget) onClose(); }} style={{
-      position: "fixed", inset: 0, zIndex: 50,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      padding: "16px", background: "rgba(0,0,0,0.4)", backdropFilter: "blur(6px)",
-      animation: "pFadeIn 0.2s ease",
-    }}>
-      <style>{`@keyframes pFadeIn{from{opacity:0}to{opacity:1}} @keyframes pSlideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`}</style>
-      <div ref={ref} role="dialog" aria-modal="true" tabIndex={-1} onKeyDown={e => { if (e.key === "Escape") onClose(); }} style={{
-        width: "100%", maxWidth: "460px", maxHeight: "90vh",
-        background: T.white, borderRadius: T.r2xl,
-        boxShadow: T.shadowSm, display: "flex", flexDirection: "column",
-        outline: "none", animation: "pSlideUp 0.25s ease",
-      }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "16px", padding: "24px 24px 0" }}>
-          <div>
-            {title && <h2 style={{ margin: "0 0 4px", fontSize: "18px", fontWeight: 600, lineHeight: "24px", color: T.black }}>{title}</h2>}
-            {description && <p style={{ margin: 0, fontSize: "14px", color: T.textSecondary, lineHeight: "20px" }}>{description}</p>}
-          </div>
-          <button onClick={onClose} aria-label="Cerrar modal" style={{
-            flexShrink: 0, width: "32px", height: "32px", borderRadius: T.rMd,
-            background: "none", border: "none", cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: T.greyDark, transition: "color 0.15s",
-          }}>
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <path d="M4 4l10 10M14 4L4 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-          </button>
-        </div>
-        <div style={{ flex: 1, overflowY: "auto", padding: "16px 24px", fontSize: "14px", color: T.black, lineHeight: "22px" }}>
-          {children}
-        </div>
-        {footer && <div style={{ display: "flex", gap: "12px", padding: "8px 24px 24px", justifyContent: "flex-end" }}>{footer}</div>}
       </div>
     </div>
   );
@@ -818,15 +780,27 @@ export default function SyntheticUsersLab() {
   const [showModal, setShowModal] = useState(false);
   const [language, setLanguage] = useState<Lang>(detectLang);
   const [issueCategoryFilter, setIssueCategoryFilter] = useState<"all" | IssueCategory>("all");
+  const [activeTab, setActiveTab] = useState<"simple" | "pro">("simple");
   const t = TRANSLATIONS[language];
 
   const toggle = (id: string) => setSelectedPersonas(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
   const canAdd = customPersona.name && customPersona.description;
+  const simpleCount = selectedPersonas.filter(id => (PRESET_PERSONAS.find(p => p.id === id)?.category ?? "simple") === "simple").length;
+  const proCount = selectedPersonas.filter(id => (PRESET_PERSONAS.find(p => p.id === id)?.category ?? "simple") === "pro").length;
+  const totalSelected = simpleCount + proCount;
+  let counterText = "";
+  if (totalSelected === 0) counterText = "Selecciona al menos un perfil";
+  else {
+    const parts: string[] = [];
+    if (simpleCount > 0) parts.push(`${simpleCount} usuario${simpleCount !== 1 ? "s" : ""}`);
+    if (proCount > 0) parts.push(`${proCount} pro`);
+    counterText = parts.join(" + ") + " seleccionado" + (totalSelected !== 1 ? "s" : "");
+  }
 
   const addCustom = () => {
     if (!canAdd) return;
     const id = `custom-${Date.now()}`;
-    PRESET_PERSONAS.push({ id, name: customPersona.name, initials: customPersona.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase(), avatarBg: T.beige50, avatarColor: T.black, description: customPersona.description, traits: customPersona.traits.split(",").map(t => t.trim()).filter(Boolean), frustration: "medium", techLevel: "medium" });
+    PRESET_PERSONAS.push({ id, name: customPersona.name, category: "simple", initials: customPersona.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase(), avatarBg: T.beige50, avatarColor: T.black, description: customPersona.description, traits: customPersona.traits.split(",").map(t => t.trim()).filter(Boolean), frustration: "medium", techLevel: "medium" });
     setSelectedPersonas(p => [...p, id]);
     setCustomPersona({ name: "", description: "", traits: "" });
     setShowModal(false);
@@ -923,49 +897,115 @@ export default function SyntheticUsersLab() {
           </div>
         </div>
 
-        {/* Modal */}
-        <Modal
-          open={showModal}
-          onClose={() => setShowModal(false)}
-          title={t.modalTitle}
-          description={t.modalDesc}
-          footer={<>
-            <BtnTertiary onClick={() => setShowModal(false)}>{t.cancelBtn}</BtnTertiary>
-            <BtnPrimary onClick={addCustom} disabled={!canAdd}>{t.createBtn}</BtnPrimary>
-          </>}
-        >
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            <div>
-              <label style={labelStyle}>{t.nameLabel}</label>
-              <input value={customPersona.name} onChange={e => setCustomPersona(p => ({ ...p, name: e.target.value }))} placeholder={t.namePlaceholder} style={inputStyle} />
+        {/* Dialog (Step 0) */}
+        <Dialog open={showModal} onOpenChange={setShowModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t.modalTitle}</DialogTitle>
+              <DialogDescription>{t.modalDesc}</DialogDescription>
+            </DialogHeader>
+
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <ShadLabel htmlFor="custom-name">{t.nameLabel}</ShadLabel>
+                <ShadInput
+                  id="custom-name"
+                  value={customPersona.name}
+                  onChange={e => setCustomPersona(p => ({ ...p, name: e.target.value }))}
+                  placeholder={t.namePlaceholder}
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <ShadLabel htmlFor="custom-desc">{t.descLabel}</ShadLabel>
+                <ShadTextarea
+                  id="custom-desc"
+                  value={customPersona.description}
+                  onChange={e => setCustomPersona(p => ({ ...p, description: e.target.value }))}
+                  placeholder={t.descPlaceholder}
+                  rows={4}
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <ShadLabel htmlFor="custom-traits">
+                  {t.traitsLabel}
+                  <span className="font-normal text-muted-foreground"> {t.traitsSuffix}</span>
+                </ShadLabel>
+                <ShadInput
+                  id="custom-traits"
+                  value={customPersona.traits}
+                  onChange={e => setCustomPersona(p => ({ ...p, traits: e.target.value }))}
+                  placeholder={t.traitsPlaceholder}
+                />
+              </div>
             </div>
-            <div>
-              <label style={labelStyle}>{t.descLabel}</label>
-              <textarea value={customPersona.description} onChange={e => setCustomPersona(p => ({ ...p, description: e.target.value }))} placeholder={t.descPlaceholder} rows={4} style={textareaStyle} />
-            </div>
-            <div>
-              <label style={labelStyle}>{t.traitsLabel} <span style={{ fontWeight: 400, color: T.textSecondary }}>{t.traitsSuffix}</span></label>
-              <input value={customPersona.traits} onChange={e => setCustomPersona(p => ({ ...p, traits: e.target.value }))} placeholder={t.traitsPlaceholder} style={inputStyle} />
-            </div>
-          </div>
-        </Modal>
+
+            <DialogFooter>
+              <ShadButton variant="outline" onClick={() => setShowModal(false)}>
+                {t.cancelBtn}
+              </ShadButton>
+              <ShadButton onClick={addCustom} disabled={!canAdd}>
+                {t.createBtn}
+              </ShadButton>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <ProgressBar steps={t.steps} current={step} />
 
         {/* Step 0 */}
         {step === 0 && <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <p style={{ margin: 0, fontSize: "14px", color: T.black }}>{t.profilesSelected(selectedPersonas.length)}</p>
-            <BtnSecondary onClick={() => setShowModal(true)} style={{ gap: "6px", height: "36px", padding: "0 16px", fontSize: "14px" }}>
+            <p style={{ margin: 0, fontSize: "14px", color: T.black }}>{counterText}</p>
+            <ShadButton
+              variant="secondary"
+              onClick={() => setShowModal(true)}
+              className="h-9 px-4 text-sm"
+            >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
               {t.newBtn}
-            </BtnSecondary>
+            </ShadButton>
           </div>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList
+              className="w-full bg-[var(--color-grey-soft)] rounded-xl p-1 mb-5"
+            >
+              <TabsTrigger
+                value="simple"
+                className="flex flex-col items-start justify-start rounded-lg px-4 py-3"
+              >
+                <div className="text-sm font-bold text-[var(--color-basics-black)] mb-1">👤 Usuarios</div>
+                <div className="text-xs text-muted-foreground">
+                  Simulan personas reales usando tu producto
+                </div>
+              </TabsTrigger>
+              <TabsTrigger
+                value="pro"
+                className="flex flex-col items-start justify-start rounded-lg px-4 py-3"
+              >
+                <div className="text-sm font-bold text-[var(--color-basics-black)] mb-1">🔬 Pro</div>
+                <div className="text-xs text-muted-foreground">
+                  Expertos UX/UI que dan feedback accionable
+                </div>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
           <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-            {PRESET_PERSONAS.map(p => <PersonaCard key={p.id} persona={p} selected={selectedPersonas.includes(p.id)} onToggle={toggle} />)}
+            {PRESET_PERSONAS.filter(p => p.category === activeTab).map(p => (
+              <PersonaCard key={p.id} persona={p} selected={selectedPersonas.includes(p.id)} onToggle={toggle} />
+            ))}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignSelf: "center", alignItems: "stretch" }}>
-            <BtnPrimary onClick={() => setStep(1)} disabled={!selectedPersonas.length}>{t.nextBtn}</BtnPrimary>
+            <ShadButton
+              size="lg"
+              onClick={() => setStep(1)}
+              disabled={totalSelected === 0}
+              className="w-full"
+            >
+              {t.nextBtn} ({totalSelected})
+            </ShadButton>
           </div>
         </div>}
 
