@@ -324,7 +324,7 @@ function ProgressBar({ steps, current }: ProgressBarProps) {
   return (
     <div style={{ marginBottom: "32px" }}>
       <div style={{ marginBottom: "14px" }}>
-        <ShadProgress value={pct} className="w-full gap-0" />
+        <ShadProgress value={pct} className="w-full flex-nowrap gap-0" />
       </div>
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         {steps.map((s, i) => (
