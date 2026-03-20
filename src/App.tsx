@@ -398,12 +398,14 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
   }, [open, result.personaId]);
 
   return (
-    <div style={{ background: T.white, border: `1px solid ${T.tertiaryBorder}`, borderRadius: T.rXl, overflow: "hidden", boxShadow: T.shadowSm }}>
-      <button onClick={() => setOpen(!open)} aria-expanded={open} style={{
-        width: "100%", display: "flex", alignItems: "center", gap: "14px",
-        padding: "16px 20px", background: "none", border: "none",
-        cursor: "pointer", textAlign: "left", outline: "none", fontFamily: T.font,
-      }}>
+    <ShadCard
+      className="gap-0 py-0 shadow-none ring-0 border border-[var(--color-tertiary-border)] bg-[var(--color-basics-white)]"
+    >
+      <button
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        className="w-full flex items-center gap-[14px] px-5 py-4 bg-transparent border-none cursor-pointer text-left outline-none font-[var(--font-sans)]"
+      >
         <Avatar persona={persona} size={36} />
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: "16px", fontWeight: 600, color: T.black }}>{persona.name}</div>
@@ -425,8 +427,8 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
       </button>
 
       {open && (
-        <div style={{ padding: "0 20px 20px", display: "flex", flexDirection: "column", gap: "16px" }}>
-          <div style={{ height: "1px", background: T.tertiaryBorder }} />
+        <div className="px-5 pb-5 flex flex-col gap-4">
+          <div className="h-[1px] bg-[var(--color-tertiary-border)]" />
 
           {result.summary && <div>
             <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: T.textSecondary, marginBottom: "8px" }}>{t.summaryLabel}</div>
@@ -703,7 +705,7 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
           </div>
         </div>
       )}
-    </div>
+    </ShadCard>
   );
 }
 
@@ -1072,7 +1074,7 @@ export default function SyntheticUsersLab() {
             })}
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
-            <div style={{ fontSize: "16px", fontWeight: 700, color: T.black }}>{t.resultsByUser}</div>
+            <div className="text-base font-bold text-[var(--color-basics-black)]">{t.resultsByUser}</div>
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               {([
                 { id: "all", label: "All" },
