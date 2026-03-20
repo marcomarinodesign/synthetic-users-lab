@@ -855,7 +855,7 @@ export default function SyntheticUsersLab() {
               <PersonaCard key={p.id} persona={p} selected={selectedPersonas.includes(p.id)} onToggle={toggle} />
             ))}
           </div>
-          <div className="flex flex-col gap-[10px] self-center items-stretch">
+          <div className="flex flex-col gap-[10px] self-center items-stretch sticky bottom-0 z-[10] bg-[var(--color-beige-25)] pt-[10px] pb-[12px]">
             <ShadButton
               size="lg"
               onClick={() => setStep(1)}
