@@ -26,50 +26,7 @@ type IssueCategory = "ux" | "ui" | "product" | "copy";
 type BadgeVariant = "default" | "success" | "warning" | "error" | "info";
 
 /* ─── Plinng DS Tokens ─── */
-const T = {
-  primary: "#000000",
-  primaryText: "#FFFFFF",
-  secondary: "#BEFF50",
-  secondaryText: "#000000",
-  tertiary: "#FFFFFF",
-  tertiaryBorder: "#EBEBEB",
-  disabled: "#949494",
-  accent100: "#EEFFC7",
-  accent200: "#DBFF95",
-  accent300: "#BEFF50",
-  accent500: "#86DD05",
-  accent700: "#4D8605",
-  beige25: "#FBFBF7",
-  beige50: "#F5F5EB",
-  beige100: "#DCDCCB",
-  beige200: "#D0CFB8",
-  beige300: "#B4B290",
-  greySoft: "#EBEBEB",
-  greySoftMiddle: "#D8D8D8",
-  greyMiddle: "#C3C3C3",
-  greyDark: "#949494",
-  textSecondary: "#95958F",
-  white: "#FFFFFF",
-  black: "#000000",
-  error1: "#DC2625",
-  error2: "#FECACA",
-  error3: "#FFE0E0",
-  warning1: "#E89E1B",
-  warning2: "#FFEBC6",
-  info1: "#1447E6",
-  info2: "#DBEAFE",
-  rSm: "4px",
-  rMd: "8px",
-  rLg: "12px",
-  rXl: "16px",
-  r2xl: "24px",
-  rFull: "9999px",
-  shadowSm: "0 1px 2px 0 rgba(0,0,0,0.05)",
-  shadowMd: "0 4px 6px -1px rgba(0,0,0,0.10), 0 2px 4px -2px rgba(0,0,0,0.10)",
-  shadowLg: "0 10px 15px -3px rgba(0,0,0,0.10), 0 4px 6px -4px rgba(0,0,0,0.10)",
-  shadowXl: "0 20px 25px -5px rgba(0,0,0,0.10), 0 8px 10px -6px rgba(0,0,0,0.10)",
-  font: "'Inter', sans-serif",
-};
+// Nota: los colores, radios y sombras ahora vienen de `src/styles/globals.css` via CSS vars.
 
 /* ─── i18n ─── */
 type Lang = "es" | "en" | "fr" | "pt" | "de";
@@ -243,7 +200,7 @@ function Avatar({ persona, size = 40, border }: AvatarProps) {
   if (persona.avatarPhoto) {
     return (
       <div style={{ ...baseStyle, background: bg }}>
-        <img src={persona.avatarPhoto} alt={persona.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+        <img src={persona.avatarPhoto} alt={persona.name} className="w-full h-full object-cover block" />
       </div>
     );
   }
@@ -268,22 +225,24 @@ function PersonaCard({ persona, selected, onToggle }: PersonaCardProps) {
   const techLabel = persona.techLevel === "high" ? "Técnico" : persona.techLevel === "medium" ? "Intermedio" : "No técnico";
   const frustLabel = persona.frustration === "high" ? "alta" : persona.frustration === "medium" ? "media" : "baja";
   return (
-    <button onClick={() => onToggle(persona.id)} aria-pressed={selected} style={{
-      display: "flex", flexDirection: "column", gap: "0",
-      padding: "17px", width: "100%", textAlign: "left",
-      background: "var(--color-basics-white)",
-      border: `2px solid ${selected ? "var(--color-basics-black)" : "var(--color-tertiary-border)"}`,
-      borderRadius: "var(--radius-xl)", cursor: "pointer", outline: "none",
-      transition: "all 0.15s", boxShadow: "var(--shadow-sm)",
-    }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "12px", width: "100%" }}>
+    <button
+      onClick={() => onToggle(persona.id)}
+      aria-pressed={selected}
+      className={[
+        "flex flex-col gap-0 w-full text-left bg-[var(--color-basics-white)] rounded-[var(--radius-xl)] cursor-pointer outline-none",
+        "border-2 transition-all duration-150 shadow-[var(--shadow-sm)]",
+        selected ? "border-[var(--color-basics-black)]" : "border-[var(--color-tertiary-border)]",
+        "p-[17px]",
+      ].join(" ")}
+    >
+      <div className="flex items-center gap-[12px] w-full">
         <Avatar persona={persona} size={60} border={`2px solid var(--color-beige-25)`} />
-        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
-          <div style={{ fontSize: "12px", fontWeight: 400, color: "var(--color-basics-black)", lineHeight: "18px" }}>
+        <div className="flex-1 min-w-0 flex flex-col gap-[12px]">
+          <div className="text-[12px] font-normal text-[var(--color-basics-black)] leading-[18px]">
             {techLabel} · Frustración {frustLabel}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-            <div style={{ fontSize: "15px", fontWeight: 700, color: T.black, lineHeight: "18px" }}>{persona.name}</div>
+          <div className="flex items-center gap-[10px] flex-wrap">
+            <div className="text-[15px] font-bold text-[var(--color-basics-black)] leading-[18px]">{persona.name}</div>
             {persona.category === "pro" && (
               <ShadBadge
                 className="bg-[var(--color-basics-black)] text-[var(--color-basics-white)] hover:bg-[var(--color-basics-black)] border-[var(--color-basics-black)]"
@@ -292,8 +251,8 @@ function PersonaCard({ persona, selected, onToggle }: PersonaCardProps) {
               </ShadBadge>
             )}
           </div>
-          <p style={{ margin: 0, fontSize: "13px", lineHeight: "19.5px", color: "var(--color-basics-black)" }}>{persona.description}</p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+          <p className="m-0 text-[13px] leading-[19.5px] text-[var(--color-basics-black)]">{persona.description}</p>
+          <div className="flex flex-wrap gap-[8px]">
             {persona.traits.map(t => (
               <ShadBadge
                 key={t}
@@ -322,27 +281,27 @@ interface ProgressBarProps {
 function ProgressBar({ steps, current }: ProgressBarProps) {
   const pct = (current / (steps.length - 1)) * 100;
   return (
-    <div style={{ marginBottom: "32px" }}>
-      <div style={{ marginBottom: "14px" }}>
+    <div className="mb-[32px]">
+      <div className="mb-[14px]">
         <ShadProgress value={pct} className="w-full flex-nowrap gap-0" />
       </div>
       <div className="flex justify-between">
         {steps.map((s, i) => (
           <div key={i} className="flex items-center gap-[6px]">
-            <div style={{
-              width: i === current ? "10px" : "8px",
-              height: i === current ? "10px" : "8px",
-              borderRadius: "9999px",
-              background: i <= current ? "var(--color-primary)" : "var(--color-grey-middle)",
-              border: i === current ? "2px solid rgba(0,0,0,0.2)" : "none",
-              transition: "all 0.3s", flexShrink: 0,
-            }} />
+            <div
+              className={[
+                "rounded-full transition-all duration-300 flex-shrink-0",
+                i <= current ? "bg-[var(--color-primary)]" : "bg-[var(--color-grey-middle)]",
+                i === current
+                  ? "w-[10px] h-[10px] border-2 border-[rgba(0,0,0,0.2)]"
+                  : "w-[8px] h-[8px] border-0",
+              ].join(" ")}
+            />
             <span
-              className="text-[13px] transition-all"
-              style={{
-                fontWeight: i <= current ? 700 : 400,
-                color: i <= current ? "var(--color-basics-black)" : "var(--color-grey-dark)",
-              }}
+              className={[
+                "text-[13px] transition-all",
+                i <= current ? "font-bold text-[var(--color-basics-black)]" : "font-normal text-[var(--color-grey-dark)]",
+              ].join(" ")}
             >
               {s}
             </span>
@@ -364,7 +323,7 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
   const [open, setOpen] = useState(index === 0);
   const [currentStep, setCurrentStep] = useState(0);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
-  const persona: AvatarPersona = PRESET_PERSONAS.find(p => p.id === result.personaId) ?? { name: "Custom", initials: "CU", avatarBg: T.accent100, avatarColor: T.accent700 };
+  const persona: AvatarPersona = PRESET_PERSONAS.find(p => p.id === result.personaId) ?? { name: "Custom", initials: "CU", avatarBg: "var(--color-accent-100)", avatarColor: "var(--color-accent-700)" };
   const sc = result.score || 0;
   const fit = result.fit_score || 0;
   const scoreVariant: BadgeVariant = sc >= 7 ? "success" : sc >= 4 ? "warning" : "error";
@@ -407,13 +366,13 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
         className="w-full flex items-center gap-[14px] px-5 py-4 bg-transparent border-none cursor-pointer text-left outline-none font-[var(--font-sans)]"
       >
         <Avatar persona={persona} size={36} />
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: "16px", fontWeight: 600, color: T.black }}>{persona.name}</div>
-          <div style={{ fontSize: "14px", color: T.textSecondary, marginTop: "2px" }}>
+        <div className="flex-1">
+          <div className="text-[16px] font-semibold text-[var(--color-basics-black)]">{persona.name}</div>
+          <div className="text-[14px] text-[var(--color-basics-text-secondary)] mt-[2px]">
             {result.issues?.length || 0} issues · {result.wouldReturn ? t.wouldReturnShort : t.wouldNotReturnShort}
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div className="flex items-center gap-[8px]">
           <ShadBadge variant="outline" className={scoreBadgeClass}>
             UX {sc}/10
           </ShadBadge>
@@ -421,7 +380,13 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
             Fit {fit}/10
           </ShadBadge>
         </div>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: T.greyDark, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          className={`text-[var(--color-grey-dark)] transition-transform duration-200 ${open ? "rotate-180" : "rotate-0"}`}
+        >
           <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </button>
@@ -431,18 +396,18 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
           <div className="h-[1px] bg-[var(--color-tertiary-border)]" />
 
           {result.summary && <div>
-            <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: T.textSecondary, marginBottom: "8px" }}>{t.summaryLabel}</div>
-            <p style={{ margin: 0, fontSize: "14px", lineHeight: 1.6, color: T.black }}>{result.summary}</p>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginTop: "10px" }}>
+            <div className="text-[11px] font-bold uppercase tracking-[0.05em] text-[var(--color-basics-text-secondary)] mb-[8px]">{t.summaryLabel}</div>
+            <p className="m-0 text-[14px] leading-[1.6] text-[var(--color-basics-black)]">{result.summary}</p>
+            <div className="flex items-center gap-[8px] flex-wrap mt-[10px]">
               <ShadBadge variant="outline" className={fitBadgeClass}>
                 Fit {fit}/10
               </ShadBadge>
-              {result.fit_note ? <span style={{ fontSize: "13px", color: T.textSecondary, lineHeight: 1.4 }}>{result.fit_note}</span> : null}
+              {result.fit_note ? <span className="text-[13px] text-[var(--color-basics-text-secondary)] leading-[1.4]">{result.fit_note}</span> : null}
             </div>
           </div>}
 
           {result.steps?.length > 0 && <div>
-            <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: T.textSecondary, marginBottom: "8px" }}>{t.stepsLabel}</div>
+            <div className="text-[11px] font-bold uppercase tracking-[0.05em] text-[var(--color-basics-text-secondary)] mb-[8px]">{t.stepsLabel}</div>
             <div>
               {/*
                 Carousel horizontal:
@@ -451,16 +416,10 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
                 - Transición suave con translateX
               */}
               <div
-                style={{
-                  borderRadius: T.rMd,
-                  overflow: "hidden",
-                  border: `1px solid ${T.tertiaryBorder}`,
-                  position: "relative",
-                  background: T.white,
-                }}
+                className="rounded-[var(--radius-md)] overflow-hidden border border-[var(--color-tertiary-border)] relative bg-[var(--color-basics-white)]"
               >
                 <div
-                  style={{ overflow: "hidden" }}
+                  className="overflow-hidden"
                   onTouchStart={(e) => {
                     const t0 = e.touches[0];
                     if (!t0) return;
@@ -482,48 +441,32 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
                   }}
                 >
                   <div
-                    style={{
-                      display: "flex",
-                      transform: `translateX(-${currentStep * 100}%)`,
-                      transition: "transform 0.3s ease",
-                    }}
+                    className="flex transition-transform duration-300 ease-linear"
+                    style={{ transform: `translateX(-${currentStep * 100}%)` }}
                   >
                     {result.steps.map((s, si) => (
                       <div
                         key={si}
-                        style={{
-                          flex: "0 0 100%",
-                          padding: "20px",
-                          minHeight: "200px",
-                          boxSizing: "border-box",
-                          position: "relative",
-                        }}
+                        className="flex-[0_0_100%] p-[20px] min-h-[200px] box-border relative"
                       >
                         <div
-                          style={{
-                            position: "absolute",
-                            top: "12px",
-                            right: "14px",
-                            fontSize: "12px",
-                            fontWeight: 700,
-                            color: T.greyDark,
-                          }}
+                          className="absolute top-[12px] right-[14px] text-[12px] font-bold text-[var(--color-grey-dark)]"
                         >
                           Paso {si + 1} de {result.steps.length}
                         </div>
 
-                        <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+                        <div className="flex gap-[12px] items-start">
                           <ShadBadge
                             variant="outline"
                             className="bg-[var(--color-accent-100)] text-[var(--color-accent-700)] border-[var(--color-accent-300)]"
                           >
                             {si + 1}
                           </ShadBadge>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: "15px", fontWeight: 800, color: T.black, lineHeight: "20px" }}>
+                          <div className="flex-1">
+                            <div className="text-[15px] font-extrabold text-[var(--color-basics-black)] leading-[20px]">
                               {s.action}
                             </div>
-                            <div style={{ fontSize: "14px", color: T.textSecondary, marginTop: "6px", lineHeight: 1.5 }}>
+                            <div className="text-[14px] text-[var(--color-basics-text-secondary)] mt-[6px] leading-[1.5]">
                               {s.reaction}
                             </div>
                           </div>
@@ -538,26 +481,15 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
                   onClick={() => setCurrentStep((s) => Math.max(0, s - 1))}
                   disabled={currentStep === 0}
                   variant="ghost"
-                  className="p-0"
-                  style={{
-                    position: "absolute",
-                    top: "50%",
-                    left: "10px",
-                    transform: "translateY(-50%)",
-                    width: "36px",
-                    height: "36px",
-                    borderRadius: T.rFull,
-                    background: T.white,
-                    border: `1px solid ${T.tertiaryBorder}`,
-                    boxShadow: T.shadowSm,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: currentStep === 0 ? "not-allowed" : "pointer",
-                    opacity: currentStep === 0 ? 0.3 : 1,
-                    pointerEvents: currentStep === 0 ? "none" : "auto",
-                    transition: "opacity 0.15s",
-                  }}
+                  className={[
+                    "p-0 absolute top-1/2 left-[10px] -translate-y-1/2 w-[36px] h-[36px]",
+                    "rounded-[var(--radius-full)] bg-[var(--color-basics-white)] border border-[var(--color-tertiary-border)]",
+                    "shadow-[var(--shadow-sm)] flex items-center justify-center",
+                    "transition-opacity duration-150",
+                    currentStep === 0
+                      ? "cursor-not-allowed opacity-30 pointer-events-none"
+                      : "cursor-pointer opacity-100 pointer-events-auto",
+                  ].join(" ")}
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                     <path d="M9.5 3.5L5.5 8L9.5 12.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -569,26 +501,15 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
                   onClick={() => setCurrentStep((s) => Math.min(result.steps.length - 1, s + 1))}
                   disabled={currentStep >= result.steps.length - 1}
                   variant="ghost"
-                  className="p-0"
-                  style={{
-                    position: "absolute",
-                    top: "50%",
-                    right: "10px",
-                    transform: "translateY(-50%)",
-                    width: "36px",
-                    height: "36px",
-                    borderRadius: T.rFull,
-                    background: T.white,
-                    border: `1px solid ${T.tertiaryBorder}`,
-                    boxShadow: T.shadowSm,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: currentStep >= result.steps.length - 1 ? "not-allowed" : "pointer",
-                    opacity: currentStep >= result.steps.length - 1 ? 0.3 : 1,
-                    pointerEvents: currentStep >= result.steps.length - 1 ? "none" : "auto",
-                    transition: "opacity 0.15s",
-                  }}
+                  className={[
+                    "p-0 absolute top-1/2 right-[10px] -translate-y-1/2 w-[36px] h-[36px]",
+                    "rounded-[var(--radius-full)] bg-[var(--color-basics-white)] border border-[var(--color-tertiary-border)]",
+                    "shadow-[var(--shadow-sm)] flex items-center justify-center",
+                    "transition-opacity duration-150",
+                    currentStep >= result.steps.length - 1
+                      ? "cursor-not-allowed opacity-30 pointer-events-none"
+                      : "cursor-pointer opacity-100 pointer-events-auto",
+                  ].join(" ")}
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                     <path d="M6.5 3.5L10.5 8L6.5 12.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -596,7 +517,7 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
                 </ShadButton>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "12px" }}>
+              <div className="flex justify-center gap-[8px] mt-[12px]">
                 {result.steps.map((_, si) => {
                   const active = si === currentStep;
                   return (
@@ -605,25 +526,13 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
                       aria-label={`Ir al paso ${si + 1}`}
                       onClick={() => setCurrentStep(si)}
                       variant="ghost"
-                      className="p-0 bg-transparent"
-                      style={{
-                        appearance: "none",
-                        border: "none",
-                        background: "transparent",
-                        padding: 0,
-                        width: active ? "8px" : "6px",
-                        height: active ? "8px" : "6px",
-                        cursor: "pointer",
-                      }}
+                      className="p-0 bg-transparent border-none appearance-none"
                     >
                       <span
-                        style={{
-                          display: "block",
-                          width: active ? "8px" : "6px",
-                          height: active ? "8px" : "6px",
-                          borderRadius: "50%",
-                          background: active ? T.black : T.greyMiddle,
-                        }}
+                        className={[
+                          "block rounded-full",
+                          active ? "w-[8px] h-[8px] bg-[var(--color-basics-black)]" : "w-[6px] h-[6px] bg-[var(--color-grey-middle)]",
+                        ].join(" ")}
                       />
                     </ShadButton>
                   );
@@ -633,13 +542,13 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
           </div>}
 
           {result.issues?.length > 0 && <div>
-            <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-basics-text-secondary)", marginBottom: "8px" }}>{t.issuesSectionLabel}</div>
+            <div className="text-[11px] font-bold uppercase tracking-[0.05em] text-[var(--color-basics-text-secondary)] mb-[8px]">{t.issuesSectionLabel}</div>
             {issuesToShow.length > 0 ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div className="flex flex-col gap-[12px]">
                 {issuesToShow.map((issue, ii) => (
-                  <div key={ii} style={{ display: "flex", gap: "16px", padding: "16px 0" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "6px", flexShrink: 0 }}>
-                      <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
+                  <div key={ii} className="flex gap-[16px] py-[16px]">
+                    <div className="flex flex-col gap-[6px] flex-shrink-0">
+                      <div className="flex gap-[6px] items-center flex-wrap">
                         <ShadBadge variant="outline" className={issueSeverityBadgeClass(issue.severity)}>
                           {t.sevLabels[issue.severity]}
                         </ShadBadge>
@@ -659,12 +568,12 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
                       ) : null}
                     </div>
 
-                    <div style={{ flex: 1 }}>
-                      <p style={{ margin: 0, fontSize: "14px", color: "var(--color-basics-black)", lineHeight: 1.5 }}>
+                    <div className="flex-1">
+                      <p className="m-0 text-[14px] text-[var(--color-basics-black)] leading-[1.5]">
                         {issue.description}
                       </p>
                       {issue.action ? (
-                        <p style={{ margin: "8px 0 0", fontSize: "13px", lineHeight: 1.5, color: "var(--color-basics-text-secondary)" }}>
+                        <p className="m-0 mt-[8px] text-[13px] leading-[1.5] text-[var(--color-basics-text-secondary)]">
                           → {issue.action}
                         </p>
                       ) : null}
@@ -673,7 +582,7 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
                 ))}
               </div>
             ) : (
-              <div style={{ padding: "10px 14px", fontSize: "14px", color: "var(--color-basics-text-secondary)", lineHeight: 1.45 }}>
+              <div className="p-[10px_14px] text-[14px] text-[var(--color-basics-text-secondary)] leading-[1.45]">
                 No hay issues en esta categoría.
               </div>
             )}
@@ -684,22 +593,23 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
               className="rounded-md p-4 border border-[var(--color-tertiary-border)] bg-[var(--color-beige-25)] shadow-none border-l-[3px] border-l-[var(--color-primary)]"
             >
               <p
-                className="m-0 text-[14px] italic"
-                style={{ color: "var(--color-basics-text-secondary)", lineHeight: 1.5 }}
+                className="m-0 text-[14px] italic text-[var(--color-basics-text-secondary)] leading-[1.5]"
               >
                 "{result.verbatim}"
               </p>
             </ShadCard>
           )}
 
-          <div style={{
-            display: "flex", alignItems: "center", gap: "8px",
-            padding: "10px 14px", borderRadius: "var(--radius-md)",
-            background: result.wouldReturn ? "var(--color-accent-100)" : "var(--color-error-3)",
-            border: `1px solid ${result.wouldReturn ? "var(--color-accent-300)" : "var(--color-error-2)"}`,
-          }}>
-            <span style={{ fontSize: "15px" }}>{result.wouldReturn ? "✅" : "❌"}</span>
-            <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--color-basics-black)" }}>
+          <div
+            className={[
+              "flex items-center gap-[8px] p-[10px_14px] rounded-[var(--radius-md)] border",
+              result.wouldReturn
+                ? "bg-[var(--color-accent-100)] border-[var(--color-accent-300)]"
+                : "bg-[var(--color-error-3)] border-[var(--color-error-2)]",
+            ].join(" ")}
+          >
+            <span className="text-[15px]">{result.wouldReturn ? "✅" : "❌"}</span>
+            <span className="text-[14px] font-semibold text-[var(--color-basics-black)]">
               {result.wouldReturn ? t.wouldReturn : t.wouldNotReturn}
             </span>
           </div>
@@ -743,7 +653,7 @@ export default function SyntheticUsersLab() {
   const addCustom = () => {
     if (!canAdd) return;
     const id = `custom-${Date.now()}`;
-    PRESET_PERSONAS.push({ id, name: customPersona.name, category: "simple", initials: customPersona.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase(), avatarBg: T.beige50, avatarColor: T.black, description: customPersona.description, traits: customPersona.traits.split(",").map(t => t.trim()).filter(Boolean), frustration: "medium", techLevel: "medium" });
+    PRESET_PERSONAS.push({ id, name: customPersona.name, category: "simple", initials: customPersona.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase(), avatarBg: "var(--color-beige-50)", avatarColor: "var(--color-basics-black)", description: customPersona.description, traits: customPersona.traits.split(",").map(t => t.trim()).filter(Boolean), frustration: "medium", techLevel: "medium" });
     setSelectedPersonas(p => [...p, id]);
     setCustomPersona({ name: "", description: "", traits: "" });
     setShowModal(false);
@@ -806,36 +716,41 @@ export default function SyntheticUsersLab() {
   const issueCount = results ? results.reduce((a, r) => a + (r.issues?.length ?? 0), 0) : 0;
   const critCount = results ? results.reduce((a, r) => a + (r.issues?.filter(i => i.severity === "critical").length ?? 0), 0) : 0;
   const retainCount = results ? results.filter(r => r.wouldReturn).length : 0;
+  const overlapAvatarZ = ["z-[5]", "z-[4]", "z-[3]", "z-[2]", "z-[1]"] as const;
 
   return (
-    <div style={{ minHeight: "100vh", background: T.beige25, fontFamily: T.font, color: T.black, padding: "40px 20px", WebkitFontSmoothing: "antialiased" }}>
+    <div className="min-h-[100vh] bg-[var(--color-beige-25)] font-[var(--font-sans)] text-[var(--color-basics-black)] p-[40px_20px] antialiased">
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-      <div style={{ maxWidth: "680px", margin: "0 auto" }}>
+      <div className="max-w-[680px] mx-auto">
 
         {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: "36px" }}>
+        <div className="text-center mb-[36px]">
           {/* Overlapping avatars */}
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
-            <div style={{ display: "flex", paddingRight: "24px" }}>
+          <div className="flex justify-center mb-[16px]">
+            <div className="flex pr-[24px]">
               {PRESET_PERSONAS.slice(0, 5).map((p, i) => (
-                <div key={p.id} style={{ marginRight: "-24px", zIndex: 5 - i, borderRadius: "50%" }}>
-                  <Avatar persona={p} size={60} border={`2px solid ${T.beige25}`} />
+                <div key={p.id} className={`mr-[-24px] ${overlapAvatarZ[i]} rounded-full`}>
+                  <Avatar persona={p} size={60} border={`2px solid var(--color-beige-25)`} />
                 </div>
               ))}
             </div>
           </div>
-          <h1 style={{ margin: "0 0 8px", fontSize: "42px", fontWeight: 800, color: T.black, letterSpacing: "-0.56px" }}>Synthetic Users Lab</h1>
-          <p style={{ margin: "0 0 16px", fontSize: "16px", color: T.black }}>{t.subtitle}</p>
-          <div style={{ display: "flex", gap: "6px", justifyContent: "center", flexWrap: "wrap" }}>
+          <h1 className="m-0 mb-[8px] text-[42px] font-extrabold text-[var(--color-basics-black)] tracking-[-0.56px]">Synthetic Users Lab</h1>
+          <p className="m-0 mb-[16px] text-[16px] text-[var(--color-basics-black)]">{t.subtitle}</p>
+          <div className="flex gap-[6px] justify-center flex-wrap">
             {LANG_OPTIONS.map(({ code, label }) => (
-              <button key={code} onClick={() => setLanguage(code)} style={{
-                padding: "5px 12px", borderRadius: T.rFull,
-                border: `1.5px solid ${language === code ? T.primary : T.greySoft}`,
-                background: language === code ? T.primary : T.white,
-                color: language === code ? T.primaryText : T.black,
-                fontSize: "12px", fontWeight: language === code ? 600 : 400,
-                cursor: "pointer", fontFamily: T.font, transition: "all 0.15s",
-              }}>{label}</button>
+              <button
+                key={code}
+                onClick={() => setLanguage(code)}
+                className={[
+                  "px-[12px] py-[5px] rounded-[var(--radius-full)] text-[12px] cursor-pointer font-[var(--font-sans)] transition-all duration-150",
+                  language === code
+                    ? "bg-[var(--color-primary)] text-[var(--color-primary-text)] font-semibold border border-[var(--color-primary)]"
+                    : "bg-[var(--color-basics-white)] text-[var(--color-basics-black)] font-normal border border-[var(--color-grey-soft)]",
+                ].join(" ")}
+              >
+                {label}
+              </button>
             ))}
           </div>
         </div>
@@ -898,9 +813,9 @@ export default function SyntheticUsersLab() {
         <ProgressBar steps={t.steps} current={step} />
 
         {/* Step 0 */}
-        {step === 0 && <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <p style={{ margin: 0, fontSize: "14px", color: T.black }}>{counterText}</p>
+        {step === 0 && <div className="flex flex-col gap-[16px]">
+          <div className="flex items-center justify-between">
+            <p className="m-0 text-[14px] text-[var(--color-basics-black)]">{counterText}</p>
             <ShadButton
               variant="secondary"
               onClick={() => setShowModal(true)}
@@ -935,12 +850,12 @@ export default function SyntheticUsersLab() {
             </TabsList>
           </Tabs>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          <div className="flex flex-col gap-[20px]">
             {PRESET_PERSONAS.filter(p => p.category === activeTab).map(p => (
               <PersonaCard key={p.id} persona={p} selected={selectedPersonas.includes(p.id)} onToggle={toggle} />
             ))}
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignSelf: "center", alignItems: "stretch" }}>
+          <div className="flex flex-col gap-[10px] self-center items-stretch">
             <ShadButton
               size="lg"
               onClick={() => setStep(1)}
@@ -953,7 +868,7 @@ export default function SyntheticUsersLab() {
         </div>}
 
         {/* Step 1 */}
-        {step === 1 && <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        {step === 1 && <div className="flex flex-col gap-[20px]">
           <div>
             <ShadLabel htmlFor="flow-input">{t.linkLabel}</ShadLabel>
             <ShadInput
@@ -975,7 +890,7 @@ export default function SyntheticUsersLab() {
               rows={7}
             />
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignSelf: "center", alignItems: "stretch" }}>
+          <div className="flex flex-col gap-[10px] self-center items-stretch">
             <ShadButton
               onClick={() => { setStep(2); run(); }}
               disabled={!flowInput.trim()}
@@ -997,38 +912,46 @@ export default function SyntheticUsersLab() {
         {step === 2 && loading && (
           <ShadCard className="p-0 border border-[var(--color-tertiary-border)] shadow-xs">
             <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "28px",
-                padding: "60px 20px",
-              }}
+              className="flex flex-col items-center gap-[28px] py-[60px] px-[20px]"
             >
               <style>{`@keyframes pSpin{to{transform:rotate(360deg)}}`}</style>
               {/* Two-phase indicator */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "14px", width: "260px" }}>
+              <div className="flex flex-col gap-[14px] w-[260px]">
                 {/* Phase 1 */}
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <div className="flex items-center gap-[12px]">
                   {loadingPhase === "fetching" ? (
-                    <div style={{ flexShrink: 0, width: "20px", height: "20px", borderRadius: "50%", border: `2px solid ${T.greySoft}`, borderTopColor: T.primary, animation: "pSpin 0.8s linear infinite" }} />
+                    <div className="flex-shrink-0 w-[20px] h-[20px] rounded-full border-2 border-[var(--color-grey-soft)] border-t-[var(--color-primary)] animate-[pSpin_0.8s_linear_infinite]" />
                   ) : (
-                    <div style={{ flexShrink: 0, width: "20px", height: "20px", borderRadius: "50%", background: T.accent500, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div className="flex-shrink-0 w-[20px] h-[20px] rounded-full bg-[var(--color-accent-500)] flex items-center justify-center">
                       <svg width="11" height="8" viewBox="0 0 11 8" fill="none"><path d="M1 4L4 7L10 1" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </div>
                   )}
-                  <span style={{ fontSize: "14px", fontWeight: loadingPhase === "fetching" ? 600 : 400, color: loadingPhase === "fetching" ? T.black : T.greyDark, textDecoration: loadingPhase === "fetching" ? "none" : "line-through" }}>
+                  <span
+                    className={[
+                      "text-[14px]",
+                      loadingPhase === "fetching"
+                        ? "font-semibold text-[var(--color-basics-black)] no-underline"
+                        : "font-normal text-[var(--color-grey-dark)] line-through",
+                    ].join(" ")}
+                  >
                     {t.fetchingPhase}
                   </span>
                 </div>
                 {/* Phase 2 */}
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <div className="flex items-center gap-[12px]">
                   {loadingPhase === "analyzing" ? (
-                    <div style={{ flexShrink: 0, width: "20px", height: "20px", borderRadius: "50%", border: `2px solid ${T.greySoft}`, borderTopColor: T.primary, animation: "pSpin 0.8s linear infinite" }} />
+                    <div className="flex-shrink-0 w-[20px] h-[20px] rounded-full border-2 border-[var(--color-grey-soft)] border-t-[var(--color-primary)] animate-[pSpin_0.8s_linear_infinite]" />
                   ) : (
-                    <div style={{ flexShrink: 0, width: "20px", height: "20px", borderRadius: "50%", border: `2px solid ${T.greySoft}` }} />
+                    <div className="flex-shrink-0 w-[20px] h-[20px] rounded-full border-2 border-[var(--color-grey-soft)]" />
                   )}
-                  <span style={{ fontSize: "14px", fontWeight: loadingPhase === "analyzing" ? 600 : 400, color: loadingPhase === "analyzing" ? T.black : T.greyDark }}>
+                  <span
+                    className={[
+                      "text-[14px]",
+                      loadingPhase === "analyzing"
+                        ? "font-semibold text-[var(--color-basics-black)]"
+                        : "font-normal text-[var(--color-grey-dark)]",
+                    ].join(" ")}
+                  >
                     {t.analyzingPhase}
                   </span>
                 </div>
@@ -1036,9 +959,9 @@ export default function SyntheticUsersLab() {
               {/* Persona progress (only visible during analyzing phase) */}
               {loadingPhase === "analyzing" && progress.total > 0 && (
                 <>
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "16px", fontWeight: 600, color: T.black }}>{progress.currentPersona}</div>
-                    <div style={{ fontSize: "13px", color: T.textSecondary, marginTop: "4px" }}>{t.userOf(progress.current, progress.total)}</div>
+                  <div className="text-center">
+                    <div className="text-[16px] font-semibold text-[var(--color-basics-black)]">{progress.currentPersona}</div>
+                    <div className="text-[13px] text-[var(--color-basics-text-secondary)] mt-[4px]">{t.userOf(progress.current, progress.total)}</div>
                   </div>
                   <ShadProgress value={(progress.current / progress.total) * 100} className="w-[180px]" />
                 </>
@@ -1048,7 +971,7 @@ export default function SyntheticUsersLab() {
         )}
 
         {/* Step 3 */}
-        {step === 3 && results && <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        {step === 3 && results && <div className="flex flex-col gap-[20px]">
           <div className="grid grid-cols-4 gap-2.5">
             {([
               { l: t.scoreLabel, v: avg, variant: (avgScore >= 7 ? "success" : avgScore >= 4 ? "warning" : "error") as BadgeVariant },
@@ -1073,9 +996,9 @@ export default function SyntheticUsersLab() {
               );
             })}
           </div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
+          <div className="flex items-center justify-between gap-[12px] flex-wrap">
             <div className="text-base font-bold text-[var(--color-basics-black)]">{t.resultsByUser}</div>
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <div className="flex gap-[8px] flex-wrap">
               {([
                 { id: "all", label: "All" },
                 { id: "ux", label: "UX" },
@@ -1096,7 +1019,7 @@ export default function SyntheticUsersLab() {
             </div>
           </div>
           {results.map((r, i) => <ResultCard key={i} result={r} index={i} t={t} issueCategoryFilter={issueCategoryFilter} />)}
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignSelf: "center", alignItems: "stretch", marginTop: "8px" }}>
+          <div className="flex flex-col gap-[10px] self-center items-stretch mt-[8px]">
             <ShadButton onClick={() => { setStep(0); setResults(null); }} className="rounded-full">
               {t.newTestBtn}
             </ShadButton>
