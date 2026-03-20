@@ -232,8 +232,8 @@ interface AvatarProps {
 }
 
 function Avatar({ persona, size = 40, border }: AvatarProps) {
-  const bg = persona.avatarBg || T.accent100;
-  const color = persona.avatarColor || T.accent700;
+  const bg = persona.avatarBg || "var(--color-accent-100)";
+  const color = persona.avatarColor || "var(--color-accent-700)";
   const initials = persona.initials || persona.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
   const fontSize = size * 0.38;
   const baseStyle: CSSProperties = {
@@ -251,7 +251,7 @@ function Avatar({ persona, size = 40, border }: AvatarProps) {
     <div style={{
       ...baseStyle,
       background: bg, display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize, fontWeight: 800, color, letterSpacing: "-0.02em", fontFamily: T.font, lineHeight: 1,
+      fontSize, fontWeight: 800, color, letterSpacing: "-0.02em", fontFamily: "var(--font-sans)", lineHeight: 1,
     }}>{initials}</div>
   );
 }
@@ -271,15 +271,15 @@ function PersonaCard({ persona, selected, onToggle }: PersonaCardProps) {
     <button onClick={() => onToggle(persona.id)} aria-pressed={selected} style={{
       display: "flex", flexDirection: "column", gap: "0",
       padding: "17px", width: "100%", textAlign: "left",
-      background: T.white,
-      border: `2px solid ${selected ? T.black : T.tertiaryBorder}`,
-      borderRadius: T.rXl, cursor: "pointer", outline: "none",
-      transition: "all 0.15s", boxShadow: T.shadowSm,
+      background: "var(--color-basics-white)",
+      border: `2px solid ${selected ? "var(--color-basics-black)" : "var(--color-tertiary-border)"}`,
+      borderRadius: "var(--radius-xl)", cursor: "pointer", outline: "none",
+      transition: "all 0.15s", boxShadow: "var(--shadow-sm)",
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: "12px", width: "100%" }}>
-        <Avatar persona={persona} size={60} border={`2px solid ${T.beige25}`} />
+        <Avatar persona={persona} size={60} border={`2px solid var(--color-beige-25)`} />
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
-          <div style={{ fontSize: "12px", fontWeight: 400, color: T.black, lineHeight: "18px" }}>
+          <div style={{ fontSize: "12px", fontWeight: 400, color: "var(--color-basics-black)", lineHeight: "18px" }}>
             {techLabel} · Frustración {frustLabel}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
@@ -292,7 +292,7 @@ function PersonaCard({ persona, selected, onToggle }: PersonaCardProps) {
               </ShadBadge>
             )}
           </div>
-          <p style={{ margin: 0, fontSize: "13px", lineHeight: "19.5px", color: T.black }}>{persona.description}</p>
+          <p style={{ margin: 0, fontSize: "13px", lineHeight: "19.5px", color: "var(--color-basics-black)" }}>{persona.description}</p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
             {persona.traits.map(t => (
               <ShadBadge
