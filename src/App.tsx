@@ -443,6 +443,7 @@ export default function SyntheticUsersLab() {
   const [loadingPhase, setLoadingPhase] = useState<"fetching" | "analyzing">("fetching");
   const [progress, setProgress] = useState({ current: 0, total: 0, currentPersona: "" });
   const [showModal, setShowModal] = useState(false);
+  const [language, setLanguage] = useState("es");
 
   const toggle = (id: string) => setSelectedPersonas(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
   const canAdd = customPersona.name && customPersona.description;
@@ -480,7 +481,7 @@ export default function SyntheticUsersLab() {
       const p = personas[i];
       setProgress({ current: i + 1, total: personas.length, currentPersona: p.name });
       try {
-        const result = await simulatePersona(p, sourceType, contentToAnalyze, productContext);
+        const result = await simulatePersona(p, sourceType, contentToAnalyze, productContext, language);
         all.push(result);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -572,6 +573,30 @@ export default function SyntheticUsersLab() {
           <div>
             <label style={labelStyle}>Contexto del producto <span style={{ fontWeight: 400, color: T.textSecondary }}>(opcional)</span></label>
             <textarea value={productContext} onChange={e => setProductContext(e.target.value)} placeholder="Qué es, para quién, qué problema resuelve..." rows={7} style={textareaStyle} />
+          </div>
+          <div>
+            <label style={labelStyle}>Idioma del informe</label>
+            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+              {([
+                { code: "es", label: "🇪🇸 ES" },
+                { code: "en", label: "🇬🇧 EN" },
+                { code: "fr", label: "🇫🇷 FR" },
+                { code: "pt", label: "🇧🇷 PT" },
+                { code: "de", label: "🇩🇪 DE" },
+              ] as { code: string; label: string }[]).map(({ code, label }) => (
+                <button
+                  key={code}
+                  onClick={() => setLanguage(code)}
+                  style={{
+                    padding: "6px 14px", borderRadius: T.rFull, border: `1.5px solid ${language === code ? T.primary : T.greySoft}`,
+                    background: language === code ? T.primary : T.white,
+                    color: language === code ? T.primaryText : T.black,
+                    fontSize: "13px", fontWeight: language === code ? 600 : 400,
+                    cursor: "pointer", fontFamily: T.font, transition: "all 0.15s",
+                  }}
+                >{label}</button>
+              ))}
+            </div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignSelf: "center", alignItems: "stretch" }}>
             <BtnPrimary onClick={() => { setStep(2); run(); }} disabled={!flowInput.trim()}>Lanzar simulación</BtnPrimary>
