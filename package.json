@@ -23,7 +23,7 @@
     "@tailwindcss/vite": "^4.1.0",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
-    "@vercel/node": "^5.6.10",
+    "@vercel/node": "^5.6.16",
     "@vitejs/plugin-react": "^4.3.4",
     "concurrently": "^9.2.1",
     "eslint": "^9.22.0",
@@ -33,7 +33,7 @@
     "tailwindcss": "^4.1.0",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.26.0",
-    "vercel": "^50.27.1",
+    "vercel": "^50.33.1",
     "vite": "^6.3.0"
   }
 }
