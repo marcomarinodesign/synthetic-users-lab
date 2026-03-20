@@ -527,10 +527,12 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
                   </div>
                 </div>
 
-                <button
+                <ShadButton
                   aria-label="Paso anterior"
                   onClick={() => setCurrentStep((s) => Math.max(0, s - 1))}
                   disabled={currentStep === 0}
+                  variant="ghost"
+                  className="p-0"
                   style={{
                     position: "absolute",
                     top: "50%",
@@ -554,12 +556,14 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                     <path d="M9.5 3.5L5.5 8L9.5 12.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                </button>
+                </ShadButton>
 
-                <button
+                <ShadButton
                   aria-label="Paso siguiente"
                   onClick={() => setCurrentStep((s) => Math.min(result.steps.length - 1, s + 1))}
                   disabled={currentStep >= result.steps.length - 1}
+                  variant="ghost"
+                  className="p-0"
                   style={{
                     position: "absolute",
                     top: "50%",
@@ -583,17 +587,19 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                     <path d="M6.5 3.5L10.5 8L6.5 12.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                </button>
+                </ShadButton>
               </div>
 
               <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "12px" }}>
                 {result.steps.map((_, si) => {
                   const active = si === currentStep;
                   return (
-                    <button
+                    <ShadButton
                       key={si}
                       aria-label={`Ir al paso ${si + 1}`}
                       onClick={() => setCurrentStep(si)}
+                      variant="ghost"
+                      className="p-0 bg-transparent"
                       style={{
                         appearance: "none",
                         border: "none",
@@ -613,7 +619,7 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
                           background: active ? T.black : T.greyMiddle,
                         }}
                       />
-                    </button>
+                    </ShadButton>
                   );
                 })}
               </div>
