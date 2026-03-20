@@ -633,7 +633,7 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
           </div>}
 
           {result.issues?.length > 0 && <div>
-            <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: T.textSecondary, marginBottom: "8px" }}>{t.issuesSectionLabel}</div>
+            <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-basics-text-secondary)", marginBottom: "8px" }}>{t.issuesSectionLabel}</div>
             {issuesToShow.length > 0 ? (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {issuesToShow.map((issue, ii) => (
@@ -660,11 +660,11 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
                     </div>
 
                     <div style={{ flex: 1 }}>
-                      <p style={{ margin: 0, fontSize: "14px", color: T.black, lineHeight: 1.5 }}>
+                      <p style={{ margin: 0, fontSize: "14px", color: "var(--color-basics-black)", lineHeight: 1.5 }}>
                         {issue.description}
                       </p>
                       {issue.action ? (
-                        <p style={{ margin: "8px 0 0", fontSize: "13px", lineHeight: 1.5, color: T.textSecondary }}>
+                        <p style={{ margin: "8px 0 0", fontSize: "13px", lineHeight: 1.5, color: "var(--color-basics-text-secondary)" }}>
                           → {issue.action}
                         </p>
                       ) : null}
@@ -673,7 +673,7 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
                 ))}
               </div>
             ) : (
-              <div style={{ padding: "10px 14px", fontSize: "14px", color: T.textSecondary, lineHeight: 1.45 }}>
+              <div style={{ padding: "10px 14px", fontSize: "14px", color: "var(--color-basics-text-secondary)", lineHeight: 1.45 }}>
                 No hay issues en esta categoría.
               </div>
             )}
@@ -694,12 +694,12 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
 
           <div style={{
             display: "flex", alignItems: "center", gap: "8px",
-            padding: "10px 14px", borderRadius: T.rMd,
-            background: result.wouldReturn ? T.accent100 : T.error3,
-            border: `1px solid ${result.wouldReturn ? T.accent300 : T.error2}`,
+            padding: "10px 14px", borderRadius: "var(--radius-md)",
+            background: result.wouldReturn ? "var(--color-accent-100)" : "var(--color-error-3)",
+            border: `1px solid ${result.wouldReturn ? "var(--color-accent-300)" : "var(--color-error-2)"}`,
           }}>
             <span style={{ fontSize: "15px" }}>{result.wouldReturn ? "✅" : "❌"}</span>
-            <span style={{ fontSize: "14px", fontWeight: 600, color: T.black }}>
+            <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--color-basics-black)" }}>
               {result.wouldReturn ? t.wouldReturn : t.wouldNotReturn}
             </span>
           </div>
