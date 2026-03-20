@@ -1,4 +1,4 @@
-import type { Persona, SimulationResult, SourceType } from "@/types";
+import type { Persona, SimulationResult, SourceType, Issue } from "@/types";
 
 export async function fetchUrlContent(url: string): Promise<string> {
   const response = await fetch("/api/fetch-content", {
@@ -47,12 +47,42 @@ export async function simulatePersona(
 
   const data = (await response.json()) as SimulationResult & { personaId?: string };
 
+  const normalizeIssue = (input: unknown): Issue => {
+    if (!input || typeof input !== "object") {
+      return {
+        severity: "warning",
+        description: "",
+        action: "",
+        component: "",
+        category: "ux",
+      };
+    }
+
+    const maybe = input as Partial<Record<string, unknown>>;
+
+    const severityRaw = maybe.severity;
+    const severity: Issue["severity"] =
+      severityRaw === "critical" || severityRaw === "warning" || severityRaw === "info" ? severityRaw : "warning";
+
+    const categoryRaw = maybe.category;
+    const category: Issue["category"] = categoryRaw === "ux" || categoryRaw === "ui" || categoryRaw === "product" || categoryRaw === "copy" ? categoryRaw : "ux";
+
+    const description = typeof maybe.description === "string" ? maybe.description : "";
+    const action = typeof maybe.action === "string" ? maybe.action : "";
+    const component = typeof maybe.component === "string" ? maybe.component : "";
+
+    return { severity, description, action, component, category };
+  };
+
+  const rawIssues: unknown = (data as unknown as { issues?: unknown }).issues;
+  const issues: Issue[] = Array.isArray(rawIssues) ? rawIssues.map(normalizeIssue) : [];
+
   return {
     personaId: persona.id,
     score: data.score ?? 0,
     summary: data.summary ?? "",
     steps: data.steps ?? [],
-    issues: data.issues ?? [],
+    issues,
     wouldReturn: data.wouldReturn ?? null,
     verbatim: data.verbatim,
   };

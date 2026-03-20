@@ -44,7 +44,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const langName = LANGUAGE_NAMES[language] ?? language;
 
-  const systemPrompt = `You are a synthetic user simulator for digital product testing.
+  const expertPersonaIds = new Set(["ux-researcher", "ui-designer", "product-strategist"]);
+  const isExpert = expertPersonaIds.has(persona.id);
+
+  const issuesSchema = `{"severity":"critical|warning|info","description":"<issue>","action":"<mejora concreta y específica>","component":"<elemento/pantalla afectada>","category":"ux|ui|product|copy"}`;
+
+  const systemPrompt = isExpert
+    ? `You are a synthetic expert simulator for digital product testing.
+Act EXACTLY as this expert when evaluating a product flow.
+
+PROFILE: ${persona.name}
+Description: ${persona.description}
+Traits: ${persona.traits.join(", ")}
+Frustration: ${persona.frustration} | Tech level: ${persona.techLevel}
+
+PRODUCT CONTEXT: ${productContext || "No additional context."}
+
+INSTRUCTIONS (PROFESSIONAL EVALUATION):
+1. Walk through the flow step by step and validate UX reasoning as an expert would
+2. Describe what friction/confusion happens, and why it impacts the user
+3. Turn each issue into an implementable improvement ticket
+4. Be BRUTALLY HONEST from this expert's perspective
+
+IMPORTANTE — FORMATO DE ISSUES:
+Cada issue DEBE incluir:
+- "description": qué problema detectas y por qué impacta al usuario
+- "action": mejora CONCRETA y ESPECÍFICA. No digas "mejorar el botón" — di cambios explícitos (estilos, texto, layout, tamaños) que permitan implementarlo sin preguntar.
+- "component": nombre del elemento o pantalla afectada (ej: "Hero CTA", "Onboarding step 3", "Pricing card")
+- "category": clasificación (ux/ui/product/copy)
+
+Las acciones deben ser tan específicas que un diseñador o developer pueda implementarlas sin preguntar nada más.
+
+LANGUAGE RULE: Write ALL text values in the JSON in ${langName}. This is mandatory — do not use any other language regardless of the source content language.
+
+Respond with ONLY valid JSON (no markdown, no backticks):
+{"score":<1-10>,"summary":"<2-3 sentences>","steps":[{"action":"<what they do>","reaction":"<what they think>"}],"issues":[${issuesSchema}],"wouldReturn":<bool>,"verbatim":"<literal quote from the persona>"}`
+    : `You are a synthetic user simulator for digital product testing.
 Act EXACTLY as this profile when evaluating a product flow.
 
 PROFILE: ${persona.name}
@@ -63,7 +98,7 @@ INSTRUCTIONS:
 LANGUAGE RULE: Write ALL text values in the JSON in ${langName}. This is mandatory — do not use any other language regardless of the source content language.
 
 Respond with ONLY valid JSON (no markdown, no backticks):
-{"score":<1-10>,"summary":"<2-3 sentences>","steps":[{"action":"<what they do>","reaction":"<what they think>"}],"issues":[{"severity":"critical|warning|info","description":"<issue>"}],"wouldReturn":<bool>,"verbatim":"<literal quote from the persona>"}`;
+{"score":<1-10>,"summary":"<2-3 sentences>","steps":[{"action":"<what they do>","reaction":"<what they think>"}],"issues":[${issuesSchema}],"wouldReturn":<bool>,"verbatim":"<literal quote from the persona>"}`;
 
   const userPrompt = `SOURCE: ${sourceType.toUpperCase()}\n\nFLOW:\n${flowInput}`;
 
@@ -165,7 +200,15 @@ function repairJSON(raw: string): Record<string, unknown> | null {
     score: scoreMatch ? parseInt(scoreMatch[1]) : 5,
     summary: summaryMatch ? summaryMatch[1] : "Respuesta parcial.",
     steps: [],
-    issues: [{ severity: "warning", description: "Respuesta truncada — datos parciales." }],
+    issues: [
+      {
+        severity: "warning",
+        description: "Respuesta truncada — datos parciales.",
+        action: "Generar una acción concreta y específica para resolver el problema detectado.",
+        component: "Resultados",
+        category: "ux",
+      },
+    ],
     wouldReturn: returnMatch ? returnMatch[1] === "true" : null,
     personaId: "",
   };

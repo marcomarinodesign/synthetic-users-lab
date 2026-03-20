@@ -5,6 +5,7 @@ import { simulatePersona, fetchUrlContent } from "@/lib/simulation";
 
 /* ─── Types ─── */
 type IssueSeverity = "critical" | "warning" | "info";
+type IssueCategory = "ux" | "ui" | "product" | "copy";
 type BadgeVariant = "default" | "success" | "warning" | "error" | "info";
 
 /* ─── Plinng DS Tokens ─── */
@@ -496,14 +497,18 @@ interface ResultCardProps {
   result: SimulationResult;
   index: number;
   t: Translations;
+  issueCategoryFilter: "all" | IssueCategory;
 }
 
-function ResultCard({ result, index, t }: ResultCardProps) {
+function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) {
   const [open, setOpen] = useState(index === 0);
   const persona: AvatarPersona = PRESET_PERSONAS.find(p => p.id === result.personaId) ?? { name: "Custom", initials: "CU", avatarBg: T.accent100, avatarColor: T.accent700 };
   const sc = result.score || 0;
   const scoreVariant: BadgeVariant = sc >= 7 ? "success" : sc >= 4 ? "warning" : "error";
   const sevMap: Record<IssueSeverity, BadgeVariant> = { critical: "error", warning: "warning", info: "info" };
+  const catLabelMap: Record<IssueCategory, string> = { ux: "UX", ui: "UI", product: "Product", copy: "Copy" };
+  const catVariantMap: Record<IssueCategory, BadgeVariant> = { ux: "info", ui: "success", product: "warning", copy: "default" };
+  const issuesToShow = issueCategoryFilter === "all" ? result.issues : result.issues.filter(i => i.category === issueCategoryFilter);
 
   return (
     <div style={{ background: T.white, border: `1px solid ${T.tertiaryBorder}`, borderRadius: T.rXl, overflow: "hidden", boxShadow: T.shadowSm }}>
@@ -551,14 +556,48 @@ function ResultCard({ result, index, t }: ResultCardProps) {
 
           {result.issues?.length > 0 && <div>
             <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: T.textSecondary, marginBottom: "8px" }}>{t.issuesSectionLabel}</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              {result.issues.map((issue, ii) => (
-                <div key={ii} style={{ display: "flex", gap: "10px", alignItems: "flex-start", padding: "10px 14px" }}>
-                  <Badge variant={sevMap[issue.severity]} dot>{t.sevLabels[issue.severity]}</Badge>
-                  <span style={{ fontSize: "14px", color: T.black, lineHeight: 1.45 }}>{issue.description}</span>
-                </div>
-              ))}
-            </div>
+            {issuesToShow.length > 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                {issuesToShow.map((issue, ii) => (
+                  <div key={ii} style={{ display: "flex", gap: "10px", alignItems: "flex-start", padding: "10px 14px" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: "170px" }}>
+                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+                        <Badge variant={sevMap[issue.severity]} dot>{t.sevLabels[issue.severity]}</Badge>
+                        <Badge variant={catVariantMap[issue.category]}>{catLabelMap[issue.category]}</Badge>
+                      </div>
+                      {issue.component ? (
+                        <span style={{
+                          display: "inline-flex",
+                          maxWidth: "100%",
+                          padding: "4px 10px",
+                          fontSize: "12px",
+                          fontWeight: 700,
+                          borderRadius: T.rFull,
+                          background: T.beige50,
+                          color: T.black,
+                          lineHeight: "16px",
+                          border: `1px solid ${T.greySoftMiddle}`,
+                          wordBreak: "break-word",
+                        }}>{issue.component}</span>
+                      ) : null}
+                    </div>
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
+                      <span style={{ fontSize: "14px", color: T.black, lineHeight: 1.45 }}>{issue.description}</span>
+                      {issue.action ? (
+                        <div style={{ fontSize: "14px", color: T.textSecondary, lineHeight: 1.45 }}>
+                          <span style={{ fontWeight: 800, color: T.primary, marginRight: "6px" }}>→</span>
+                          {issue.action}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ padding: "10px 14px", fontSize: "14px", color: T.textSecondary, lineHeight: 1.45 }}>
+                No hay issues en esta categoría.
+              </div>
+            )}
           </div>}
 
           {result.verbatim && (
@@ -597,6 +636,7 @@ export default function SyntheticUsersLab() {
   const [progress, setProgress] = useState({ current: 0, total: 0, currentPersona: "" });
   const [showModal, setShowModal] = useState(false);
   const [language, setLanguage] = useState<Lang>(detectLang);
+  const [issueCategoryFilter, setIssueCategoryFilter] = useState<"all" | IssueCategory>("all");
   const t = TRANSLATIONS[language];
 
   const toggle = (id: string) => setSelectedPersonas(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
@@ -613,6 +653,7 @@ export default function SyntheticUsersLab() {
 
   const run = useCallback(async () => {
     setLoading(true); setResults(null);
+    setIssueCategoryFilter("all");
     const personas = PRESET_PERSONAS.filter(p => selectedPersonas.includes(p.id));
     const sourceType: SourceType = flowInput.toLowerCase().includes("github.com") ? "repo" : "url";
 
@@ -639,7 +680,22 @@ export default function SyntheticUsersLab() {
         all.push(result);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
-        all.push({ personaId: p.id, score: 0, summary: `Error: ${msg}`, steps: [], issues: [{ severity: "critical", description: msg }], wouldReturn: false });
+        all.push({
+          personaId: p.id,
+          score: 0,
+          summary: `Error: ${msg}`,
+          steps: [],
+          issues: [
+            {
+              severity: "critical",
+              description: msg,
+              action: "Reintentar la simulación y asegurar que el backend devuelva un JSON válido.",
+              component: "API de simulación",
+              category: "ux",
+            },
+          ],
+          wouldReturn: false,
+        });
       }
     }
     setResults(all); setLoading(false); setStep(3);
@@ -807,8 +863,38 @@ export default function SyntheticUsersLab() {
               </div>
             ))}
           </div>
-          <div style={{ fontSize: "16px", fontWeight: 700, color: T.black }}>{t.resultsByUser}</div>
-          {results.map((r, i) => <ResultCard key={i} result={r} index={i} t={t} />)}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
+            <div style={{ fontSize: "16px", fontWeight: 700, color: T.black }}>{t.resultsByUser}</div>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {([
+                { id: "all", label: "All" },
+                { id: "ux", label: "UX" },
+                { id: "ui", label: "UI" },
+                { id: "product", label: "Product" },
+                { id: "copy", label: "Copy" },
+              ] as { id: "all" | IssueCategory; label: string }[]).map(({ id, label }) => (
+                <button
+                  key={id}
+                  onClick={() => setIssueCategoryFilter(id)}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: T.rFull,
+                    border: `1.5px solid ${issueCategoryFilter === id ? T.primary : T.greySoft}`,
+                    background: issueCategoryFilter === id ? T.primary : T.white,
+                    color: issueCategoryFilter === id ? T.primaryText : T.black,
+                    fontSize: "12px",
+                    fontWeight: issueCategoryFilter === id ? 600 : 400,
+                    cursor: "pointer",
+                    fontFamily: T.font,
+                    transition: "all 0.15s",
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {results.map((r, i) => <ResultCard key={i} result={r} index={i} t={t} issueCategoryFilter={issueCategoryFilter} />)}
           <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignSelf: "center", alignItems: "stretch", marginTop: "8px" }}>
             <BtnPrimary onClick={() => { setStep(0); setResults(null); }}>{t.newTestBtn}</BtnPrimary>
             <BtnSecondary onClick={() => { setStep(1); setResults(null); }}>{t.editFlowBtn}</BtnSecondary>
