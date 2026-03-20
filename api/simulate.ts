@@ -67,7 +67,7 @@ Responde SOLO JSON válido (sin markdown ni backticks):
           systemInstruction: { parts: [{ text: systemPrompt }] },
           contents: [{ parts: [{ text: userPrompt }] }],
           generationConfig: {
-            maxOutputTokens: 4096,
+            maxOutputTokens: 8192,
             temperature: 0.7,
           },
         }),
