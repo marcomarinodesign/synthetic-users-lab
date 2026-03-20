@@ -53,6 +53,158 @@ const T = {
   font: "'Inter', sans-serif",
 };
 
+/* ─── i18n ─── */
+type Lang = "es" | "en" | "fr" | "pt" | "de";
+
+const LANG_OPTIONS: { code: Lang; label: string }[] = [
+  { code: "es", label: "🇪🇸 ES" },
+  { code: "en", label: "🇬🇧 EN" },
+  { code: "fr", label: "🇫🇷 FR" },
+  { code: "pt", label: "🇧🇷 PT" },
+  { code: "de", label: "🇩🇪 DE" },
+];
+
+function detectLang(): Lang {
+  const code = (typeof navigator !== "undefined" ? navigator.language : "es").split("-")[0].toLowerCase();
+  return (["es", "en", "fr", "pt", "de"] as Lang[]).includes(code as Lang) ? (code as Lang) : "es";
+}
+
+interface Translations {
+  subtitle: string;
+  steps: [string, string, string, string];
+  profilesSelected: (n: number) => string;
+  newBtn: string; nextBtn: string; backBtn: string; cancelBtn: string; createBtn: string;
+  linkLabel: string; linkPlaceholder: string;
+  contextLabel: string; contextOptional: string; contextPlaceholder: string;
+  languageLabel: string;
+  launchBtn: string;
+  fetchingPhase: string; analyzingPhase: string;
+  userOf: (c: number, t: number) => string;
+  scoreLabel: string; issuesLabel: string; criticalLabel: string; retentionLabel: string;
+  resultsByUser: string; newTestBtn: string; editFlowBtn: string;
+  modalTitle: string; modalDesc: string;
+  nameLabel: string; namePlaceholder: string;
+  descLabel: string; descPlaceholder: string;
+  traitsLabel: string; traitsSuffix: string; traitsPlaceholder: string;
+  wouldReturn: string; wouldNotReturn: string;
+  wouldReturnShort: string; wouldNotReturnShort: string;
+  summaryLabel: string; stepsLabel: string; issuesSectionLabel: string;
+  sevLabels: { critical: string; warning: string; info: string };
+}
+
+const TRANSLATIONS: Record<Lang, Translations> = {
+  es: {
+    subtitle: "Simula usuarios reales testeando tus flujos.",
+    steps: ["Personas", "Flujo", "Test", "Resultados"],
+    profilesSelected: (n) => `${n} perfil${n !== 1 ? "es" : ""} seleccionado${n !== 1 ? "s" : ""}`,
+    newBtn: "Nuevo", nextBtn: "Siguiente", backBtn: "Atrás", cancelBtn: "Cancelar", createBtn: "Crear usuario",
+    linkLabel: "Link (web o repo)", linkPlaceholder: "https://tu-web.com o https://github.com/user/repo",
+    contextLabel: "Contexto del producto", contextOptional: "(opcional)", contextPlaceholder: "Qué es, para quién, qué problema resuelve...",
+    languageLabel: "Idioma",
+    launchBtn: "Lanzar simulación",
+    fetchingPhase: "Leyendo contenido de las URLs...", analyzingPhase: "Analizando con Gemini...",
+    userOf: (c, t) => `Usuario ${c} de ${t}`,
+    scoreLabel: "Score medio", issuesLabel: "Issues", criticalLabel: "Críticos", retentionLabel: "Retención",
+    resultsByUser: "Resultados por usuario", newTestBtn: "Nuevo test", editFlowBtn: "Editar flujo",
+    modalTitle: "Nuevo usuario sintético", modalDesc: "Define el perfil para tus tests.",
+    nameLabel: "Nombre", namePlaceholder: "Ej: Carlos — Dueño de HomeService",
+    descLabel: "Descripción", descPlaceholder: "Describe quién es, cómo usa tecnología, qué espera...",
+    traitsLabel: "Rasgos", traitsSuffix: "(separados por coma)", traitsPlaceholder: "Impaciente, Bajo nivel digital, Espera ROI...",
+    wouldReturn: "Volvería a usar el producto", wouldNotReturn: "No volvería a usar el producto",
+    wouldReturnShort: "Volvería", wouldNotReturnShort: "No volvería",
+    summaryLabel: "Resumen", stepsLabel: "Recorrido", issuesSectionLabel: "Issues",
+    sevLabels: { critical: "Crítico", warning: "Aviso", info: "Info" },
+  },
+  en: {
+    subtitle: "Simulate real users testing your flows.",
+    steps: ["Personas", "Flow", "Test", "Results"],
+    profilesSelected: (n) => `${n} profile${n !== 1 ? "s" : ""} selected`,
+    newBtn: "New", nextBtn: "Next", backBtn: "Back", cancelBtn: "Cancel", createBtn: "Create user",
+    linkLabel: "Link (web or repo)", linkPlaceholder: "https://your-site.com or https://github.com/user/repo",
+    contextLabel: "Product context", contextOptional: "(optional)", contextPlaceholder: "What it is, who it's for, what problem it solves...",
+    languageLabel: "Language",
+    launchBtn: "Launch simulation",
+    fetchingPhase: "Reading URL content...", analyzingPhase: "Analyzing with Gemini...",
+    userOf: (c, t) => `User ${c} of ${t}`,
+    scoreLabel: "Avg score", issuesLabel: "Issues", criticalLabel: "Critical", retentionLabel: "Retention",
+    resultsByUser: "Results by user", newTestBtn: "New test", editFlowBtn: "Edit flow",
+    modalTitle: "New synthetic user", modalDesc: "Define the profile for your tests.",
+    nameLabel: "Name", namePlaceholder: "E.g: Carlos — HomeService owner",
+    descLabel: "Description", descPlaceholder: "Describe who they are, how they use tech, what they expect...",
+    traitsLabel: "Traits", traitsSuffix: "(comma-separated)", traitsPlaceholder: "Impatient, Low digital literacy, Expects ROI...",
+    wouldReturn: "Would use the product again", wouldNotReturn: "Would not use the product again",
+    wouldReturnShort: "Would return", wouldNotReturnShort: "Would not return",
+    summaryLabel: "Summary", stepsLabel: "Journey", issuesSectionLabel: "Issues",
+    sevLabels: { critical: "Critical", warning: "Warning", info: "Info" },
+  },
+  fr: {
+    subtitle: "Simulez de vrais utilisateurs testant vos flux.",
+    steps: ["Personas", "Flux", "Test", "Résultats"],
+    profilesSelected: (n) => `${n} profil${n !== 1 ? "s" : ""} sélectionné${n !== 1 ? "s" : ""}`,
+    newBtn: "Nouveau", nextBtn: "Suivant", backBtn: "Retour", cancelBtn: "Annuler", createBtn: "Créer l'utilisateur",
+    linkLabel: "Lien (web ou repo)", linkPlaceholder: "https://votre-site.com ou https://github.com/user/repo",
+    contextLabel: "Contexte produit", contextOptional: "(optionnel)", contextPlaceholder: "Ce que c'est, pour qui, quel problème ça résout...",
+    languageLabel: "Langue",
+    launchBtn: "Lancer la simulation",
+    fetchingPhase: "Lecture du contenu des URLs...", analyzingPhase: "Analyse avec Gemini...",
+    userOf: (c, t) => `Utilisateur ${c} sur ${t}`,
+    scoreLabel: "Score moyen", issuesLabel: "Problèmes", criticalLabel: "Critiques", retentionLabel: "Rétention",
+    resultsByUser: "Résultats par utilisateur", newTestBtn: "Nouveau test", editFlowBtn: "Modifier le flux",
+    modalTitle: "Nouvel utilisateur synthétique", modalDesc: "Définissez le profil pour vos tests.",
+    nameLabel: "Nom", namePlaceholder: "Ex: Carlos — Propriétaire de HomeService",
+    descLabel: "Description", descPlaceholder: "Décrivez qui il est, comment il utilise la tech, ce qu'il attend...",
+    traitsLabel: "Traits", traitsSuffix: "(séparés par virgule)", traitsPlaceholder: "Impatient, Faible niveau numérique, Attend un ROI...",
+    wouldReturn: "Reviendrait utiliser le produit", wouldNotReturn: "Ne reviendrait pas utiliser le produit",
+    wouldReturnShort: "Reviendrait", wouldNotReturnShort: "Ne reviendrait pas",
+    summaryLabel: "Résumé", stepsLabel: "Parcours", issuesSectionLabel: "Problèmes",
+    sevLabels: { critical: "Critique", warning: "Avertissement", info: "Info" },
+  },
+  pt: {
+    subtitle: "Simule usuários reais testando seus fluxos.",
+    steps: ["Personas", "Fluxo", "Teste", "Resultados"],
+    profilesSelected: (n) => `${n} perfil${n !== 1 ? "is" : ""} selecionado${n !== 1 ? "s" : ""}`,
+    newBtn: "Novo", nextBtn: "Próximo", backBtn: "Voltar", cancelBtn: "Cancelar", createBtn: "Criar usuário",
+    linkLabel: "Link (web ou repo)", linkPlaceholder: "https://seu-site.com ou https://github.com/user/repo",
+    contextLabel: "Contexto do produto", contextOptional: "(opcional)", contextPlaceholder: "O que é, para quem, qual problema resolve...",
+    languageLabel: "Idioma",
+    launchBtn: "Lançar simulação",
+    fetchingPhase: "Lendo conteúdo das URLs...", analyzingPhase: "Analisando com Gemini...",
+    userOf: (c, t) => `Usuário ${c} de ${t}`,
+    scoreLabel: "Score médio", issuesLabel: "Issues", criticalLabel: "Críticos", retentionLabel: "Retenção",
+    resultsByUser: "Resultados por usuário", newTestBtn: "Novo teste", editFlowBtn: "Editar fluxo",
+    modalTitle: "Novo usuário sintético", modalDesc: "Defina o perfil para seus testes.",
+    nameLabel: "Nome", namePlaceholder: "Ex: Carlos — Dono do HomeService",
+    descLabel: "Descrição", descPlaceholder: "Descreva quem é, como usa tecnologia, o que espera...",
+    traitsLabel: "Características", traitsSuffix: "(separadas por vírgula)", traitsPlaceholder: "Impaciente, Baixo nível digital, Espera ROI...",
+    wouldReturn: "Voltaria a usar o produto", wouldNotReturn: "Não voltaria a usar o produto",
+    wouldReturnShort: "Voltaria", wouldNotReturnShort: "Não voltaria",
+    summaryLabel: "Resumo", stepsLabel: "Percurso", issuesSectionLabel: "Issues",
+    sevLabels: { critical: "Crítico", warning: "Aviso", info: "Info" },
+  },
+  de: {
+    subtitle: "Simulieren Sie echte Nutzer beim Testen Ihrer Flows.",
+    steps: ["Personas", "Flow", "Test", "Ergebnisse"],
+    profilesSelected: (n) => `${n} Profil${n !== 1 ? "e" : ""} ausgewählt`,
+    newBtn: "Neu", nextBtn: "Weiter", backBtn: "Zurück", cancelBtn: "Abbrechen", createBtn: "Nutzer erstellen",
+    linkLabel: "Link (Web oder Repo)", linkPlaceholder: "https://ihre-seite.com oder https://github.com/user/repo",
+    contextLabel: "Produktkontext", contextOptional: "(optional)", contextPlaceholder: "Was es ist, für wen, welches Problem es löst...",
+    languageLabel: "Sprache",
+    launchBtn: "Simulation starten",
+    fetchingPhase: "URL-Inhalt wird gelesen...", analyzingPhase: "Analyse mit Gemini...",
+    userOf: (c, t) => `Nutzer ${c} von ${t}`,
+    scoreLabel: "Ø Score", issuesLabel: "Probleme", criticalLabel: "Kritisch", retentionLabel: "Bindung",
+    resultsByUser: "Ergebnisse nach Nutzer", newTestBtn: "Neuer Test", editFlowBtn: "Flow bearbeiten",
+    modalTitle: "Neuer synthetischer Nutzer", modalDesc: "Definieren Sie das Profil für Ihre Tests.",
+    nameLabel: "Name", namePlaceholder: "z.B.: Carlos — HomeService-Inhaber",
+    descLabel: "Beschreibung", descPlaceholder: "Beschreiben Sie, wer er ist, wie er Tech nutzt, was er erwartet...",
+    traitsLabel: "Eigenschaften", traitsSuffix: "(kommagetrennt)", traitsPlaceholder: "Ungeduldig, Geringes digitales Niveau, Erwartet ROI...",
+    wouldReturn: "Würde das Produkt wieder nutzen", wouldNotReturn: "Würde das Produkt nicht wieder nutzen",
+    wouldReturnShort: "Würde zurückkommen", wouldNotReturnShort: "Würde nicht zurückkommen",
+    summaryLabel: "Zusammenfassung", stepsLabel: "Verlauf", issuesSectionLabel: "Probleme",
+    sevLabels: { critical: "Kritisch", warning: "Warnung", info: "Info" },
+  },
+};
+
 type AvatarPersona = Pick<Persona, "avatarBg" | "avatarColor" | "initials" | "name" | "avatarPhoto">;
 
 interface AvatarProps {
@@ -343,9 +495,10 @@ function Modal({ open, onClose, title, description, children, footer }: ModalPro
 interface ResultCardProps {
   result: SimulationResult;
   index: number;
+  t: Translations;
 }
 
-function ResultCard({ result, index }: ResultCardProps) {
+function ResultCard({ result, index, t }: ResultCardProps) {
   const [open, setOpen] = useState(index === 0);
   const persona: AvatarPersona = PRESET_PERSONAS.find(p => p.id === result.personaId) ?? { name: "Custom", initials: "CU", avatarBg: T.accent100, avatarColor: T.accent700 };
   const sc = result.score || 0;
@@ -363,7 +516,7 @@ function ResultCard({ result, index }: ResultCardProps) {
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: "16px", fontWeight: 600, color: T.black }}>{persona.name}</div>
           <div style={{ fontSize: "14px", color: T.textSecondary, marginTop: "2px" }}>
-            {result.issues?.length || 0} issues · {result.wouldReturn ? "Volvería" : "No volvería"}
+            {result.issues?.length || 0} issues · {result.wouldReturn ? t.wouldReturnShort : t.wouldNotReturnShort}
           </div>
         </div>
         <Badge variant={scoreVariant} dot>{sc}/10</Badge>
@@ -377,12 +530,12 @@ function ResultCard({ result, index }: ResultCardProps) {
           <div style={{ height: "1px", background: T.tertiaryBorder }} />
 
           {result.summary && <div>
-            <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: T.textSecondary, marginBottom: "8px" }}>Resumen</div>
+            <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: T.textSecondary, marginBottom: "8px" }}>{t.summaryLabel}</div>
             <p style={{ margin: 0, fontSize: "14px", lineHeight: 1.6, color: T.black }}>{result.summary}</p>
           </div>}
 
           {result.steps?.length > 0 && <div>
-            <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: T.textSecondary, marginBottom: "8px" }}>Recorrido</div>
+            <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: T.textSecondary, marginBottom: "8px" }}>{t.stepsLabel}</div>
             <div style={{ borderRadius: T.rMd, overflow: "hidden", border: `1px solid ${T.tertiaryBorder}` }}>
               {result.steps.map((s, si) => (
                 <div key={si} style={{ display: "flex", gap: "12px", padding: "12px 14px", background: si % 2 === 0 ? T.white : T.beige25, borderTop: si > 0 ? `1px solid ${T.tertiaryBorder}` : "none" }}>
@@ -397,11 +550,11 @@ function ResultCard({ result, index }: ResultCardProps) {
           </div>}
 
           {result.issues?.length > 0 && <div>
-            <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: T.textSecondary, marginBottom: "8px" }}>Issues</div>
+            <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: T.textSecondary, marginBottom: "8px" }}>{t.issuesSectionLabel}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               {result.issues.map((issue, ii) => (
                 <div key={ii} style={{ display: "flex", gap: "10px", alignItems: "flex-start", padding: "10px 14px" }}>
-                  <Badge variant={sevMap[issue.severity]} dot>{issue.severity === "critical" ? "Crítico" : issue.severity === "warning" ? "Aviso" : "Info"}</Badge>
+                  <Badge variant={sevMap[issue.severity]} dot>{t.sevLabels[issue.severity]}</Badge>
                   <span style={{ fontSize: "14px", color: T.black, lineHeight: 1.45 }}>{issue.description}</span>
                 </div>
               ))}
@@ -422,7 +575,7 @@ function ResultCard({ result, index }: ResultCardProps) {
           }}>
             <span style={{ fontSize: "15px" }}>{result.wouldReturn ? "✅" : "❌"}</span>
             <span style={{ fontSize: "14px", fontWeight: 600, color: T.black }}>
-              {result.wouldReturn ? "Volvería a usar el producto" : "No volvería a usar el producto"}
+              {result.wouldReturn ? t.wouldReturn : t.wouldNotReturn}
             </span>
           </div>
         </div>
@@ -443,7 +596,8 @@ export default function SyntheticUsersLab() {
   const [loadingPhase, setLoadingPhase] = useState<"fetching" | "analyzing">("fetching");
   const [progress, setProgress] = useState({ current: 0, total: 0, currentPersona: "" });
   const [showModal, setShowModal] = useState(false);
-  const [language, setLanguage] = useState("es");
+  const [language, setLanguage] = useState<Lang>(detectLang);
+  const t = TRANSLATIONS[language];
 
   const toggle = (id: string) => setSelectedPersonas(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
   const canAdd = customPersona.name && customPersona.description;
@@ -515,92 +669,80 @@ export default function SyntheticUsersLab() {
             </div>
           </div>
           <h1 style={{ margin: "0 0 8px", fontSize: "42px", fontWeight: 800, color: T.black, letterSpacing: "-0.56px" }}>Synthetic Users Lab</h1>
-          <p style={{ margin: 0, fontSize: "16px", color: T.black }}>Simula usuarios reales testeando tus flujos.</p>
+          <p style={{ margin: "0 0 16px", fontSize: "16px", color: T.black }}>{t.subtitle}</p>
+          <div style={{ display: "flex", gap: "6px", justifyContent: "center", flexWrap: "wrap" }}>
+            {LANG_OPTIONS.map(({ code, label }) => (
+              <button key={code} onClick={() => setLanguage(code)} style={{
+                padding: "5px 12px", borderRadius: T.rFull,
+                border: `1.5px solid ${language === code ? T.primary : T.greySoft}`,
+                background: language === code ? T.primary : T.white,
+                color: language === code ? T.primaryText : T.black,
+                fontSize: "12px", fontWeight: language === code ? 600 : 400,
+                cursor: "pointer", fontFamily: T.font, transition: "all 0.15s",
+              }}>{label}</button>
+            ))}
+          </div>
         </div>
 
         {/* Modal */}
         <Modal
           open={showModal}
           onClose={() => setShowModal(false)}
-          title="Nuevo usuario sintético"
-          description="Define el perfil para tus tests."
+          title={t.modalTitle}
+          description={t.modalDesc}
           footer={<>
-            <BtnTertiary onClick={() => setShowModal(false)}>Cancelar</BtnTertiary>
-            <BtnPrimary onClick={addCustom} disabled={!canAdd}>Crear usuario</BtnPrimary>
+            <BtnTertiary onClick={() => setShowModal(false)}>{t.cancelBtn}</BtnTertiary>
+            <BtnPrimary onClick={addCustom} disabled={!canAdd}>{t.createBtn}</BtnPrimary>
           </>}
         >
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             <div>
-              <label style={labelStyle}>Nombre</label>
-              <input value={customPersona.name} onChange={e => setCustomPersona(p => ({ ...p, name: e.target.value }))} placeholder="Ej: Carlos — Dueño de HomeService" style={inputStyle} />
+              <label style={labelStyle}>{t.nameLabel}</label>
+              <input value={customPersona.name} onChange={e => setCustomPersona(p => ({ ...p, name: e.target.value }))} placeholder={t.namePlaceholder} style={inputStyle} />
             </div>
             <div>
-              <label style={labelStyle}>Descripción</label>
-              <textarea value={customPersona.description} onChange={e => setCustomPersona(p => ({ ...p, description: e.target.value }))} placeholder="Describe quién es, cómo usa tecnología, qué espera..." rows={4} style={textareaStyle} />
+              <label style={labelStyle}>{t.descLabel}</label>
+              <textarea value={customPersona.description} onChange={e => setCustomPersona(p => ({ ...p, description: e.target.value }))} placeholder={t.descPlaceholder} rows={4} style={textareaStyle} />
             </div>
             <div>
-              <label style={labelStyle}>Rasgos <span style={{ fontWeight: 400, color: T.textSecondary }}>(separados por coma)</span></label>
-              <input value={customPersona.traits} onChange={e => setCustomPersona(p => ({ ...p, traits: e.target.value }))} placeholder="Impaciente, Bajo nivel digital, Espera ROI..." style={inputStyle} />
+              <label style={labelStyle}>{t.traitsLabel} <span style={{ fontWeight: 400, color: T.textSecondary }}>{t.traitsSuffix}</span></label>
+              <input value={customPersona.traits} onChange={e => setCustomPersona(p => ({ ...p, traits: e.target.value }))} placeholder={t.traitsPlaceholder} style={inputStyle} />
             </div>
           </div>
         </Modal>
 
-        <ProgressBar steps={["Personas", "Flujo", "Test", "Resultados"]} current={step} />
+        <ProgressBar steps={t.steps} current={step} />
 
         {/* Step 0 */}
         {step === 0 && <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <p style={{ margin: 0, fontSize: "14px", color: T.black }}>{selectedPersonas.length} perfil{selectedPersonas.length !== 1 && "es"} seleccionado{selectedPersonas.length !== 1 && "s"}</p>
+            <p style={{ margin: 0, fontSize: "14px", color: T.black }}>{t.profilesSelected(selectedPersonas.length)}</p>
             <BtnSecondary onClick={() => setShowModal(true)} style={{ gap: "6px", height: "36px", padding: "0 16px", fontSize: "14px" }}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-              Nuevo
+              {t.newBtn}
             </BtnSecondary>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             {PRESET_PERSONAS.map(p => <PersonaCard key={p.id} persona={p} selected={selectedPersonas.includes(p.id)} onToggle={toggle} />)}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignSelf: "center", alignItems: "stretch" }}>
-            <BtnPrimary onClick={() => setStep(1)} disabled={!selectedPersonas.length}>Siguiente</BtnPrimary>
+            <BtnPrimary onClick={() => setStep(1)} disabled={!selectedPersonas.length}>{t.nextBtn}</BtnPrimary>
           </div>
         </div>}
 
         {/* Step 1 */}
         {step === 1 && <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           <div>
-            <label style={labelStyle}>Link (web o repo)</label>
-            <input value={flowInput} onChange={e => setFlowInput(e.target.value)} placeholder="https://tu-web.com o https://github.com/user/repo" style={inputStyle} />
+            <label style={labelStyle}>{t.linkLabel}</label>
+            <input value={flowInput} onChange={e => setFlowInput(e.target.value)} placeholder={t.linkPlaceholder} style={inputStyle} />
           </div>
           <div>
-            <label style={labelStyle}>Contexto del producto <span style={{ fontWeight: 400, color: T.textSecondary }}>(opcional)</span></label>
-            <textarea value={productContext} onChange={e => setProductContext(e.target.value)} placeholder="Qué es, para quién, qué problema resuelve..." rows={7} style={textareaStyle} />
-          </div>
-          <div>
-            <label style={labelStyle}>Idioma del informe</label>
-            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-              {([
-                { code: "es", label: "🇪🇸 ES" },
-                { code: "en", label: "🇬🇧 EN" },
-                { code: "fr", label: "🇫🇷 FR" },
-                { code: "pt", label: "🇧🇷 PT" },
-                { code: "de", label: "🇩🇪 DE" },
-              ] as { code: string; label: string }[]).map(({ code, label }) => (
-                <button
-                  key={code}
-                  onClick={() => setLanguage(code)}
-                  style={{
-                    padding: "6px 14px", borderRadius: T.rFull, border: `1.5px solid ${language === code ? T.primary : T.greySoft}`,
-                    background: language === code ? T.primary : T.white,
-                    color: language === code ? T.primaryText : T.black,
-                    fontSize: "13px", fontWeight: language === code ? 600 : 400,
-                    cursor: "pointer", fontFamily: T.font, transition: "all 0.15s",
-                  }}
-                >{label}</button>
-              ))}
-            </div>
+            <label style={labelStyle}>{t.contextLabel} <span style={{ fontWeight: 400, color: T.textSecondary }}>{t.contextOptional}</span></label>
+            <textarea value={productContext} onChange={e => setProductContext(e.target.value)} placeholder={t.contextPlaceholder} rows={7} style={textareaStyle} />
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignSelf: "center", alignItems: "stretch" }}>
-            <BtnPrimary onClick={() => { setStep(2); run(); }} disabled={!flowInput.trim()}>Lanzar simulación</BtnPrimary>
-            <BtnTertiary onClick={() => setStep(0)}>Atrás</BtnTertiary>
+            <BtnPrimary onClick={() => { setStep(2); run(); }} disabled={!flowInput.trim()}>{t.launchBtn}</BtnPrimary>
+            <BtnTertiary onClick={() => setStep(0)}>{t.backBtn}</BtnTertiary>
           </div>
         </div>}
 
@@ -623,7 +765,7 @@ export default function SyntheticUsersLab() {
                 </div>
               )}
               <span style={{ fontSize: "14px", fontWeight: loadingPhase === "fetching" ? 600 : 400, color: loadingPhase === "fetching" ? T.black : T.greyDark, textDecoration: loadingPhase === "fetching" ? "none" : "line-through" }}>
-                Leyendo contenido de las URLs...
+                {t.fetchingPhase}
               </span>
             </div>
             {/* Phase 2 */}
@@ -634,7 +776,7 @@ export default function SyntheticUsersLab() {
                 <div style={{ flexShrink: 0, width: "20px", height: "20px", borderRadius: "50%", border: `2px solid ${T.greySoft}` }} />
               )}
               <span style={{ fontSize: "14px", fontWeight: loadingPhase === "analyzing" ? 600 : 400, color: loadingPhase === "analyzing" ? T.black : T.greyDark }}>
-                Analizando con Gemini...
+                {t.analyzingPhase}
               </span>
             </div>
           </div>
@@ -642,7 +784,7 @@ export default function SyntheticUsersLab() {
           {loadingPhase === "analyzing" && progress.total > 0 && <>
             <div style={{ textAlign: "center" }}>
               <div style={{ fontSize: "16px", fontWeight: 600, color: T.black }}>{progress.currentPersona}</div>
-              <div style={{ fontSize: "13px", color: T.textSecondary, marginTop: "4px" }}>Usuario {progress.current} de {progress.total}</div>
+              <div style={{ fontSize: "13px", color: T.textSecondary, marginTop: "4px" }}>{t.userOf(progress.current, progress.total)}</div>
             </div>
             <div style={{ width: "180px", height: "6px", background: T.greySoft, borderRadius: "3px", overflow: "hidden" }}>
               <div style={{ height: "100%", background: T.accent300, borderRadius: "3px", width: `${(progress.current / progress.total) * 100}%`, transition: "width 0.4s" }} />
@@ -654,10 +796,10 @@ export default function SyntheticUsersLab() {
         {step === 3 && results && <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "10px" }}>
             {([
-              { l: "Score medio", v: avg, variant: (avgScore >= 7 ? "success" : avgScore >= 4 ? "warning" : "error") as BadgeVariant },
-              { l: "Issues", v: issueCount, variant: "warning" as BadgeVariant },
-              { l: "Críticos", v: critCount, variant: "error" as BadgeVariant },
-              { l: "Retención", v: `${retainCount}/${results.length}`, variant: "success" as BadgeVariant },
+              { l: t.scoreLabel, v: avg, variant: (avgScore >= 7 ? "success" : avgScore >= 4 ? "warning" : "error") as BadgeVariant },
+              { l: t.issuesLabel, v: issueCount, variant: "warning" as BadgeVariant },
+              { l: t.criticalLabel, v: critCount, variant: "error" as BadgeVariant },
+              { l: t.retentionLabel, v: `${retainCount}/${results.length}`, variant: "success" as BadgeVariant },
             ]).map((m, i) => (
               <div key={i} style={{ padding: "16px 12px", background: T.white, border: `1px solid ${T.tertiaryBorder}`, borderRadius: T.rLg, textAlign: "center", boxShadow: T.shadowSm }}>
                 <div style={{ fontSize: "24px", fontWeight: 800, color: T.black, marginBottom: "4px" }}>{m.v}</div>
@@ -665,11 +807,11 @@ export default function SyntheticUsersLab() {
               </div>
             ))}
           </div>
-          <div style={{ fontSize: "16px", fontWeight: 700, color: T.black }}>Resultados por usuario</div>
-          {results.map((r, i) => <ResultCard key={i} result={r} index={i} />)}
+          <div style={{ fontSize: "16px", fontWeight: 700, color: T.black }}>{t.resultsByUser}</div>
+          {results.map((r, i) => <ResultCard key={i} result={r} index={i} t={t} />)}
           <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignSelf: "center", alignItems: "stretch", marginTop: "8px" }}>
-            <BtnPrimary onClick={() => { setStep(0); setResults(null); }}>Nuevo test</BtnPrimary>
-            <BtnSecondary onClick={() => { setStep(1); setResults(null); }}>Editar flujo</BtnSecondary>
+            <BtnPrimary onClick={() => { setStep(0); setResults(null); }}>{t.newTestBtn}</BtnPrimary>
+            <BtnSecondary onClick={() => { setStep(1); setResults(null); }}>{t.editFlowBtn}</BtnSecondary>
           </div>
         </div>}
       </div>
