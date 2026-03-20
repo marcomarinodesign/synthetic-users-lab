@@ -326,22 +326,26 @@ function ProgressBar({ steps, current }: ProgressBarProps) {
       <div style={{ marginBottom: "14px" }}>
         <ShadProgress value={pct} className="w-full flex-nowrap gap-0" />
       </div>
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
+      <div className="flex justify-between">
         {steps.map((s, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <div key={i} className="flex items-center gap-[6px]">
             <div style={{
               width: i === current ? "10px" : "8px",
               height: i === current ? "10px" : "8px",
-              borderRadius: "50%",
-              background: i <= current ? T.primary : T.greyMiddle,
+              borderRadius: "9999px",
+              background: i <= current ? "var(--color-primary)" : "var(--color-grey-middle)",
               border: i === current ? "2px solid rgba(0,0,0,0.2)" : "none",
               transition: "all 0.3s", flexShrink: 0,
             }} />
-            <span style={{
-              fontSize: "13px", fontWeight: i === current ? 700 : 400,
-              color: i <= current ? T.black : T.greyDark,
-              transition: "all 0.3s",
-            }}>{s}</span>
+            <span
+              className="text-[13px] transition-all"
+              style={{
+                fontWeight: i <= current ? 700 : 400,
+                color: i <= current ? "var(--color-basics-black)" : "var(--color-grey-dark)",
+              }}
+            >
+              {s}
+            </span>
           </div>
         ))}
       </div>
@@ -674,9 +678,16 @@ function ResultCard({ result, index, t, issueCategoryFilter }: ResultCardProps) 
           </div>}
 
           {result.verbatim && (
-            <div style={{ padding: "14px 16px", background: T.beige25, borderRadius: T.rMd, borderLeft: `3px solid ${T.primary}` }}>
-              <p style={{ margin: 0, fontSize: "14px", fontStyle: "italic", color: T.textSecondary, lineHeight: 1.5 }}>"{result.verbatim}"</p>
-            </div>
+            <ShadCard
+              className="rounded-md p-4 border border-[var(--color-tertiary-border)] bg-[var(--color-beige-25)] shadow-none border-l-[3px] border-l-[var(--color-primary)]"
+            >
+              <p
+                className="m-0 text-[14px] italic"
+                style={{ color: "var(--color-basics-text-secondary)", lineHeight: 1.5 }}
+              >
+                "{result.verbatim}"
+              </p>
+            </ShadCard>
           )}
 
           <div style={{
