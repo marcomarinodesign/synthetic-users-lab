@@ -1,120 +1,66 @@
-# 🧪 Synthetic Users Lab
+# Synthetic Users Lab
 
-Simula usuarios reales testeando tus flujos de producto — desde Figma, URL, repo o descripción manual.
+Herramienta de testing UX/product con usuarios sintéticos. Simula perfiles de usuario y perfiles expertos para evaluar onboarding, fricción y retorno esperado.
 
-Herramienta de testing con usuarios sintéticos powered by Google Gemini API. Permite definir perfiles de usuario (personas), describir flujos de producto, y obtener feedback detallado simulado desde la perspectiva de cada perfil.
+## Stack real
 
-## Stack
+- React 19 + TypeScript 5.7
+- Vite 6
+- Tailwind CSS v4
+- shadcn/base-ui para primitives de interfaz
+- Google Gemini 2.5 Flash (REST)
+- API local con Express (`server.js`) y versión serverless en Vercel (`api/*.ts`)
 
-- **React 19** + TypeScript
-- **Vite 6** con HMR
-- **Tailwind CSS v4** con `@theme` tokens
-- **Plinng Design System** — tokens, componentes y patrones
-- **Google Gemini API** (2.0 Flash) — simulación de usuarios
-
-## Quick Start
+## Comandos
 
 ```bash
-# Clonar
-git clone https://github.com/marcomarinodesign/synthetic-users-lab.git
-cd synthetic-users-lab
-
-# Instalar
 npm install
-
-# Configurar API key (backend)
 cp .env.example .env.local
-# Editar .env.local con tu GEMINI_API_KEY (https://aistudio.google.com/app/apikey)
+# Añade GEMINI_API_KEY en .env.local
 
-# Desarrollo (frontend + API)
-npm run dev
+npm run dev         # Vite (5173) + API Express (3001)
+npm run dev:vercel  # entorno Vercel local
+npm run lint
+npm run test
+npm run build
 ```
 
-> **Nota**: La API key se usa solo en el backend. `npm run dev` ejecuta `vercel dev` para servir frontend y API juntos.
+## Estructura actual
 
-## Arquitectura
-
-```
+```text
 api/
-├── simulate.ts        # Serverless: Gemini API (GEMINI_API_KEY)
+├── simulate.ts         # Endpoint Vercel: llama Gemini y normaliza respuesta
+├── fetch-content.ts    # Endpoint Vercel: fetch y extracción de texto de URL
+└── simulation-core.js  # Lógica compartida (prompts, repair JSON, web fetch)
+
 src/
-├── components/        # UI components (DS-aligned)
-│   ├── Avatar.tsx     # Avatar con iniciales + colores por persona
-│   ├── Badge.tsx      # Badge con variantes y dot indicator
-│   ├── Button.tsx     # BtnPrimary, BtnSecondary, BtnTertiary
-│   ├── Modal.tsx      # Modal con focus trap y backdrop blur
-│   └── index.ts       # Barrel exports
+├── App.tsx             # Wizard 4 pasos + resultados
+├── main.tsx            # Entry point React
+├── components/ui/      # UI primitives (button, card, dialog, tabs, etc.)
 ├── lib/
-│   ├── personas.ts    # Preset personas + source types
-│   └── simulation.ts  # API call + JSON repair logic
+│   ├── personas.ts     # Personas preset + source types
+│   ├── simulation.ts   # Cliente API (simulate + fetch-content)
+│   └── utils.ts        # helper de clases Tailwind
 ├── styles/
-│   ├── globals.css    # Tailwind + Plinng DS tokens (@theme)
-│   └── tokens.ts      # TS constants mirror de los CSS tokens
-├── types/
-│   └── index.ts       # Persona, SimulationResult, etc.
-├── App.tsx            # Main app (wizard flow)
-└── main.tsx           # Entry point
+│   └── globals.css     # Tokens, tema, bridge Tailwind/shadcn
+└── types/index.ts      # Tipos de dominio (Persona, Issue, SimulationResult...)
+
+server.js               # API Express para desarrollo local
+scripts/test-api-key.js # Smoke check manual de GEMINI_API_KEY
+tests/                  # Tests automatizados de contrato/helpers
 ```
 
-## Design System
+## Flujo principal
 
-Usa los tokens del **Plinng DS** (`plinng-ds`):
+1. Selección de personas (usuarios y perfiles pro).
+2. Definición del flujo a analizar (URL o repo, con contexto opcional).
+3. Carga del contenido remoto de la URL cuando aplica.
+4. Simulación secuencial por persona contra Gemini.
+5. Resultados agregados + detalle por persona (journey, issues, retorno).
 
-| Token | Valor | Uso |
-|-------|-------|-----|
-| `primary` | `#000000` | Botones principales, texto |
-| `secondary` | `#BEFF50` | CTAs secundarios, accent lime |
-| `beige-25` | `#FBFBF7` | Background principal |
-| `beige-50` | `#F5F5EB` | Badges default, cards |
-| `tertiary-border` | `#EBEBEB` | Bordes de inputs y cards |
-| `error-1` | `#DC2625` | Issues críticos |
-| `warning-1` | `#E89E1B` | Issues warning |
-| `accent-700` | `#4D8605` | Success, scores altos |
+## Notas de arquitectura
 
-**Font**: Inter (400, 600, 700, 800)
-**Radius**: `rFull` (9999px) para botones pill, `rXl` (16px) para cards
-**Shadow**: `shadowSm` para todos los contenedores
-
-## Personas incluidas
-
-| Perfil | Frustración | Nivel técnico | Caso de uso |
-|--------|------------|---------------|-------------|
-| Early Adopter Tech | Baja | Alto | Validar concepto |
-| Manager Ocupado | Alta | Medio | Testear first impression |
-| Escéptico Pragmático | Media | Medio | Detectar objeciones |
-| Usuario No Técnico | Alta | Bajo | Validar usabilidad |
-| Power User | Baja | Alto | Encontrar edge cases |
-| Switcher Insatisfecho | Media | Alto | Comparar con competencia |
-| Decisor de Compra | Alta | Bajo | Validar propuesta de valor |
-| Mobile-First User | Alta | Medio | Testear responsive/perf |
-
-Se pueden crear **personas personalizadas** desde el modal.
-
-## Cómo funciona
-
-1. **Seleccionar personas** — elige qué perfiles van a testear
-2. **Definir flujo** — describe los pasos del flujo (URL, Figma, repo o manual)
-3. **Simulación** — cada persona recorre el flujo vía Gemini API
-4. **Resultados** — score, steps, issues por severidad, retención
-
-## Desarrollo en Cursor
-
-El proyecto está preparado para trabajar con Cursor:
-
-- Path aliases (`@/`) configurados en `tsconfig.json`
-- Componentes separados para facilitar edición
-- Types estrictos para autocompletar
-- Tokens centralizados en `styles/tokens.ts`
-
-### Próximos pasos sugeridos
-
-- [ ] Añadir persistencia de resultados (localStorage o Supabase)
-- [ ] Exportar resultados a CSV/PDF
-- [ ] Integración directa con Figma MCP para leer pantallas
-- [ ] Web fetch de URLs para analizar contenido real
-- [ ] Comparar resultados entre iteraciones (A/B)
-- [ ] Dashboard de histórico de tests
-
-## License
-
-MIT
+- El frontend no usa Redux/Context global; el estado vive en `App.tsx`.
+- La lógica duplicada de backend (prompts/JSON repair/fetch) está centralizada en `api/simulation-core.js`.
+- Los tokens visuales viven en `src/styles/globals.css`.
+- La UI está montada sobre componentes en `src/components/ui` para mantener consistencia visual.

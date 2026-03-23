@@ -1,9 +1,7 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/public-sans";
-@import "@fontsource-variable/noto-serif";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -18,12 +16,36 @@ html {
 }
 
 body {
+  position: relative;
   margin: 0;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: var(--color-beige-25);
-  color: var(--color-basics-black);
+}
+
+/** Resplandor superior (asset) centrado; fluye con el scroll (no fixed). */
+body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 0;
+  width: min(100%, 900px);
+  max-width: 100vw;
+  height: min(320px, 45vh);
+  transform: translateX(-50%);
+  pointer-events: none;
+  background-image: url("/assets/design/background-top-shadow.png");
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: min(100%, 900px) auto;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+  background: transparent;
 }
 
 :focus-visible {
@@ -41,26 +63,31 @@ body {
 }
 
 :root {
-  /* ── Shadcn semantic tokens → nuestros design tokens ── */
+  /* Asfalt disponible antes del bloque @theme (texto UI = paleta, no negro genérico) */
+  --color-palette-asfalt: #1c1412;
+
+  /* ── Shadcn semantic tokens → design tokens (paleta 5 colores) ── */
   --background: var(--color-beige-25);
-  --foreground: var(--color-basics-black);
+  --foreground: var(--color-palette-asfalt);
   --card: var(--color-basics-white);
-  --card-foreground: var(--color-basics-black);
+  --card-foreground: var(--color-palette-asfalt);
   --popover: var(--color-basics-white);
-  --popover-foreground: var(--color-basics-black);
+  --popover-foreground: var(--color-palette-asfalt);
   --primary: var(--color-primary);
   --primary-foreground: var(--color-primary-text);
   --secondary: var(--color-secondary);
   --secondary-foreground: var(--color-secondary-text);
   --muted: var(--color-beige-50);
-  --muted-foreground: var(--color-basics-text-secondary);
+  --muted-foreground: var(--color-palette-asfalt);
   --accent: var(--color-accent-300);
-  --accent-foreground: var(--color-basics-black);
+  /* Texto sobre acento Cornflower (barras, chips con bg accent) */
+  --accent-foreground: var(--color-basics-white);
   --destructive: var(--color-error-1);
   --destructive-foreground: var(--color-basics-white);
   --border: var(--color-tertiary-border);
   --input: var(--color-tertiary-border);
-  --ring: var(--color-primary);
+  /* Foco: acento Cornflower (revisar contraste si se cambia el grosor) */
+  --ring: var(--color-accent-300);
   --radius: 0.45rem;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
@@ -68,7 +95,7 @@ body {
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-foreground: var(--color-palette-asfalt);
   --sidebar-primary: oklch(0.666 0.179 58.318);
   --sidebar-primary-foreground: oklch(0.987 0.022 95.277);
   --sidebar-accent: oklch(0.97 0 0);
@@ -78,25 +105,26 @@ body {
 }
 
 .dark {
-  --background: oklch(0.2046 0 0);
-  --foreground: oklch(0.9219 0 0);
-  --card: oklch(0.2686 0 0);
-  --card-foreground: oklch(0.9219 0 0);
-  --popover: oklch(0.2686 0 0);
-  --popover-foreground: oklch(0.9219 0 0);
-  --primary: oklch(0.7686 0.1647 70.0804);
-  --primary-foreground: oklch(0 0 0);
-  --secondary: oklch(0.2686 0 0);
-  --secondary-foreground: oklch(0.9219 0 0);
-  --muted: oklch(0.2393 0 0);
-  --muted-foreground: oklch(0.7155 0 0);
-  --accent: oklch(0.4732 0.1247 46.2007);
-  --accent-foreground: oklch(0.9243 0.1151 95.7459);
-  --destructive: oklch(0.6368 0.2078 25.3313);
-  --destructive-foreground: oklch(1.0000 0 0);
-  --border: oklch(0.3715 0 0);
-  --input: oklch(0.3715 0 0);
-  --ring: oklch(0.7686 0.1647 70.0804);
+  /* Tema oscuro derivado de la misma paleta (sin nuevos hex) */
+  --background: var(--color-palette-asfalt);
+  --foreground: var(--color-palette-white);
+  --card: color-mix(in srgb, var(--color-palette-white) 8%, var(--color-palette-asfalt));
+  --card-foreground: var(--color-palette-white);
+  --popover: var(--color-palette-asfalt);
+  --popover-foreground: var(--color-palette-white);
+  --primary: var(--color-palette-white);
+  --primary-foreground: var(--color-palette-asfalt);
+  --secondary: var(--color-palette-pomegranate);
+  --secondary-foreground: var(--color-palette-white);
+  --muted: color-mix(in srgb, var(--color-palette-white) 10%, var(--color-palette-asfalt));
+  --muted-foreground: color-mix(in srgb, var(--color-palette-white) 68%, var(--color-palette-asfalt));
+  --accent: var(--color-palette-cornflower);
+  --accent-foreground: var(--color-palette-white);
+  --destructive: var(--color-palette-pomegranate);
+  --destructive-foreground: var(--color-palette-white);
+  --border: color-mix(in srgb, var(--color-palette-white) 18%, var(--color-palette-asfalt));
+  --input: color-mix(in srgb, var(--color-palette-white) 18%, var(--color-palette-asfalt));
+  --ring: var(--color-palette-cornflower);
   --chart-1: oklch(0.8369 0.1644 84.4286);
   --chart-2: oklch(0.6658 0.1574 58.3183);
   --chart-3: oklch(0.4732 0.1247 46.2007);
@@ -112,9 +140,11 @@ body {
   --sidebar-ring: oklch(0.7686 0.1647 70.0804);
 }
 
+/* Shadcn / Tailwind semantic bridge — tipografía UI: Public Sans (Google Fonts) */
 @theme inline {
-  --font-sans: 'Public Sans Variable', sans-serif;
-  --font-heading: 'Noto Serif Variable', serif;
+  --font-sans: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Instrument Serif", Georgia, "Times New Roman", serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -146,39 +176,38 @@ body {
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  /* Radios de componente: ver bloque `@theme` Plinng (foundation) — evita duplicar escalas en conflicto */
 }
 
 @layer base {
   * {
     @apply border-border;
   }
+  html {
+    @apply font-sans text-foreground;
+  }
   body {
     @apply bg-background text-foreground;
-  }
-  html {
-    @apply font-sans;
   }
 }
 
 /* ── Custom design tokens (must come AFTER @theme inline to avoid circular refs) ── */
 @theme {
-  --color-primary: #000000;
-  --color-primary-text: #ffffff;
-  --color-secondary: #beff50;
-  --color-secondary-text: #000000;
-  --color-tertiary: #ffffff;
-  --color-tertiary-text: #000000;
-  --color-tertiary-border: #EBEBEB;
-  --color-disabled: #949494;
+  /* ── Base (5 colores) — mantener alineado con `src/styles/colors.ts` ── */
+  --color-palette-pomegranate: #f9461e;
+  --color-palette-black-haze: #f6f7f9;
+  --color-palette-asfalt: #1c1412;
+  --color-palette-cornflower: #5f90f1;
+  --color-palette-white: #ffffff;
 
-  --font-sans: "Inter", sans-serif;
+  --color-primary: var(--color-palette-asfalt);
+  --color-primary-text: var(--color-palette-white);
+  --color-secondary: var(--color-palette-pomegranate);
+  --color-secondary-text: var(--color-palette-white);
+  --color-tertiary: var(--color-palette-white);
+  --color-tertiary-text: var(--color-palette-asfalt);
+  --color-tertiary-border: color-mix(in srgb, var(--color-palette-asfalt) 10%, var(--color-palette-white));
+  --color-disabled: color-mix(in srgb, var(--color-palette-asfalt) 38%, var(--color-palette-black-haze));
 
   /* ── Spacing — 4px base grid ── */
   --space-1:  4px;
@@ -202,38 +231,42 @@ body {
   --radius-2xl:  24px;
   --radius-full: 9999px;
 
-  /* ── Shadow / Elevation ── */
-  --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.10), 0 2px 4px -2px rgba(0,0,0,0.10);
-  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.10), 0 4px 6px -4px rgba(0,0,0,0.10);
+  /* ── Shadow / Elevation (alpha neutro; no forma parte de la paleta de marca) ── */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
 
-  /* ── Foundation palette ── */
-  --color-accent-100: #EEFFC7;
-  --color-accent-200: #DBFF95;
-  --color-accent-300: #BEFF50;
-  --color-accent-500: #86DD05;
-  --color-accent-700: #4D8605;
+  /* ── Escala acento (Cornflower) — éxito, progreso, info ── */
+  --color-accent-100: color-mix(in srgb, var(--color-palette-cornflower) 14%, white);
+  --color-accent-200: color-mix(in srgb, var(--color-palette-cornflower) 26%, white);
+  --color-accent-300: var(--color-palette-cornflower);
+  --color-accent-500: color-mix(in srgb, var(--color-palette-cornflower) 72%, var(--color-palette-asfalt));
+  --color-accent-700: color-mix(in srgb, var(--color-palette-cornflower) 42%, var(--color-palette-asfalt));
 
-  --color-basics-black:          #000000;
-  --color-basics-white:          #FFFFFF;
-  --color-basics-text-secondary: #95958F;
+  --color-basics-black: var(--color-palette-asfalt);
+  --color-basics-white: var(--color-palette-white);
+  /* Texto secundario: mezcla Asfalt / Black Haze (contraste revisado sobre canvas) */
+  /* Mismo tono que el cuerpo: sin gris secundario en UI clara */
+  --color-basics-text-secondary: var(--color-palette-asfalt);
 
-  --color-beige-25:  #FBFBF7;
-  --color-beige-50:  #F5F5EB;
-  --color-beige-100: #DCDCCB;
-  --color-beige-200: #D0CFB8;
-  --color-beige-300: #B4B290;
+  --color-beige-25: var(--color-palette-black-haze);
+  --color-beige-50: color-mix(in srgb, var(--color-palette-asfalt) 5%, var(--color-palette-black-haze));
+  --color-beige-100: color-mix(in srgb, var(--color-palette-asfalt) 10%, var(--color-palette-black-haze));
+  --color-beige-200: color-mix(in srgb, var(--color-palette-asfalt) 14%, var(--color-palette-black-haze));
+  --color-beige-300: color-mix(in srgb, var(--color-palette-asfalt) 22%, var(--color-palette-black-haze));
 
-  --color-grey-soft:        #EBEBEB;
-  --color-grey-soft-middle: #D8D8D8;
-  --color-grey-middle:      #C3C3C3;
-  --color-grey-dark:        #949494;
+  --color-grey-soft: color-mix(in srgb, var(--color-palette-asfalt) 8%, var(--color-palette-black-haze));
+  --color-grey-soft-middle: color-mix(in srgb, var(--color-palette-asfalt) 14%, var(--color-palette-black-haze));
+  --color-grey-middle: color-mix(in srgb, var(--color-palette-asfalt) 24%, var(--color-palette-black-haze));
+  --color-grey-dark: color-mix(in srgb, var(--color-palette-asfalt) 42%, var(--color-palette-black-haze));
 
-  --color-error-1:   #DC2625;
-  --color-error-2:   #FECACA;
-  --color-error-3:   #FFE0E0;
-  --color-warning-1: #E89E1B;
-  --color-warning-2: #FFEBC6;
-  --color-info-1:    #1447E6;
-  --color-info-2:    #DBEAFE;
+  /* Error / destructivo — Pomegranate (revisar si se confunde con CTA secundaria) */
+  --color-error-1: var(--color-palette-pomegranate);
+  --color-error-2: color-mix(in srgb, var(--color-palette-pomegranate) 45%, white);
+  --color-error-3: color-mix(in srgb, var(--color-palette-pomegranate) 12%, white);
+  /* Warning: tono intermedio (misma familia que error — dudoso si hace falta ámbar distinto) */
+  --color-warning-1: color-mix(in srgb, var(--color-palette-pomegranate) 78%, var(--color-palette-asfalt));
+  --color-warning-2: color-mix(in srgb, var(--color-palette-pomegranate) 20%, white);
+  --color-info-1: var(--color-palette-cornflower);
+  --color-info-2: color-mix(in srgb, var(--color-palette-cornflower) 14%, white);
 }

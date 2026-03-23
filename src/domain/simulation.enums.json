@@ -1,0 +1,5 @@
+{
+  "issueSeverities": ["critical", "warning", "info"],
+  "issueCategories": ["ux", "ui", "product", "copy"],
+  "sourceTypes": ["url", "figma", "repo", "description"]
+}
