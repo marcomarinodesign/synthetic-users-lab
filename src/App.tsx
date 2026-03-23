@@ -166,21 +166,12 @@ export default function SyntheticUsersLab() {
           animate={{ opacity: 1, y: 0 }}
           transition={tHero}
         >
-          <div className="flex w-full items-start justify-between gap-[var(--space-4)]">
-            <motion.h1
-              className="m-0 min-w-0 flex-1 text-left text-[clamp(2.5rem,10vw,5rem)] font-normal leading-[1.05] tracking-[-0.02em] text-foreground md:text-[80px]"
-              style={{ fontFamily: "var(--font-serif)" }}
-              initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ ...tHero, delay: reduceMotion ? 0 : 0.05 }}
-            >
-              {t.appTitle}
-            </motion.h1>
+          <div className="mb-[var(--space-3)] flex w-full justify-end">
             <motion.div
-              className="relative shrink-0 pt-1"
+              className="relative shrink-0"
               initial={reduceMotion ? false : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ ...tHero, delay: reduceMotion ? 0 : 0.12 }}
+              transition={{ ...tHero, delay: reduceMotion ? 0 : 0.05 }}
             >
               <label className="sr-only" htmlFor="app-language">
                 {t.languageLabel}
@@ -209,8 +200,17 @@ export default function SyntheticUsersLab() {
               />
             </motion.div>
           </div>
+          <motion.h1
+            className="m-0 w-full text-center text-[clamp(2.5rem,10vw,5rem)] font-normal leading-[1.05] tracking-[-0.02em] text-foreground md:text-[80px]"
+            style={{ fontFamily: "var(--font-serif)" }}
+            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ...tHero, delay: reduceMotion ? 0 : 0.1 }}
+          >
+            {t.appTitle}
+          </motion.h1>
           <motion.p
-            className="m-0 mt-[var(--space-4)] max-w-[42rem] text-left text-[18px] leading-[1.45] text-foreground"
+            className="m-0 mx-auto mt-[var(--space-4)] max-w-[42rem] text-center text-[18px] leading-[1.45] text-foreground"
             initial={reduceMotion ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ ...tHero, delay: reduceMotion ? 0 : 0.18 }}
