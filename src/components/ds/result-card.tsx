@@ -29,7 +29,7 @@ export function ResultCard({ result, index, labels, issueCategoryFilter, persona
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const persona: AvatarPersona =
     personas.find((p) => p.id === result.personaId) ?? {
-      name: "Custom",
+      name: labels.unknownPersonaName,
       initials: "CU",
       avatarBg: "var(--color-accent-100)",
       avatarColor: "var(--color-accent-700)",
@@ -64,10 +64,10 @@ export function ResultCard({ result, index, labels, issueCategoryFilter, persona
         </div>
         <div className="flex items-center gap-[var(--space-2)]">
           <ShadBadge variant="outline" className={scoreBadgeClass}>
-            UX {sc}/10
+            {labels.uxScoreLabel} {sc}/10
           </ShadBadge>
           <ShadBadge variant="outline" className={fitBadgeClass}>
-            Fit {fit}/10
+            {labels.fitScoreLabel} {fit}/10
           </ShadBadge>
         </div>
         <svg
@@ -93,7 +93,7 @@ export function ResultCard({ result, index, labels, issueCategoryFilter, persona
               <p className="m-0 text-[14px] leading-[1.6] text-foreground">{result.summary}</p>
               <div className="mt-[10px] flex flex-wrap items-center gap-[var(--space-2)]">
                 <ShadBadge variant="outline" className={fitBadgeClass}>
-                  Fit {fit}/10
+                  {labels.fitScoreLabel} {fit}/10
                 </ShadBadge>
                 {result.fit_note ? (
                   <span className="text-[13px] leading-[1.4] text-foreground">{result.fit_note}</span>

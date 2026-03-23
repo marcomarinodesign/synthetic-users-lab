@@ -9,6 +9,8 @@ export interface PersonaMetaCopy {
   frustrationLabel: string;
   /** Subtítulo bajo el nombre en cards de perfiles expertos (pro). */
   proSubtitle: string;
+  /** Badge de categoría "pro" en la card. */
+  proBadgeLabel: string;
 }
 
 export interface PersonaTabsCopy {
@@ -22,7 +24,6 @@ export type { IssueFilterLabels } from "@/types/ds";
 
 export interface Translations {
   subtitle: string;
-  steps: [string, string, string, string];
   profilesSelected: (n: number) => string;
   newBtn: string;
   nextBtn: string;
@@ -82,6 +83,17 @@ export interface Translations {
   flowInputHint: string;
   /** Ayuda bajo rasgos en modal de persona custom. */
   traitsFieldHint: string;
+  /** Título principal de la app (marca). */
+  appTitle: string;
+  /** Nombre genérico si falta el perfil en datos locales. */
+  unknownPersonaName: string;
+  /** Prefijo en badges de score (UX). */
+  scoreUxLabel: string;
+  /** Prefijo en badges de fit. */
+  scoreFitLabel: string;
+  errorPrefix: string;
+  simulationErrorAction: string;
+  simulationErrorComponent: string;
 }
 
 export const LANG_OPTIONS: { code: Lang; label: string }[] = [
@@ -120,13 +132,30 @@ export function pickResultCardLabels(t: Translations): ResultCardLabels {
     issuesEmptyFilter: t.issuesEmptyFilter,
     wouldReturn: t.wouldReturn,
     wouldNotReturn: t.wouldNotReturn,
+    uxScoreLabel: t.scoreUxLabel,
+    fitScoreLabel: t.scoreFitLabel,
+    unknownPersonaName: t.unknownPersonaName,
+  };
+}
+
+export interface SimulationErrorCopy {
+  summary: (technicalMessage: string) => string;
+  action: string;
+  component: string;
+}
+
+export function getSimulationErrorCopy(lang: Lang): SimulationErrorCopy {
+  const t = TRANSLATIONS[lang];
+  return {
+    summary: (msg) => `${t.errorPrefix}: ${msg}`,
+    action: t.simulationErrorAction,
+    component: t.simulationErrorComponent,
   };
 }
 
 export const TRANSLATIONS: Record<Lang, Translations> = {
   es: {
     subtitle: "Simula usuarios reales testeando tus flujos.",
-    steps: ["Personas", "Flujo", "Test", "Resultados"],
     profilesSelected: (n) => `${n} perfil${n !== 1 ? "es" : ""} seleccionado${n !== 1 ? "s" : ""}`,
     newBtn: "Nuevo",
     nextBtn: "Siguiente",
@@ -172,6 +201,7 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
       frustration: { low: "baja", medium: "media", high: "alta" },
       frustrationLabel: "Frustración",
       proSubtitle: "Experto que dan feedback accionable",
+      proBadgeLabel: "PRO",
     },
     stepPrevAria: "Paso anterior",
     stepNextAria: "Paso siguiente",
@@ -203,10 +233,16 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     validationFlowRequired: "Indica un enlace o URL para analizar.",
     flowInputHint: "Puedes pegar una URL web o un enlace a repositorio (p. ej. GitHub).",
     traitsFieldHint: "Opcional. Varios rasgos, separados por coma.",
+    appTitle: "Synthetic Users Lab",
+    unknownPersonaName: "Usuario",
+    scoreUxLabel: "UX",
+    scoreFitLabel: "Ajuste",
+    errorPrefix: "Error",
+    simulationErrorAction: "Reintentar la simulación y asegurar que el backend devuelva un JSON válido.",
+    simulationErrorComponent: "API de simulación",
   },
   en: {
     subtitle: "Simulate real users testing your flows.",
-    steps: ["Personas", "Flow", "Test", "Results"],
     profilesSelected: (n) => `${n} profile${n !== 1 ? "s" : ""} selected`,
     newBtn: "New",
     nextBtn: "Next",
@@ -252,6 +288,7 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
       frustration: { low: "low", medium: "medium", high: "high" },
       frustrationLabel: "Frustration",
       proSubtitle: "Experts who give actionable feedback",
+      proBadgeLabel: "PRO",
     },
     stepPrevAria: "Previous step",
     stepNextAria: "Next step",
@@ -283,10 +320,16 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     validationFlowRequired: "Enter a link or URL to analyze.",
     flowInputHint: "Paste a web URL or a repository link (e.g. GitHub).",
     traitsFieldHint: "Optional. Multiple traits, comma-separated.",
+    appTitle: "Synthetic Users Lab",
+    unknownPersonaName: "User",
+    scoreUxLabel: "UX",
+    scoreFitLabel: "Fit",
+    errorPrefix: "Error",
+    simulationErrorAction: "Retry the simulation and ensure the backend returns valid JSON.",
+    simulationErrorComponent: "Simulation API",
   },
   fr: {
     subtitle: "Simulez de vrais utilisateurs testant vos flux.",
-    steps: ["Personas", "Flux", "Test", "Résultats"],
     profilesSelected: (n) => `${n} profil${n !== 1 ? "s" : ""} sélectionné${n !== 1 ? "s" : ""}`,
     newBtn: "Nouveau",
     nextBtn: "Suivant",
@@ -332,6 +375,7 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
       frustration: { low: "faible", medium: "moyenne", high: "élevée" },
       frustrationLabel: "Frustration",
       proSubtitle: "Experts qui donnent un feedback actionnable",
+      proBadgeLabel: "PRO",
     },
     stepPrevAria: "Étape précédente",
     stepNextAria: "Étape suivante",
@@ -363,10 +407,16 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     validationFlowRequired: "Indiquez un lien ou une URL à analyser.",
     flowInputHint: "Collez une URL web ou un lien de dépôt (ex. GitHub).",
     traitsFieldHint: "Optionnel. Plusieurs traits, séparés par des virgules.",
+    appTitle: "Synthetic Users Lab",
+    unknownPersonaName: "Utilisateur",
+    scoreUxLabel: "UX",
+    scoreFitLabel: "Adéquation",
+    errorPrefix: "Erreur",
+    simulationErrorAction: "Relancer la simulation et vérifier que le backend renvoie un JSON valide.",
+    simulationErrorComponent: "API de simulation",
   },
   pt: {
     subtitle: "Simule usuários reais testando seus fluxos.",
-    steps: ["Personas", "Fluxo", "Teste", "Resultados"],
     profilesSelected: (n) => `${n} perfil${n !== 1 ? "is" : ""} selecionado${n !== 1 ? "s" : ""}`,
     newBtn: "Novo",
     nextBtn: "Próximo",
@@ -412,6 +462,7 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
       frustration: { low: "baixa", medium: "média", high: "alta" },
       frustrationLabel: "Frustração",
       proSubtitle: "Especialistas que dão feedback acionável",
+      proBadgeLabel: "PRO",
     },
     stepPrevAria: "Passo anterior",
     stepNextAria: "Próximo passo",
@@ -443,10 +494,16 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     validationFlowRequired: "Informe um link ou URL para analisar.",
     flowInputHint: "Cole uma URL ou link de repositório (ex.: GitHub).",
     traitsFieldHint: "Opcional. Várias características, separadas por vírgula.",
+    appTitle: "Synthetic Users Lab",
+    unknownPersonaName: "Usuário",
+    scoreUxLabel: "UX",
+    scoreFitLabel: "Ajuste",
+    errorPrefix: "Erro",
+    simulationErrorAction: "Tente novamente e verifique se o backend retorna JSON válido.",
+    simulationErrorComponent: "API de simulação",
   },
   de: {
     subtitle: "Simulieren Sie echte Nutzer beim Testen Ihrer Flows.",
-    steps: ["Personas", "Flow", "Test", "Ergebnisse"],
     profilesSelected: (n) => `${n} Profil${n !== 1 ? "e" : ""} ausgewählt`,
     newBtn: "Neu",
     nextBtn: "Weiter",
@@ -492,6 +549,7 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
       frustration: { low: "niedrig", medium: "mittel", high: "hoch" },
       frustrationLabel: "Frustration",
       proSubtitle: "Expert:innen mit umsetzbarem Feedback",
+      proBadgeLabel: "PRO",
     },
     stepPrevAria: "Vorheriger Schritt",
     stepNextAria: "Nächster Schritt",
@@ -523,5 +581,12 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     validationFlowRequired: "Bitte einen Link oder eine URL zum Analysieren eingeben.",
     flowInputHint: "Web-URL oder Repository-Link einfügen (z. B. GitHub).",
     traitsFieldHint: "Optional. Mehrere Merkmale, kommagetrennt.",
+    appTitle: "Synthetic Users Lab",
+    unknownPersonaName: "Nutzer:in",
+    scoreUxLabel: "UX",
+    scoreFitLabel: "Fit",
+    errorPrefix: "Fehler",
+    simulationErrorAction: "Simulation erneut starten und sicherstellen, dass das Backend gültiges JSON liefert.",
+    simulationErrorComponent: "Simulations-API",
   },
 };

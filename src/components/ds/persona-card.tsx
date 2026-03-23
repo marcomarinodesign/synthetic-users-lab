@@ -37,7 +37,7 @@ export function PersonaCard({ persona, selected, onToggle, meta }: PersonaCardPr
             </h3>
             {persona.category === "pro" && (
               <span className="inline-flex shrink-0 items-center rounded-[var(--radius-md)] bg-[var(--color-secondary)] px-2 py-0.5 text-[11px] font-semibold tracking-wide text-[var(--color-secondary-text)] uppercase">
-                PRO
+                {meta.proBadgeLabel}
               </span>
             )}
           </div>

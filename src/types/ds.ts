@@ -24,4 +24,10 @@ export interface ResultCardLabels {
   issuesEmptyFilter: string;
   wouldReturn: string;
   wouldNotReturn: string;
+  /** Etiqueta del badge de puntuación UX (p. ej. "UX"). */
+  uxScoreLabel: string;
+  /** Etiqueta del badge de fit (p. ej. "Fit" / "Ajuste"). */
+  fitScoreLabel: string;
+  /** Si no hay persona en la lista (snapshot antiguo, etc.). */
+  unknownPersonaName: string;
 }

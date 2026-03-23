@@ -1,5 +1,5 @@
 import type { Persona, SimulationResult, SourceType } from "@/types";
-import type { Lang } from "@/lib/i18n";
+import { getSimulationErrorCopy, type Lang } from "@/lib/i18n";
 import { normalizeSimulationResult } from "@/domain/simulation";
 import { fetchUrlContent, simulatePersona } from "@/lib/simulation";
 
@@ -45,6 +45,7 @@ export async function runBatch(
   options?: RunBatchOptions
 ): Promise<SimulationResult[]> {
   const out: SimulationResult[] = [];
+  const errCopy = getSimulationErrorCopy(language);
   for (let i = 0; i < personas.length; i++) {
     const p = personas[i];
     options?.onProgress?.(i + 1, personas.length, p.name);
@@ -59,14 +60,14 @@ export async function runBatch(
             score: 0,
             fit_score: 0,
             fit_note: "",
-            summary: `Error: ${msg}`,
+            summary: errCopy.summary(msg),
             steps: [],
             issues: [
               {
                 severity: "critical",
                 description: msg,
-                action: "Reintentar la simulación y asegurar que el backend devuelva un JSON válido.",
-                component: "API de simulación",
+                action: errCopy.action,
+                component: errCopy.component,
                 category: "ux",
               },
             ],

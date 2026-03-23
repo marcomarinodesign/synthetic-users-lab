@@ -1,10 +1,11 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { Persona, SimulationResult } from "@/types";
 import type { IssueCategory } from "@/domain/simulation";
 import { PRESET_PERSONAS } from "@/lib/personas";
 import { appendSimulation } from "@/lib/storage";
 import { LANG_OPTIONS, TRANSLATIONS, detectLang, pickResultCardLabels, type Lang } from "@/lib/i18n";
+import { getLocalizedPersona } from "@/lib/persona-localize";
 import { useRunSimulation } from "@/hooks/useRunSimulation";
 import {
   aggregateSimulationResults,
@@ -57,6 +58,10 @@ export default function SyntheticUsersLab() {
   const [modalFieldErrors, setModalFieldErrors] = useState<{ name?: string; description?: string }>({});
   const t = TRANSLATIONS[language];
   const resultCardLabels = pickResultCardLabels(t);
+  const displayPersonas = useMemo(
+    () => personas.map((p) => getLocalizedPersona(p, language)),
+    [personas, language]
+  );
 
   const toggle = (id: string) =>
     setSelectedPersonas((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
@@ -86,11 +91,12 @@ export default function SyntheticUsersLab() {
     setResults(null);
     setIssueCategoryFilter("all");
     const selectedPersonaRecords = personas.filter((p) => selectedPersonas.includes(p.id));
+    const localizedSelected = selectedPersonaRecords.map((p) => getLocalizedPersona(p, language));
     const { results: all, prepared } = await runSimulation({
       flowInput,
       productContext,
       language,
-      selectedPersonas: selectedPersonaRecords,
+      selectedPersonas: localizedSelected,
     });
     setResults(all);
     appendSimulation({
@@ -100,7 +106,7 @@ export default function SyntheticUsersLab() {
       language,
       personaIds: selectedPersonaRecords.map((p) => p.id),
       results: all,
-      personasSnapshot: selectedPersonaRecords,
+      personasSnapshot: localizedSelected,
     });
     setStep(3);
   }, [selectedPersonas, flowInput, productContext, language, personas, runSimulation]);
@@ -128,7 +134,7 @@ export default function SyntheticUsersLab() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ ...tHero, delay: reduceMotion ? 0 : 0.05 }}
             >
-              Synthetic Users Lab
+              {t.appTitle}
             </motion.h1>
             <motion.div
               className="relative shrink-0 pt-1"
@@ -282,7 +288,7 @@ export default function SyntheticUsersLab() {
                 initial="hidden"
                 animate="show"
               >
-                {personas.map((p) => (
+                {displayPersonas.map((p) => (
                   <motion.li
                     key={p.id}
                     className="min-h-0"
@@ -527,7 +533,7 @@ export default function SyntheticUsersLab() {
                     index={i}
                     labels={resultCardLabels}
                     issueCategoryFilter={issueCategoryFilter}
-                    personas={personas}
+                    personas={displayPersonas}
                   />
                 </motion.div>
               ))}
