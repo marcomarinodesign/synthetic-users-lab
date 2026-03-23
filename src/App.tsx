@@ -37,6 +37,7 @@ import { Progress as ShadProgress } from "@/components/ui/progress";
 import { FieldError } from "@/components/ui/field-error";
 import { FieldHint } from "@/components/ui/field-hint";
 import { FlowBottomBar } from "@/components/FlowBottomBar";
+import { SiteFooter } from "@/components/SiteFooter";
 
 const ISSUE_FILTER_IDS = ["all", "ux", "ui", "product", "copy"] as const;
 
@@ -122,13 +123,14 @@ export default function SyntheticUsersLab() {
     (step === 0 && totalSelected > 0) || step === 1;
 
   return (
-    <div
-      className={[
-        "relative z-[1] min-h-[100vh] px-[var(--space-5)] py-[var(--space-10)] font-sans text-foreground antialiased md:px-[var(--space-8)]",
-        showFlowBottomBar ? "pb-[calc(var(--space-10)+5.5rem)]" : "",
-      ].join(" ")}
-    >
-      <div className="relative mx-auto w-full max-w-[1200px]">
+    <div className="relative z-[1] flex min-h-[100vh] flex-col font-sans text-foreground antialiased">
+      <div
+        className={[
+          "relative flex-1 px-[var(--space-5)] py-[var(--space-10)] md:px-[var(--space-8)]",
+          showFlowBottomBar ? "pb-[calc(var(--space-10)+5.5rem)]" : "",
+        ].join(" ")}
+      >
+        <div className="relative mx-auto w-full max-w-[1200px]">
         <motion.header
           className="relative z-[1] mb-[36px] w-full"
           initial={reduceMotion ? false : { opacity: 0, y: 16 }}
@@ -547,7 +549,10 @@ export default function SyntheticUsersLab() {
             </motion.div>
           )}
         </AnimatePresence>
+        </div>
       </div>
+
+      <SiteFooter reserveSpaceForOverlay={showFlowBottomBar} />
 
       {showFlowBottomBar && (
         <FlowBottomBar
