@@ -4,7 +4,7 @@ import type { Persona, SimulationResult } from "@/types";
 import type { IssueCategory } from "@/domain/simulation";
 import { PRESET_PERSONAS } from "@/lib/personas";
 import { appendSimulation } from "@/lib/storage";
-import { LANG_OPTIONS, TRANSLATIONS, detectLang, pickResultCardLabels, type Lang } from "@/lib/i18n";
+import { TRANSLATIONS, detectLang, pickResultCardLabels, type Lang } from "@/lib/i18n";
 import { getLocalizedPersona } from "@/lib/persona-localize";
 import { useRunSimulation } from "@/hooks/useRunSimulation";
 import type { PreparedSimulationInput } from "@/lib/simulation-service";
@@ -16,9 +16,10 @@ import {
   personaSelectionLabel,
   validateCustomPersonaForm,
 } from "@/lib/app-lab";
-import { IconChevronDown } from "@tabler/icons-react";
 import { scoreToTier, type StatusVariant } from "@/lib/ui-status";
 import { MetricCard } from "@/components/ds/metric-card";
+import { AddPersonaEmptyCard } from "@/components/ds/add-persona-empty-card";
+import { Avatar } from "@/components/ds/avatar";
 import { PersonaCard } from "@/components/ds/persona-card";
 import { ResultCard } from "@/components/ds/result-card";
 
@@ -40,6 +41,8 @@ import { FieldError } from "@/components/ui/field-error";
 import { FieldHint } from "@/components/ui/field-hint";
 import { FlowBottomBar } from "@/components/FlowBottomBar";
 import { SiteFooter } from "@/components/SiteFooter";
+import { Banner1 } from "@/components/pro-blocks/landing-page/banners/banner-1";
+import { SiteNavbar } from "@/components/SiteNavbar";
 
 const ISSUE_FILTER_IDS = ["all", "ux", "ui", "product", "copy"] as const;
 
@@ -68,6 +71,12 @@ export default function SyntheticUsersLab() {
     () => personas.map((p) => getLocalizedPersona(p, language)),
     [personas, language]
   );
+
+  const loadingOrderedPersonas = useMemo(() => {
+    return selectedPersonas
+      .map((id) => displayPersonas.find((p) => p.id === id))
+      .filter((p): p is Persona => p != null);
+  }, [selectedPersonas, displayPersonas]);
 
   const toggle = (id: string) =>
     setSelectedPersonas((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
@@ -153,6 +162,8 @@ export default function SyntheticUsersLab() {
 
   return (
     <div className="relative z-[1] flex min-h-[100vh] flex-col font-sans text-foreground antialiased">
+      <Banner1 t={t} />
+      <SiteNavbar language={language} onLanguageChange={setLanguage} t={t} />
       <div
         className={[
           "relative flex-1 px-[var(--space-5)] py-[var(--space-10)] md:px-[var(--space-8)]",
@@ -166,40 +177,6 @@ export default function SyntheticUsersLab() {
           animate={{ opacity: 1, y: 0 }}
           transition={tHero}
         >
-          <div className="mb-[var(--space-3)] flex w-full justify-end">
-            <motion.div
-              className="relative shrink-0"
-              initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ ...tHero, delay: reduceMotion ? 0 : 0.05 }}
-            >
-              <label className="sr-only" htmlFor="app-language">
-                {t.languageLabel}
-              </label>
-              <select
-                id="app-language"
-                value={language}
-                onChange={(e) => setLanguage(e.target.value as Lang)}
-                className={[
-                  "h-10 min-w-[140px] cursor-pointer appearance-none rounded-[9999px] border border-[var(--color-tertiary-border)] bg-[var(--color-basics-white)]",
-                  "py-0 pr-10 pl-4 font-sans text-[14px] font-medium text-foreground",
-                  "shadow-[var(--shadow-sm)] transition-colors hover:border-[var(--color-grey-middle)]",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent-300)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-beige-25)]",
-                ].join(" ")}
-              >
-                {LANG_OPTIONS.map(({ code, label }) => (
-                  <option key={code} value={code}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-              <IconChevronDown
-                aria-hidden
-                className="pointer-events-none absolute top-1/2 right-3 size-[18px] -translate-y-1/2 text-foreground"
-                stroke={1.75}
-              />
-            </motion.div>
-          </div>
           <motion.h1
             className="m-0 w-full text-center text-[clamp(2.5rem,10vw,5rem)] font-normal leading-[1.05] tracking-[-0.02em] text-foreground md:text-[80px]"
             style={{ fontFamily: "var(--font-serif)" }}
@@ -304,15 +281,7 @@ export default function SyntheticUsersLab() {
               exit={reduceMotion ? undefined : { opacity: 0, y: -12 }}
               transition={tStep}
             >
-              <div className="flex flex-col gap-[var(--space-3)] sm:flex-row sm:items-center sm:justify-between">
-                <p className="m-0 text-[14px] text-foreground">{counterText}</p>
-                <ShadButton variant="secondary" onClick={() => setShowModal(true)} className="h-9 shrink-0 px-4 text-sm">
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                    <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                  {t.newBtn}
-                </ShadButton>
-              </div>
+              <p className="m-0 text-[14px] text-foreground">{counterText}</p>
 
               <motion.ul
                 className="m-0 grid list-none grid-cols-1 gap-[var(--space-5)] p-0 sm:grid-cols-2 lg:grid-cols-3"
@@ -346,6 +315,21 @@ export default function SyntheticUsersLab() {
                     />
                   </motion.li>
                 ))}
+                <motion.li
+                  key="add-persona-empty"
+                  className="min-h-0"
+                  variants={{
+                    hidden: { opacity: 0, y: 14 },
+                    show: { opacity: 1, y: 0 },
+                  }}
+                  transition={tStagger}
+                >
+                  <AddPersonaEmptyCard
+                    title={t.createBtn}
+                    hint={t.modalDesc}
+                    onClick={() => setShowModal(true)}
+                  />
+                </motion.li>
               </motion.ul>
             </motion.div>
           )}
@@ -405,6 +389,27 @@ export default function SyntheticUsersLab() {
               <ShadCard className="mx-auto w-full max-w-[680px] border border-[var(--color-tertiary-border)] p-0 shadow-xs">
             <div className="flex flex-col items-center gap-[28px] px-[var(--space-5)] py-[60px]">
               <style>{`@keyframes pSpin{to{transform:rotate(360deg)}}`}</style>
+              {loadingOrderedPersonas.length > 0 ? (
+                <div className="flex w-full max-w-[420px] flex-col items-center gap-[var(--space-3)]">
+                  <p className="m-0 text-center text-[11px] font-bold tracking-[0.05em] text-foreground uppercase">
+                    {t.loadingSelectedHeading}
+                  </p>
+                  <ul
+                    className="m-0 flex w-full list-none flex-wrap justify-center gap-2 p-0"
+                    aria-label={t.loadingSelectedHeading}
+                  >
+                    {loadingOrderedPersonas.map((p) => (
+                      <li
+                        key={p.id}
+                        className="flex max-w-[min(100%,220px)] items-center gap-2 rounded-[var(--radius-full)] bg-[var(--color-beige-50)] py-1 pr-[var(--space-3)] pl-1"
+                      >
+                        <Avatar persona={p} size={28} />
+                        <span className="min-w-0 truncate text-[13px] font-medium text-foreground">{p.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
               <div className="flex w-[260px] flex-col gap-[14px]">
                 <div className="flex items-center gap-[var(--space-3)]">
                   {loadingPhase === "fetching" ? (

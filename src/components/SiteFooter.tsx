@@ -9,7 +9,7 @@ export function SiteFooter({ reserveSpaceForOverlay = false }: SiteFooterProps) 
   return (
     <footer
       className={[
-        "w-full border-t border-[var(--color-tertiary-border)] bg-[var(--color-basics-white)]",
+        "w-full bg-transparent",
         reserveSpaceForOverlay ? "mb-[calc(5rem+env(safe-area-inset-bottom))]" : "",
       ].join(" ")}
     >

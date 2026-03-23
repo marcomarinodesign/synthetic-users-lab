@@ -39,6 +39,8 @@ export interface Translations {
   launchBtn: string;
   fetchingPhase: string;
   analyzingPhase: string;
+  /** Paso 2 (carga): título sobre los perfiles elegidos en el paso 1. */
+  loadingSelectedHeading: string;
   userOf: (c: number, t: number) => string;
   scoreLabel: string;
   issuesLabel: string;
@@ -97,14 +99,34 @@ export interface Translations {
   errorPrefix: string;
   simulationErrorAction: string;
   simulationErrorComponent: string;
+  /** Navbar: marca corta (logo). */
+  navbarLogoShort: string;
+  navbarBeta: string;
+  navbarFeedback: string;
+  navbarAboutAria: string;
+  aboutModalTitle: string;
+  /** Párrafos separados por doble salto de línea. */
+  aboutModalBody: string;
+  feedbackModalTitle: string;
+  feedbackModalDesc: string;
+  feedbackFieldMessage: string;
+  feedbackPlaceholderMessage: string;
+  feedbackFieldEmail: string;
+  feedbackPlaceholderEmail: string;
+  feedbackSubmit: string;
+  feedbackEmailSubject: string;
+  /** Banner superior (beta). */
+  wipBannerText: string;
+  wipBannerCloseAria: string;
 }
 
+/** Nombres de idioma en texto (sin banderas), p. ej. selector del navbar. */
 export const LANG_OPTIONS: { code: Lang; label: string }[] = [
-  { code: "es", label: "🇪🇸 ES" },
-  { code: "en", label: "🇬🇧 EN" },
-  { code: "fr", label: "🇫🇷 FR" },
-  { code: "pt", label: "🇧🇷 PT" },
-  { code: "de", label: "🇩🇪 DE" },
+  { code: "es", label: "Español" },
+  { code: "en", label: "English" },
+  { code: "fr", label: "Français" },
+  { code: "pt", label: "Português" },
+  { code: "de", label: "Deutsch" },
 ];
 
 export function detectLang(): Lang {
@@ -176,6 +198,7 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     launchBtn: "Lanzar simulación",
     fetchingPhase: "Leyendo contenido de las URLs...",
     analyzingPhase: "Analizando con Gemini...",
+    loadingSelectedHeading: "Usuarios seleccionados",
     userOf: (c, t) => `Usuario ${c} de ${t}`,
     scoreLabel: "Score medio",
     issuesLabel: "Issues",
@@ -247,6 +270,23 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     errorPrefix: "Error",
     simulationErrorAction: "Reintentar la simulación y asegurar que el backend devuelva un JSON válido.",
     simulationErrorComponent: "API de simulación",
+    navbarLogoShort: "SUL",
+    navbarBeta: "Beta",
+    navbarFeedback: "Dejar feedback",
+    navbarAboutAria: "Qué es Synthetic Users Lab",
+    aboutModalTitle: "Sobre Synthetic Users Lab",
+    aboutModalBody:
+      "Synthetic Users Lab (SUL) es una herramienta para simular cómo distintos perfiles de usuario interactúan con un flujo de producto. El equipo define una URL, repositorio o descripción, elige personas tipo y la IA genera feedback: puntuación, issues, recorrido paso a paso y probabilidad de retención.\n\nLa simulación usa Gemini para anclar hallazgos en un análisis objetivo del flujo, lo que ayuda a obtener resultados más consistentes en cada ejecución.",
+    feedbackModalTitle: "Tu feedback",
+    feedbackModalDesc: "Cuéntanos qué mejorarías o qué te gustaría ver en SUL.",
+    feedbackFieldMessage: "Mensaje",
+    feedbackPlaceholderMessage: "Escribe aquí tus comentarios…",
+    feedbackFieldEmail: "Email (opcional)",
+    feedbackPlaceholderEmail: "tu@email.com",
+    feedbackSubmit: "Enviar",
+    feedbackEmailSubject: "Feedback Synthetic Users Lab",
+    wipBannerText: "Synthetic Users Lab está en beta.",
+    wipBannerCloseAria: "Cerrar aviso",
   },
   en: {
     subtitle: "Simulate real users testing your flows.",
@@ -265,6 +305,7 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     launchBtn: "Launch simulation",
     fetchingPhase: "Reading URL content...",
     analyzingPhase: "Analyzing with Gemini...",
+    loadingSelectedHeading: "Selected profiles",
     userOf: (c, t) => `User ${c} of ${t}`,
     scoreLabel: "Avg score",
     issuesLabel: "Issues",
@@ -336,6 +377,23 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     errorPrefix: "Error",
     simulationErrorAction: "Retry the simulation and ensure the backend returns valid JSON.",
     simulationErrorComponent: "Simulation API",
+    navbarLogoShort: "SUL",
+    navbarBeta: "Beta",
+    navbarFeedback: "Leave feedback",
+    navbarAboutAria: "About Synthetic Users Lab",
+    aboutModalTitle: "About Synthetic Users Lab",
+    aboutModalBody:
+      "Synthetic Users Lab (SUL) lets you simulate how different user profiles interact with a product flow. You provide a URL, repo link, or description, pick personas, and the AI returns feedback: score, issues, a step-by-step journey, and retention likelihood.\n\nSimulations use Gemini to ground insights in an objective analysis of the flow, helping keep results more consistent across runs.",
+    feedbackModalTitle: "Your feedback",
+    feedbackModalDesc: "Tell us what we should improve or what you would like to see in SUL.",
+    feedbackFieldMessage: "Message",
+    feedbackPlaceholderMessage: "Write your comments here…",
+    feedbackFieldEmail: "Email (optional)",
+    feedbackPlaceholderEmail: "you@email.com",
+    feedbackSubmit: "Send",
+    feedbackEmailSubject: "Synthetic Users Lab feedback",
+    wipBannerText: "Synthetic Users Lab is in beta.",
+    wipBannerCloseAria: "Dismiss",
   },
   fr: {
     subtitle: "Simulez de vrais utilisateurs testant vos flux.",
@@ -354,6 +412,7 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     launchBtn: "Lancer la simulation",
     fetchingPhase: "Lecture du contenu des URLs...",
     analyzingPhase: "Analyse avec Gemini...",
+    loadingSelectedHeading: "Profils sélectionnés",
     userOf: (c, t) => `Utilisateur ${c} sur ${t}`,
     scoreLabel: "Score moyen",
     issuesLabel: "Problèmes",
@@ -425,6 +484,23 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     errorPrefix: "Erreur",
     simulationErrorAction: "Relancer la simulation et vérifier que le backend renvoie un JSON valide.",
     simulationErrorComponent: "API de simulation",
+    navbarLogoShort: "SUL",
+    navbarBeta: "Beta",
+    navbarFeedback: "Laisser un avis",
+    navbarAboutAria: "À propos de Synthetic Users Lab",
+    aboutModalTitle: "À propos de Synthetic Users Lab",
+    aboutModalBody:
+      "Synthetic Users Lab (SUL) permet de simuler comment différents profils utilisateurs interagissent avec un parcours produit. Vous indiquez une URL, un dépôt ou une description, choisissez des personas, et l’IA renvoie un retour : score, problèmes, parcours étape par étape et probabilité de retour.\n\nLa simulation s’appuie sur Gemini pour ancrer les constats dans une analyse objective du parcours, afin d’obtenir des résultats plus cohérents d’une exécution à l’autre.",
+    feedbackModalTitle: "Votre avis",
+    feedbackModalDesc: "Dites-nous ce que nous pourrions améliorer ou ce que vous aimeriez voir dans SUL.",
+    feedbackFieldMessage: "Message",
+    feedbackPlaceholderMessage: "Écrivez vos commentaires ici…",
+    feedbackFieldEmail: "E-mail (facultatif)",
+    feedbackPlaceholderEmail: "vous@email.com",
+    feedbackSubmit: "Envoyer",
+    feedbackEmailSubject: "Avis Synthetic Users Lab",
+    wipBannerText: "Synthetic Users Lab est en version bêta.",
+    wipBannerCloseAria: "Fermer",
   },
   pt: {
     subtitle: "Simule usuários reais testando seus fluxos.",
@@ -443,6 +519,7 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     launchBtn: "Lançar simulação",
     fetchingPhase: "Lendo conteúdo das URLs...",
     analyzingPhase: "Analisando com Gemini...",
+    loadingSelectedHeading: "Perfis selecionados",
     userOf: (c, t) => `Usuário ${c} de ${t}`,
     scoreLabel: "Score médio",
     issuesLabel: "Issues",
@@ -514,6 +591,23 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     errorPrefix: "Erro",
     simulationErrorAction: "Tente novamente e verifique se o backend retorna JSON válido.",
     simulationErrorComponent: "API de simulação",
+    navbarLogoShort: "SUL",
+    navbarBeta: "Beta",
+    navbarFeedback: "Enviar feedback",
+    navbarAboutAria: "Sobre o Synthetic Users Lab",
+    aboutModalTitle: "Sobre o Synthetic Users Lab",
+    aboutModalBody:
+      "O Synthetic Users Lab (SUL) simula como diferentes perfis de usuário interagem com um fluxo de produto. Você informa uma URL, repositório ou descrição, escolhe personas e a IA devolve feedback: pontuação, problemas, jornada passo a passo e probabilidade de retenção.\n\nA simulação usa a Gemini para ancorar achados numa análise objetiva do fluxo, ajudando a manter resultados mais consistentes entre execuções.",
+    feedbackModalTitle: "Seu feedback",
+    feedbackModalDesc: "Conte o que podemos melhorar ou o que você gostaria de ver no SUL.",
+    feedbackFieldMessage: "Mensagem",
+    feedbackPlaceholderMessage: "Escreva seus comentários aqui…",
+    feedbackFieldEmail: "Email (opcional)",
+    feedbackPlaceholderEmail: "voce@email.com",
+    feedbackSubmit: "Enviar",
+    feedbackEmailSubject: "Feedback Synthetic Users Lab",
+    wipBannerText: "O Synthetic Users Lab está em beta.",
+    wipBannerCloseAria: "Fechar",
   },
   de: {
     subtitle: "Simulieren Sie echte Nutzer beim Testen Ihrer Flows.",
@@ -532,6 +626,7 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     launchBtn: "Simulation starten",
     fetchingPhase: "URL-Inhalt wird gelesen...",
     analyzingPhase: "Analyse mit Gemini...",
+    loadingSelectedHeading: "Ausgewählte Profile",
     userOf: (c, t) => `Nutzer ${c} von ${t}`,
     scoreLabel: "Ø Score",
     issuesLabel: "Probleme",
@@ -603,5 +698,22 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     errorPrefix: "Fehler",
     simulationErrorAction: "Simulation erneut starten und sicherstellen, dass das Backend gültiges JSON liefert.",
     simulationErrorComponent: "Simulations-API",
+    navbarLogoShort: "SUL",
+    navbarBeta: "Beta",
+    navbarFeedback: "Feedback geben",
+    navbarAboutAria: "Über Synthetic Users Lab",
+    aboutModalTitle: "Über Synthetic Users Lab",
+    aboutModalBody:
+      "Synthetic Users Lab (SUL) simuliert, wie verschiedene Nutzerprofile mit einem Produktflow interagieren. Du gibst eine URL, ein Repo oder eine Beschreibung an, wählst Personas, und die KI liefert Feedback: Score, Issues, Schritt-für-Schritt-Journey und Wahrscheinlichkeit der Wiederkehr.\n\nDie Simulation nutzt Gemini, um Erkenntnisse in einer objektiven Flow-Analyse zu verankern – für konsistentere Ergebnisse bei wiederholten Läufen.",
+    feedbackModalTitle: "Dein Feedback",
+    feedbackModalDesc: "Sag uns, was wir verbessern sollen oder was du dir in SUL wünschst.",
+    feedbackFieldMessage: "Nachricht",
+    feedbackPlaceholderMessage: "Schreibe hier dein Feedback…",
+    feedbackFieldEmail: "E-Mail (optional)",
+    feedbackPlaceholderEmail: "du@email.de",
+    feedbackSubmit: "Senden",
+    feedbackEmailSubject: "Feedback Synthetic Users Lab",
+    wipBannerText: "Synthetic Users Lab ist in der Beta-Phase.",
+    wipBannerCloseAria: "Schließen",
   },
 };
