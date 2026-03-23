@@ -36,6 +36,7 @@ import { Textarea as ShadTextarea } from "@/components/ui/textarea";
 import { Progress as ShadProgress } from "@/components/ui/progress";
 import { FieldError } from "@/components/ui/field-error";
 import { FieldHint } from "@/components/ui/field-hint";
+import { FlowBottomBar } from "@/components/FlowBottomBar";
 
 const ISSUE_FILTER_IDS = ["all", "ux", "ui", "product", "copy"] as const;
 
@@ -117,8 +118,16 @@ export default function SyntheticUsersLab() {
   const tHero = reduceMotion ? { duration: 0 } : { duration: 0.45, ease: easeOut };
   const tStagger = reduceMotion ? { duration: 0 } : { duration: 0.28, ease: easeOut };
 
+  const showFlowBottomBar =
+    (step === 0 && totalSelected > 0) || step === 1;
+
   return (
-    <div className="relative z-[1] min-h-[100vh] px-[var(--space-5)] py-[var(--space-10)] font-sans text-foreground antialiased md:px-[var(--space-8)]">
+    <div
+      className={[
+        "relative z-[1] min-h-[100vh] px-[var(--space-5)] py-[var(--space-10)] font-sans text-foreground antialiased md:px-[var(--space-8)]",
+        showFlowBottomBar ? "pb-[calc(var(--space-10)+5.5rem)]" : "",
+      ].join(" ")}
+    >
       <div className="relative mx-auto w-full max-w-[1200px]">
         <motion.header
           className="relative z-[1] mb-[36px] w-full"
@@ -307,11 +316,6 @@ export default function SyntheticUsersLab() {
                   </motion.li>
                 ))}
               </motion.ul>
-              <div className="mx-auto flex w-full max-w-[480px] flex-col gap-[10px]">
-                <ShadButton size="lg" onClick={() => setStep(1)} disabled={totalSelected === 0} className="w-full">
-                  {t.nextBtn} ({totalSelected})
-                </ShadButton>
-              </div>
             </motion.div>
           )}
 
@@ -355,25 +359,6 @@ export default function SyntheticUsersLab() {
                 placeholder={t.contextPlaceholder}
                 rows={7}
               />
-            </div>
-            <div className="flex flex-col items-stretch gap-[10px] self-center">
-              <ShadButton
-                onClick={() => {
-                  if (!flowInput.trim()) {
-                    setFlowError(t.validationFlowRequired);
-                    return;
-                  }
-                  setFlowError(undefined);
-                  setStep(2);
-                  void run();
-                }}
-                className="h-10 w-full"
-              >
-                {t.launchBtn}
-              </ShadButton>
-              <ShadButton variant="outline" onClick={() => setStep(0)} className="h-10 w-full">
-                {t.backBtn}
-              </ShadButton>
             </div>
             </motion.div>
           )}
@@ -563,6 +548,37 @@ export default function SyntheticUsersLab() {
           )}
         </AnimatePresence>
       </div>
+
+      {showFlowBottomBar && (
+        <FlowBottomBar
+          step={step}
+          totalSteps={2}
+          selectedCount={totalSelected}
+          backLabel={t.backBtn}
+          primaryLabel={
+            step === 0
+              ? `${t.nextBtn} (${totalSelected})`
+              : t.launchBtn
+          }
+          primaryDisabled={step === 1 && !flowInput.trim()}
+          onNext={() => {
+            if (step === 0) {
+              setStep(1);
+              return;
+            }
+            if (!flowInput.trim()) {
+              setFlowError(t.validationFlowRequired);
+              return;
+            }
+            setFlowError(undefined);
+            setStep(2);
+            void run();
+          }}
+          onBack={() => {
+            if (step === 1) setStep(0);
+          }}
+        />
+      )}
     </div>
   );
 }
