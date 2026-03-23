@@ -19,6 +19,11 @@ export function assertSimulationRequestShape(value) {
   assert.ok(value.flowInput.trim(), "flowInput no vacío");
   assert.equal(typeof value.productContext, "string", "productContext string");
   if (value.language !== undefined) assert.equal(typeof value.language, "string", "language string opcional");
+  if (value.seed !== undefined) {
+    assert.equal(typeof value.seed, "number", "seed number opcional");
+    assert.ok(Number.isInteger(value.seed), "seed entero");
+    assert.ok(value.seed >= 0 && value.seed <= 2147483646, "seed en rango Gemini");
+  }
 }
 
 export function assertSimulationResultShape(value) {

@@ -21,9 +21,19 @@ export interface ResultCardProps {
   labels: ResultCardLabels;
   issueCategoryFilter: "all" | IssueCategory;
   personas: Persona[];
+  onRegenerate?: () => void;
+  regenerateDisabled?: boolean;
 }
 
-export function ResultCard({ result, index, labels, issueCategoryFilter, personas }: ResultCardProps) {
+export function ResultCard({
+  result,
+  index,
+  labels,
+  issueCategoryFilter,
+  personas,
+  onRegenerate,
+  regenerateDisabled,
+}: ResultCardProps) {
   const [open, setOpen] = useState(index === 0);
   const [currentStep, setCurrentStep] = useState(0);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
@@ -62,7 +72,24 @@ export function ResultCard({ result, index, labels, issueCategoryFilter, persona
             {result.wouldReturn ? labels.wouldReturnShort : labels.wouldNotReturnShort}
           </div>
         </div>
-        <div className="flex items-center gap-[var(--space-2)]">
+        <div className="flex shrink-0 items-center gap-[var(--space-2)]">
+          {onRegenerate ? (
+            <ShadButton
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full"
+              disabled={regenerateDisabled}
+              aria-busy={regenerateDisabled}
+              aria-label={labels.regenerateAria(persona.name)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onRegenerate();
+              }}
+            >
+              {labels.regenerateLabel}
+            </ShadButton>
+          ) : null}
           <ShadBadge variant="outline" className={scoreBadgeClass}>
             {labels.uxScoreLabel} {sc}/10
           </ShadBadge>

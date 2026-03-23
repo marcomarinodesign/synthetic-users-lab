@@ -4,7 +4,11 @@ import assert from "node:assert/strict";
 import {
   buildSystemPrompt,
   buildUserPrompt,
+  buildAnchoredUserPrompt,
   repairJSON,
+  repairObjectiveAnalysisJSON,
+  flowPersonaSeed,
+  phaseSeed,
   ISSUE_SEVERITIES,
   ISSUE_CATEGORIES,
   ISSUES_SCHEMA,
@@ -75,4 +79,51 @@ test("ISSUES_SCHEMA alineado con enums de severidad y categoría", () => {
   for (const c of ISSUE_CATEGORIES) {
     assert.match(ISSUES_SCHEMA, new RegExp(`\\b${c}\\b`));
   }
+});
+
+test("flowPersonaSeed: determinista para misma entrada", () => {
+  const a = flowPersonaSeed("https://x.com", "p1");
+  const b = flowPersonaSeed("https://x.com", "p1");
+  const c = flowPersonaSeed("https://y.com", "p1");
+  assert.equal(a, b);
+  assert.notEqual(a, c);
+  assert.ok(a >= 0 && a < 2147483647);
+});
+
+test("phaseSeed: fases distintas", () => {
+  const base = 1000;
+  assert.equal(phaseSeed(base, 0), 1000);
+  assert.equal(phaseSeed(base, 1), 1001);
+});
+
+test("repairObjectiveAnalysisJSON: parsea JSON válido", () => {
+  const raw = '{"elements":["a"],"flow":["1"],"objective_issues":["x"],"strengths":[],"copy_samples":[]}';
+  const o = repairObjectiveAnalysisJSON(raw);
+  assert.ok(o);
+  assert.deepEqual(o.elements, ["a"]);
+  assert.deepEqual(o.objective_issues, ["x"]);
+});
+
+test("repairObjectiveAnalysisJSON: null si vacío", () => {
+  assert.equal(repairObjectiveAnalysisJSON("{}"), null);
+  assert.equal(repairObjectiveAnalysisJSON(""), null);
+});
+
+test("buildAnchoredUserPrompt: incluye anchor y FLOW", () => {
+  const p = buildAnchoredUserPrompt({
+    sourceType: "url",
+    flowInput: "hello",
+    language: "es",
+    objectiveAnalysis: {
+      elements: ["e1"],
+      flow: ["f1"],
+      objective_issues: ["i1"],
+      strengths: [],
+      copy_samples: [],
+    },
+  });
+  assert.ok(p.includes("SOURCE:"));
+  assert.ok(p.includes("hello"));
+  assert.ok(p.includes("OBJECTIVE ANCHOR"));
+  assert.ok(p.includes('"elements":["e1"]'));
 });

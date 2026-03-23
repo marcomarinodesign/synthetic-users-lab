@@ -48,9 +48,12 @@ export interface SimulationResult {
 export interface SimulationRequest {
   persona: Pick<Persona, "id" | "name" | "description" | "traits" | "frustration" | "techLevel">;
   sourceType: SourceType;
+  /** Texto enviado al modelo (p. ej. HTML resuelto para URLs); debe coincidir entre ejecuciones para seeds estables. */
   flowInput: string;
   productContext: string;
   language?: string;
+  /** Opcional: entero 0..2147483646. Si no se envía, el servidor deriva seed de flowInput + persona.id. */
+  seed?: number;
 }
 
 /** Respuesta del modelo / API (antes de normalizar en cliente). */

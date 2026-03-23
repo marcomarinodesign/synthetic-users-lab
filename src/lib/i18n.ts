@@ -87,6 +87,9 @@ export interface Translations {
   appTitle: string;
   /** Nombre genérico si falta el perfil en datos locales. */
   unknownPersonaName: string;
+  /** Botón regenerar resultado de una persona. */
+  regenerateLabel: string;
+  regenerateAria: (personaName: string) => string;
   /** Prefijo en badges de score (UX). */
   scoreUxLabel: string;
   /** Prefijo en badges de fit. */
@@ -135,6 +138,8 @@ export function pickResultCardLabels(t: Translations): ResultCardLabels {
     uxScoreLabel: t.scoreUxLabel,
     fitScoreLabel: t.scoreFitLabel,
     unknownPersonaName: t.unknownPersonaName,
+    regenerateLabel: t.regenerateLabel,
+    regenerateAria: t.regenerateAria,
   };
 }
 
@@ -235,6 +240,8 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     traitsFieldHint: "Opcional. Varios rasgos, separados por coma.",
     appTitle: "Synthetic Users Lab",
     unknownPersonaName: "Usuario",
+    regenerateLabel: "Regenerar",
+    regenerateAria: (name) => `Regenerar simulación para ${name}`,
     scoreUxLabel: "UX",
     scoreFitLabel: "Ajuste",
     errorPrefix: "Error",
@@ -322,6 +329,8 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     traitsFieldHint: "Optional. Multiple traits, comma-separated.",
     appTitle: "Synthetic Users Lab",
     unknownPersonaName: "User",
+    regenerateLabel: "Regenerate",
+    regenerateAria: (name) => `Regenerate simulation for ${name}`,
     scoreUxLabel: "UX",
     scoreFitLabel: "Fit",
     errorPrefix: "Error",
@@ -409,6 +418,8 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     traitsFieldHint: "Optionnel. Plusieurs traits, séparés par des virgules.",
     appTitle: "Synthetic Users Lab",
     unknownPersonaName: "Utilisateur",
+    regenerateLabel: "Régénérer",
+    regenerateAria: (name) => `Régénérer la simulation pour ${name}`,
     scoreUxLabel: "UX",
     scoreFitLabel: "Adéquation",
     errorPrefix: "Erreur",
@@ -496,6 +507,8 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     traitsFieldHint: "Opcional. Várias características, separadas por vírgula.",
     appTitle: "Synthetic Users Lab",
     unknownPersonaName: "Usuário",
+    regenerateLabel: "Regenerar",
+    regenerateAria: (name) => `Regenerar simulação para ${name}`,
     scoreUxLabel: "UX",
     scoreFitLabel: "Ajuste",
     errorPrefix: "Erro",
@@ -583,6 +596,8 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     traitsFieldHint: "Optional. Mehrere Merkmale, kommagetrennt.",
     appTitle: "Synthetic Users Lab",
     unknownPersonaName: "Nutzer:in",
+    regenerateLabel: "Neu generieren",
+    regenerateAria: (name) => `Simulation für ${name} neu generieren`,
     scoreUxLabel: "UX",
     scoreFitLabel: "Fit",
     errorPrefix: "Fehler",

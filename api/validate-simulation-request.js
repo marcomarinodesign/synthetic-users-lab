@@ -17,7 +17,7 @@ export function validateSimulationRequest(body) {
     return { ok: false, error: "Body inválido" };
   }
 
-  const { persona, sourceType, flowInput, productContext, language } = body;
+  const { persona, sourceType, flowInput, productContext, language, seed } = body;
 
   if (!persona || typeof persona !== "object") {
     return { ok: false, error: "Missing persona" };
@@ -63,6 +63,12 @@ export function validateSimulationRequest(body) {
     return { ok: false, error: "Invalid language" };
   }
 
+  if (seed !== undefined) {
+    if (typeof seed !== "number" || !Number.isInteger(seed) || seed < 0 || seed > 2147483646) {
+      return { ok: false, error: "Invalid seed" };
+    }
+  }
+
   return {
     ok: true,
     value: {
@@ -78,6 +84,7 @@ export function validateSimulationRequest(body) {
       flowInput: flowInput.trim(),
       productContext,
       language: typeof language === "string" ? language : "es",
+      ...(seed !== undefined ? { seed } : {}),
     },
   };
 }

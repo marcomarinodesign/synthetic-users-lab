@@ -34,7 +34,8 @@ export async function simulatePersona(
   sourceType: SourceType,
   flowInput: string,
   productContext: string,
-  language = "es"
+  language = "es",
+  seed?: number
 ): Promise<SimulationResult> {
   const body: SimulationRequest = {
     persona: {
@@ -49,7 +50,13 @@ export async function simulatePersona(
     flowInput,
     productContext,
     language,
+    ...(seed !== undefined ? { seed } : {}),
   };
   const raw = await postSimulate(body);
   return normalizeSimulationResult(raw, persona.id);
+}
+
+/** Seed entero válido para Gemini (regenerar con variación controlada). */
+export function nextRegenerationSeed(): number {
+  return Math.floor(Date.now() % 2147483647);
 }

@@ -33,3 +33,20 @@ test("validateSimulationRequest: rechaza flowInput vacío", () => {
   const r = validateSimulationRequest({ ...validBody, flowInput: "   " });
   assert.equal(r.ok, false);
 });
+
+test("validateSimulationRequest: acepta seed opcional entero en rango", () => {
+  const r = validateSimulationRequest({ ...validBody, seed: 42 });
+  assert.equal(r.ok, true);
+  assert.equal(r.value.seed, 42);
+  assertSimulationRequestShape(r.value);
+});
+
+test("validateSimulationRequest: rechaza seed decimal", () => {
+  const r = validateSimulationRequest({ ...validBody, seed: 1.5 });
+  assert.equal(r.ok, false);
+});
+
+test("validateSimulationRequest: rechaza seed fuera de rango", () => {
+  assert.equal(validateSimulationRequest({ ...validBody, seed: -1 }).ok, false);
+  assert.equal(validateSimulationRequest({ ...validBody, seed: 2147483647 }).ok, false);
+});

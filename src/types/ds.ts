@@ -30,4 +30,7 @@ export interface ResultCardLabels {
   fitScoreLabel: string;
   /** Si no hay persona en la lista (snapshot antiguo, etc.). */
   unknownPersonaName: string;
+  /** Botón para nueva variación con otro seed. */
+  regenerateLabel: string;
+  regenerateAria: (personaName: string) => string;
 }

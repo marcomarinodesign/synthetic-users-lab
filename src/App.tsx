@@ -7,6 +7,8 @@ import { appendSimulation } from "@/lib/storage";
 import { LANG_OPTIONS, TRANSLATIONS, detectLang, pickResultCardLabels, type Lang } from "@/lib/i18n";
 import { getLocalizedPersona } from "@/lib/persona-localize";
 import { useRunSimulation } from "@/hooks/useRunSimulation";
+import type { PreparedSimulationInput } from "@/lib/simulation-service";
+import { nextRegenerationSeed, simulatePersona } from "@/lib/simulation";
 import {
   aggregateSimulationResults,
   buildCustomPersonaFromForm,
@@ -52,6 +54,8 @@ export default function SyntheticUsersLab() {
   const [flowInput, setFlowInput] = useState("");
   const [productContext, setProductContext] = useState("");
   const [results, setResults] = useState<SimulationResult[] | null>(null);
+  const [lastPrepared, setLastPrepared] = useState<PreparedSimulationInput | null>(null);
+  const [regeneratingPersonaId, setRegeneratingPersonaId] = useState<string | null>(null);
   const { run: runSimulation, loading, loadingPhase, progress } = useRunSimulation();
   const [showModal, setShowModal] = useState(false);
   const [language, setLanguage] = useState<Lang>(detectLang);
@@ -89,8 +93,32 @@ export default function SyntheticUsersLab() {
     setShowModal(false);
   };
 
+  const handleRegeneratePersona = useCallback(
+    async (personaId: string) => {
+      if (!lastPrepared) return;
+      const persona = displayPersonas.find((p) => p.id === personaId);
+      if (!persona) return;
+      setRegeneratingPersonaId(personaId);
+      try {
+        const newResult = await simulatePersona(
+          persona,
+          lastPrepared.sourceType,
+          lastPrepared.content,
+          productContext,
+          language,
+          nextRegenerationSeed()
+        );
+        setResults((prev) => (prev ? prev.map((r) => (r.personaId === personaId ? newResult : r)) : prev));
+      } finally {
+        setRegeneratingPersonaId(null);
+      }
+    },
+    [lastPrepared, displayPersonas, productContext, language]
+  );
+
   const run = useCallback(async () => {
     setResults(null);
+    setLastPrepared(null);
     setIssueCategoryFilter("all");
     const selectedPersonaRecords = personas.filter((p) => selectedPersonas.includes(p.id));
     const localizedSelected = selectedPersonaRecords.map((p) => getLocalizedPersona(p, language));
@@ -100,6 +128,7 @@ export default function SyntheticUsersLab() {
       language,
       selectedPersonas: localizedSelected,
     });
+    setLastPrepared(prepared);
     setResults(all);
     appendSimulation({
       flowInput: flowInput.trim(),
@@ -521,6 +550,8 @@ export default function SyntheticUsersLab() {
                     labels={resultCardLabels}
                     issueCategoryFilter={issueCategoryFilter}
                     personas={displayPersonas}
+                    onRegenerate={lastPrepared ? () => void handleRegeneratePersona(r.personaId) : undefined}
+                    regenerateDisabled={regeneratingPersonaId === r.personaId}
                   />
                 </motion.div>
               ))}
@@ -530,6 +561,7 @@ export default function SyntheticUsersLab() {
                 onClick={() => {
                   setStep(0);
                   setResults(null);
+                  setLastPrepared(null);
                 }}
                 className="w-full rounded-full"
               >
@@ -540,6 +572,7 @@ export default function SyntheticUsersLab() {
                 onClick={() => {
                   setStep(1);
                   setResults(null);
+                  setLastPrepared(null);
                 }}
                 className="w-full rounded-full"
               >

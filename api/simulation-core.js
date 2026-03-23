@@ -216,6 +216,226 @@ export function repairJSON(raw) {
   });
 }
 
+const GEMINI_SEED_MOD = 2147483647;
+
+/**
+ * Seed estable para misma entrada preparada + mismo perfil (reproducibilidad).
+ * @param {string} flowInput — mismo string que recibe el modelo (p. ej. contenido fetch de URL)
+ * @param {string} personaId
+ */
+export function flowPersonaSeed(flowInput, personaId) {
+  const str = `${flowInput}\0${personaId}`;
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash) % GEMINI_SEED_MOD;
+}
+
+/** Fase 0 = análisis objetivo, fase 1 = simulación con persona (mismo baseSeed, RNG distinto). */
+export function phaseSeed(baseSeed, phase) {
+  const p = typeof phase === "number" && phase >= 0 ? phase : 0;
+  return (baseSeed + p) % GEMINI_SEED_MOD;
+}
+
+function objectiveOutputLanguageBlock(langName, language) {
+  return `PRIMARY OUTPUT LANGUAGE: ${langName} (code: ${language}).
+All human-readable strings in your JSON (elements, flow, objective_issues, strengths, copy_samples) MUST be written ONLY in ${langName}. Do not mix languages. The instructions below are in English to avoid biasing the output language toward any single natural language.`;
+}
+
+export function buildObjectiveAnalysisSystemPrompt({ productContext, language = "es" }) {
+  const langName = LANGUAGE_NAMES[language] ?? language;
+  const langBlock = objectiveOutputLanguageBlock(langName, language);
+  return `${langBlock}
+
+You are a neutral UX/product analyst. Analyze the FLOW impersonally (no user persona role).
+
+PRODUCT CONTEXT: ${productContext || "No additional context."}
+
+TASK:
+1. List visible UI elements (headers, buttons, sections, forms) as concise strings.
+2. Describe the navigation flow step by step.
+3. List objective UX issues (contrast, hierarchy, cognitive load, confusing CTAs).
+4. List strengths.
+5. List copy samples (exact or representative quotes from the flow).
+
+Respond with ONLY valid JSON (no markdown, no backticks):
+{"elements":["..."],"flow":["..."],"objective_issues":["..."],"strengths":["..."],"copy_samples":["..."]}`;
+}
+
+export function buildObjectiveAnalysisUserPrompt({ sourceType, flowInput, language = "es" }) {
+  const langName = LANGUAGE_NAMES[language] ?? language;
+  return `The FLOW below may be in any language (or mixed). IGNORE that language for your structured output strings — use ${langName} only.
+
+SOURCE: ${(sourceType || "description").toUpperCase()}
+
+FLOW:
+${flowInput}`;
+}
+
+function normalizeObjectiveAnalysis(obj) {
+  if (!obj || typeof obj !== "object") return null;
+  const pick = (k) =>
+    Array.isArray(obj[k]) ? obj[k].map((x) => String(x).trim()).filter(Boolean) : [];
+  const elements = pick("elements");
+  const flow = pick("flow");
+  const objective_issues = pick("objective_issues");
+  const strengths = pick("strengths");
+  const copy_samples = pick("copy_samples");
+  const total = elements.length + flow.length + objective_issues.length + strengths.length + copy_samples.length;
+  if (total === 0) return null;
+  return { elements, flow, objective_issues, strengths, copy_samples };
+}
+
+/**
+ * @returns {object | null} objeto normalizado o null si no es usable
+ */
+export function repairObjectiveAnalysisJSON(raw) {
+  if (typeof raw !== "string" || !raw.trim()) return null;
+  const clean = raw.replace(/```json|```/g, "").trim();
+
+  const tryParse = (s) => {
+    try {
+      return JSON.parse(s);
+    } catch {
+      return null;
+    }
+  };
+
+  let obj = tryParse(clean);
+  if (!obj) {
+    const start = clean.indexOf("{");
+    const end = clean.lastIndexOf("}");
+    if (start >= 0 && end > start) {
+      obj = tryParse(clean.slice(start, end + 1));
+    }
+  }
+  if (!obj) return null;
+  return normalizeObjectiveAnalysis(obj);
+}
+
+export function buildAnchoredUserPrompt({ sourceType, flowInput, language = "es", objectiveAnalysis }) {
+  const base = buildUserPrompt({ sourceType, flowInput, language });
+  const analysisJson = JSON.stringify(objectiveAnalysis);
+  return `${base}
+
+OBJECTIVE ANCHOR (single source of truth for UI elements and flow; do not invent screens or elements outside this analysis):
+${analysisJson}
+
+RULES:
+- Your steps must follow the "flow" array in the anchor and align with "elements".
+- Ground issues in "objective_issues" and filter them through the persona's perspective; you may rephrase or prioritize, but do not invent unrelated problems.
+- Emotional tone and verbatim may vary naturally.
+- Complete at least 5 journey steps when the anchor flow has 5+ items; if the anchor flow is shorter, cover every step in the anchor flow.`;
+}
+
+/**
+ * @param {string} apiKey
+ * @param {{ systemInstruction?: string, userText: string, generationConfig: Record<string, unknown> }} opts
+ * @returns {Promise<string>}
+ */
+export async function callGemini(apiKey, { systemInstruction, userText, generationConfig }) {
+  const body = {
+    contents: [{ parts: [{ text: userText }] }],
+    generationConfig,
+  };
+  if (systemInstruction && systemInstruction.trim()) {
+    body.systemInstruction = { parts: [{ text: systemInstruction }] };
+  }
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey.trim(),
+      },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!response.ok) {
+    const errText = await response.text();
+    const err = new Error(`Gemini API error: ${response.status}`);
+    err.status = response.status;
+    err.body = errText;
+    throw err;
+  }
+
+  const data = await response.json();
+  const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("") || "";
+  return text;
+}
+
+/**
+ * @param {object} params
+ * @param {string} params.apiKey
+ * @param {object} params.persona
+ * @param {string} params.sourceType
+ * @param {string} params.flowInput
+ * @param {string} params.productContext
+ * @param {string} [params.language]
+ * @param {number} params.baseSeed
+ */
+export async function runSimulateWithPhases({ apiKey, persona, sourceType, flowInput, productContext, language, baseSeed }) {
+  const lang = language || "es";
+  const seedA = phaseSeed(baseSeed, 0);
+  const seedB = phaseSeed(baseSeed, 1);
+
+  const sysA = buildObjectiveAnalysisSystemPrompt({ productContext, language: lang });
+  const userA = buildObjectiveAnalysisUserPrompt({ sourceType, flowInput, language: lang });
+  const textA = await callGemini(apiKey, {
+    systemInstruction: sysA,
+    userText: userA,
+    generationConfig: {
+      maxOutputTokens: 4096,
+      temperature: 0.2,
+      seed: seedA,
+    },
+  });
+
+  const analysis = repairObjectiveAnalysisJSON(textA);
+  if (!analysis) {
+    const err = new Error("OBJECTIVE_ANALYSIS_PARSE_FAILED");
+    err.code = "OBJECTIVE_ANALYSIS_PARSE_FAILED";
+    throw err;
+  }
+
+  const systemPrompt = buildSystemPrompt({ persona, productContext, language: lang });
+  const userPrompt = buildAnchoredUserPrompt({
+    sourceType,
+    flowInput,
+    language: lang,
+    objectiveAnalysis: analysis,
+  });
+
+  const textB = await callGemini(apiKey, {
+    systemInstruction: systemPrompt,
+    userText: userPrompt,
+    generationConfig: {
+      maxOutputTokens: 8192,
+      temperature: 0.55,
+      seed: seedB,
+    },
+  });
+
+  if (!textB.trim()) {
+    const err = new Error("SIMULATION_EMPTY");
+    err.code = "SIMULATION_EMPTY";
+    throw err;
+  }
+
+  const parsed = repairJSON(textB);
+  if (!parsed) {
+    const err = new Error("SIMULATION_PARSE_FAILED");
+    err.code = "SIMULATION_PARSE_FAILED";
+    throw err;
+  }
+  return parsed;
+}
+
 export async function fetchUrlContent(url, options = {}) {
   const timeoutMs = typeof options.timeoutMs === "number" ? options.timeoutMs : 10000;
   const maxChars = typeof options.maxChars === "number" ? options.maxChars : 8000;
