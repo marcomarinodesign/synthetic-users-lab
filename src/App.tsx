@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { Persona, SimulationResult } from "@/types";
 import type { IssueCategory } from "@/domain/simulation";
 import { PRESET_PERSONAS } from "@/lib/personas";
@@ -13,7 +14,7 @@ import {
   validateCustomPersonaForm,
 } from "@/lib/app-lab";
 import { IconChevronDown } from "@tabler/icons-react";
-import { scoreToTier } from "@/lib/ui-status";
+import { scoreToTier, type StatusVariant } from "@/lib/ui-status";
 import { MetricCard } from "@/components/ds/metric-card";
 import { PersonaCard } from "@/components/ds/persona-card";
 import { ResultCard } from "@/components/ds/result-card";
@@ -37,7 +38,10 @@ import { FieldHint } from "@/components/ui/field-hint";
 
 const ISSUE_FILTER_IDS = ["all", "ux", "ui", "product", "copy"] as const;
 
+const easeOut = [0.22, 1, 0.36, 1] as const;
+
 export default function SyntheticUsersLab() {
+  const reduceMotion = useReducedMotion();
   const [step, setStep] = useState(0);
   const [personas, setPersonas] = useState<Persona[]>(PRESET_PERSONAS);
   const [selectedPersonas, setSelectedPersonas] = useState<string[]>([]);
@@ -103,18 +107,35 @@ export default function SyntheticUsersLab() {
 
   const { avgScore, avgFormatted: avg, issueCount, critCount, retainCount } = aggregateSimulationResults(results);
 
+  const tStep = reduceMotion ? { duration: 0 } : { duration: 0.32, ease: easeOut };
+  const tHero = reduceMotion ? { duration: 0 } : { duration: 0.45, ease: easeOut };
+  const tStagger = reduceMotion ? { duration: 0 } : { duration: 0.28, ease: easeOut };
+
   return (
     <div className="relative z-[1] min-h-[100vh] px-[var(--space-5)] py-[var(--space-10)] font-sans text-foreground antialiased md:px-[var(--space-8)]">
       <div className="relative mx-auto w-full max-w-[1200px]">
-        <header className="relative z-[1] mb-[36px] w-full">
+        <motion.header
+          className="relative z-[1] mb-[36px] w-full"
+          initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={tHero}
+        >
           <div className="flex w-full items-start justify-between gap-[var(--space-4)]">
-            <h1
+            <motion.h1
               className="m-0 min-w-0 flex-1 text-left text-[clamp(2.5rem,10vw,5rem)] font-normal leading-[1.05] tracking-[-0.02em] text-foreground md:text-[80px]"
               style={{ fontFamily: "var(--font-serif)" }}
+              initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...tHero, delay: reduceMotion ? 0 : 0.05 }}
             >
               Synthetic Users Lab
-            </h1>
-            <div className="relative shrink-0 pt-1">
+            </motion.h1>
+            <motion.div
+              className="relative shrink-0 pt-1"
+              initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...tHero, delay: reduceMotion ? 0 : 0.12 }}
+            >
               <label className="sr-only" htmlFor="app-language">
                 {t.languageLabel}
               </label>
@@ -140,12 +161,17 @@ export default function SyntheticUsersLab() {
                 className="pointer-events-none absolute top-1/2 right-3 size-[18px] -translate-y-1/2 text-foreground"
                 stroke={1.75}
               />
-            </div>
+            </motion.div>
           </div>
-          <p className="m-0 mt-[var(--space-4)] max-w-[42rem] text-left text-[18px] leading-[1.45] text-foreground">
+          <motion.p
+            className="m-0 mt-[var(--space-4)] max-w-[42rem] text-left text-[18px] leading-[1.45] text-foreground"
+            initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ...tHero, delay: reduceMotion ? 0 : 0.18 }}
+          >
             {t.subtitle}
-          </p>
-        </header>
+          </motion.p>
+        </motion.header>
 
         <Dialog
           open={showModal}
@@ -222,40 +248,76 @@ export default function SyntheticUsersLab() {
           </DialogContent>
         </Dialog>
 
-        {step === 0 && (
-          <div className="flex flex-col gap-[var(--space-6)]">
-            <div className="flex flex-col gap-[var(--space-3)] sm:flex-row sm:items-center sm:justify-between">
-              <p className="m-0 text-[14px] text-foreground">{counterText}</p>
-              <ShadButton variant="secondary" onClick={() => setShowModal(true)} className="h-9 shrink-0 px-4 text-sm">
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                  <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-                {t.newBtn}
-              </ShadButton>
-            </div>
+        <AnimatePresence mode="wait">
+          {step === 0 && (
+            <motion.div
+              key="step-0"
+              className="flex flex-col gap-[var(--space-6)]"
+              initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduceMotion ? undefined : { opacity: 0, y: -12 }}
+              transition={tStep}
+            >
+              <div className="flex flex-col gap-[var(--space-3)] sm:flex-row sm:items-center sm:justify-between">
+                <p className="m-0 text-[14px] text-foreground">{counterText}</p>
+                <ShadButton variant="secondary" onClick={() => setShowModal(true)} className="h-9 shrink-0 px-4 text-sm">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 3V13M3 8H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                  {t.newBtn}
+                </ShadButton>
+              </div>
 
-            <ul className="m-0 grid list-none grid-cols-1 gap-[var(--space-5)] p-0 sm:grid-cols-2 lg:grid-cols-3">
-              {personas.map((p) => (
-                <li key={p.id} className="min-h-0">
-                  <PersonaCard
-                    persona={p}
-                    selected={selectedPersonas.includes(p.id)}
-                    onToggle={toggle}
-                    meta={t.personaMeta}
-                  />
-                </li>
-              ))}
-            </ul>
-            <div className="mx-auto flex w-full max-w-[480px] flex-col gap-[10px]">
-              <ShadButton size="lg" onClick={() => setStep(1)} disabled={totalSelected === 0} className="w-full">
-                {t.nextBtn} ({totalSelected})
-              </ShadButton>
-            </div>
-          </div>
-        )}
+              <motion.ul
+                className="m-0 grid list-none grid-cols-1 gap-[var(--space-5)] p-0 sm:grid-cols-2 lg:grid-cols-3"
+                variants={{
+                  hidden: {},
+                  show: {
+                    transition: {
+                      staggerChildren: reduceMotion ? 0 : 0.05,
+                      delayChildren: reduceMotion ? 0 : 0.06,
+                    },
+                  },
+                }}
+                initial="hidden"
+                animate="show"
+              >
+                {personas.map((p) => (
+                  <motion.li
+                    key={p.id}
+                    className="min-h-0"
+                    variants={{
+                      hidden: { opacity: 0, y: 14 },
+                      show: { opacity: 1, y: 0 },
+                    }}
+                    transition={tStagger}
+                  >
+                    <PersonaCard
+                      persona={p}
+                      selected={selectedPersonas.includes(p.id)}
+                      onToggle={toggle}
+                      meta={t.personaMeta}
+                    />
+                  </motion.li>
+                ))}
+              </motion.ul>
+              <div className="mx-auto flex w-full max-w-[480px] flex-col gap-[10px]">
+                <ShadButton size="lg" onClick={() => setStep(1)} disabled={totalSelected === 0} className="w-full">
+                  {t.nextBtn} ({totalSelected})
+                </ShadButton>
+              </div>
+            </motion.div>
+          )}
 
-        {step === 1 && (
-          <div className="mx-auto flex w-full max-w-[680px] flex-col gap-[var(--space-5)]">
+          {step === 1 && (
+            <motion.div
+              key="step-1"
+              className="mx-auto flex w-full max-w-[680px] flex-col gap-[var(--space-5)]"
+              initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduceMotion ? undefined : { opacity: 0, y: -12 }}
+              transition={tStep}
+            >
             <div>
               <ShadLabel htmlFor="flow-input">{t.linkLabel}</ShadLabel>
               <FieldHint id="flow-input-hint">{t.flowInputHint}</FieldHint>
@@ -307,11 +369,18 @@ export default function SyntheticUsersLab() {
                 {t.backBtn}
               </ShadButton>
             </div>
-          </div>
-        )}
+            </motion.div>
+          )}
 
-        {step === 2 && loading && (
-          <ShadCard className="mx-auto w-full max-w-[680px] border border-[var(--color-tertiary-border)] p-0 shadow-xs">
+          {step === 2 && loading && (
+            <motion.div
+              key="step-2-loading"
+              initial={reduceMotion ? false : { opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={reduceMotion ? undefined : { opacity: 0, y: -12 }}
+              transition={tStep}
+            >
+              <ShadCard className="mx-auto w-full max-w-[680px] border border-[var(--color-tertiary-border)] p-0 shadow-xs">
             <div className="flex flex-col items-center gap-[28px] px-[var(--space-5)] py-[60px]">
               <style>{`@keyframes pSpin{to{transform:rotate(360deg)}}`}</style>
               <div className="flex w-[260px] flex-col gap-[14px]">
@@ -366,17 +435,57 @@ export default function SyntheticUsersLab() {
                 </>
               )}
             </div>
-          </ShadCard>
-        )}
+            </ShadCard>
+            </motion.div>
+          )}
 
-        {step === 3 && results && (
-          <div className="flex flex-col gap-[var(--space-5)]">
-            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-              <MetricCard label={t.scoreLabel} value={avg} variant={scoreToTier(avgScore)} />
-              <MetricCard label={t.issuesLabel} value={issueCount} variant="warning" />
-              <MetricCard label={t.criticalLabel} value={critCount} variant="error" />
-              <MetricCard label={t.retentionLabel} value={`${retainCount}/${results.length}`} variant="success" />
-            </div>
+          {step === 3 && results && (
+            <motion.div
+              key="step-3-results"
+              className="flex flex-col gap-[var(--space-5)]"
+              initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduceMotion ? undefined : { opacity: 0, y: -12 }}
+              transition={tStep}
+            >
+              <motion.div
+                className="grid grid-cols-2 gap-2.5 sm:grid-cols-4"
+                variants={{
+                  hidden: {},
+                  show: {
+                    transition: {
+                      staggerChildren: reduceMotion ? 0 : 0.06,
+                      delayChildren: reduceMotion ? 0 : 0.05,
+                    },
+                  },
+                }}
+                initial="hidden"
+                animate="show"
+              >
+                {(
+                  [
+                    { label: t.scoreLabel, value: avg, variant: scoreToTier(avgScore) },
+                    { label: t.issuesLabel, value: issueCount, variant: "warning" satisfies StatusVariant },
+                    { label: t.criticalLabel, value: critCount, variant: "error" satisfies StatusVariant },
+                    {
+                      label: t.retentionLabel,
+                      value: `${retainCount}/${results.length}`,
+                      variant: "success" satisfies StatusVariant,
+                    },
+                  ] satisfies { label: string; value: string | number; variant: StatusVariant }[]
+                ).map((m, i) => (
+                  <motion.div
+                    key={`${m.label}-${i}`}
+                    variants={{
+                      hidden: { opacity: 0, y: 12 },
+                      show: { opacity: 1, y: 0 },
+                    }}
+                    transition={tStagger}
+                  >
+                    <MetricCard label={m.label} value={m.value} variant={m.variant} />
+                  </motion.div>
+                ))}
+              </motion.div>
             <div className="flex flex-wrap items-center justify-between gap-[var(--space-3)]">
               <div className="text-base font-bold text-foreground">{t.resultsByUser}</div>
               <div className="flex flex-wrap gap-[var(--space-2)]">
@@ -393,16 +502,36 @@ export default function SyntheticUsersLab() {
                 ))}
               </div>
             </div>
-            {results.map((r, i) => (
-              <ResultCard
-                key={i}
-                result={r}
-                index={i}
-                labels={resultCardLabels}
-                issueCategoryFilter={issueCategoryFilter}
-                personas={personas}
-              />
-            ))}
+            <motion.div
+              className="flex flex-col gap-[var(--space-5)]"
+              variants={{
+                hidden: {},
+                show: {
+                  transition: { staggerChildren: reduceMotion ? 0 : 0.07, delayChildren: reduceMotion ? 0 : 0.12 },
+                },
+              }}
+              initial="hidden"
+              animate="show"
+            >
+              {results.map((r, i) => (
+                <motion.div
+                  key={r.personaId ?? i}
+                  variants={{
+                    hidden: { opacity: 0, y: 16 },
+                    show: { opacity: 1, y: 0 },
+                  }}
+                  transition={tStagger}
+                >
+                  <ResultCard
+                    result={r}
+                    index={i}
+                    labels={resultCardLabels}
+                    issueCategoryFilter={issueCategoryFilter}
+                    personas={personas}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
             <div className="mt-[var(--space-2)] flex flex-col items-stretch gap-[10px] self-center">
               <ShadButton
                 onClick={() => {
@@ -424,8 +553,9 @@ export default function SyntheticUsersLab() {
                 {t.editFlowBtn}
               </ShadButton>
             </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
