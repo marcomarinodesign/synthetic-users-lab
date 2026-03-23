@@ -20,11 +20,18 @@ const basePersona = {
   techLevel: "medium",
 };
 
-test("buildUserPrompt: contrato SOURCE + FLOW", () => {
-  const prompt = buildUserPrompt({ sourceType: "url", flowInput: "https://app.example.com" });
+test("buildUserPrompt: contrato SOURCE + FLOW + idioma", () => {
+  const prompt = buildUserPrompt({ sourceType: "url", flowInput: "https://app.example.com", language: "es" });
   assert.match(prompt, /^SOURCE: /m);
   assert.match(prompt, /^FLOW:\n/m);
   assert.ok(prompt.includes("https://app.example.com"));
+  assert.ok(prompt.includes("REQUIRED OUTPUT LANGUAGE"));
+});
+
+test("buildUserPrompt: refuerza idioma distinto del FLOW", () => {
+  const prompt = buildUserPrompt({ sourceType: "url", flowInput: "https://app.example.com", language: "de" });
+  assert.ok(prompt.includes("Deutsch"));
+  assert.ok(prompt.includes("IGNORE"));
 });
 
 test("buildSystemPrompt: incluye regla de idioma (language)", () => {
@@ -33,8 +40,8 @@ test("buildSystemPrompt: incluye regla de idioma (language)", () => {
     productContext: "Tool para onboarding",
     language: "fr",
   });
-  assert.ok(prompt.includes("LANGUAGE RULE"));
-  assert.ok(prompt.includes("français") || prompt.includes("JSON"));
+  assert.ok(prompt.includes("PRIMARY OUTPUT LANGUAGE"));
+  assert.ok(prompt.includes("français"));
 });
 
 test("buildSystemPrompt: variante expert cuando id está en EXPERT", () => {

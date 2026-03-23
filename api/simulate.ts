@@ -19,7 +19,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { persona, sourceType, flowInput, productContext, language } = parsed.value;
 
   const systemPrompt = buildSystemPrompt({ persona, productContext, language });
-  const userPrompt = buildUserPrompt({ sourceType, flowInput });
+  const userPrompt = buildUserPrompt({ sourceType, flowInput, language });
 
   try {
     const response = await fetch(

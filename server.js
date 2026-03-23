@@ -45,7 +45,7 @@ app.post("/api/simulate", async (req, res) => {
   const { persona, sourceType, flowInput, productContext, language } = parsed.value;
 
   const systemPrompt = buildSystemPrompt({ persona, productContext, language });
-  const userPrompt = buildUserPrompt({ sourceType, flowInput });
+  const userPrompt = buildUserPrompt({ sourceType, flowInput, language });
 
   try {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;

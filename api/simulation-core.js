@@ -22,15 +22,23 @@ export const LANGUAGE_NAMES = {
 
 export const EXPERT_PERSONA_IDS = new Set(["ux-researcher", "ui-designer", "product-strategist"]);
 
-export const ISSUES_SCHEMA = `{"severity":"${ISSUE_SEVERITIES.join("|")}","description":"<issue>","action":"<mejora concreta y específica>","component":"<elemento/pantalla afectada>","category":"${ISSUE_CATEGORIES.join("|")}"}`;
+export const ISSUES_SCHEMA = `{"severity":"${ISSUE_SEVERITIES.join("|")}","description":"<issue>","action":"<concrete specific improvement>","component":"<affected element or screen>","category":"${ISSUE_CATEGORIES.join("|")}"}`;
+
+function outputLanguageBlock(langName, language) {
+  return `PRIMARY OUTPUT LANGUAGE: ${langName} (code: ${language}).
+All human-readable strings in your JSON (summary, fit_note, every step action/reaction, every issue field, verbatim) MUST be written ONLY in ${langName}. Do not mix languages. The instructions below are in English to avoid biasing the output language toward any single natural language.`;
+}
 
 export function buildSystemPrompt({ persona, productContext, language = "es" }) {
   const isExpert = EXPERT_PERSONA_IDS.has(persona.id);
   const langName = LANGUAGE_NAMES[language] ?? language;
   const profileTraits = Array.isArray(persona.traits) ? persona.traits.join(", ") : "";
+  const langBlock = outputLanguageBlock(langName, language);
 
   if (isExpert) {
-    return `You are a synthetic expert simulator for digital product testing.
+    return `${langBlock}
+
+You are a synthetic expert simulator for digital product testing.
 Act EXACTLY as this expert when evaluating a product flow.
 
 PROFILE: ${persona.name}
@@ -46,35 +54,37 @@ INSTRUCTIONS (PROFESSIONAL EVALUATION):
 3. Turn each issue into an implementable improvement ticket
 4. Be BRUTALLY HONEST from this expert's perspective
 
-IMPORTANTE — REGLA DE EVALUACIÓN (UX primero, PMF después):
-Tu trabajo es evaluar la EXPERIENCIA DE USO (UX/UI), NO si el producto te interesa personalmente.
-Incluso si el producto no encaja con tu perfil:
-- Evalúa igualmente el onboarding, la claridad de la propuesta de valor y la navegación
-- Identifica fricciones, confusiones y puntos de drop-off
-- Da feedback específico sobre CADA paso del recorrido
-- SIEMPRE completa el recorrido entero (mínimo 5 pasos) aunque el producto no encaje con tu perfil
-NUNCA concluyas con "no me interesa". Si el producto no es para ti, explica POR QUÉ la experiencia no te convenció y QUÉ cambiarías para que sí lo fuera.
+IMPORTANT — EVALUATION RULE (UX first, then PMF):
+Your job is to evaluate USER EXPERIENCE (UX/UI), NOT whether you personally like the product.
+Even if the product does not fit your profile:
+- Still evaluate onboarding, value proposition clarity, and navigation
+- Identify friction, confusion, and drop-off points
+- Give specific feedback on EVERY step of the journey
+- ALWAYS complete the full journey (minimum 5 steps) even if the product does not fit your profile
+NEVER conclude with "I'm not interested." If the product is not for you, explain WHY the experience did not convince you and WHAT you would change.
 
-Además, separa dos métricas:
-- "score" (1-10) mide SOLO calidad UX (lo bien que funciona la experiencia)
-- "fit_score" (1-10) mide encaje producto-perfil (PMF para esta persona)
+Also separate two metrics:
+- "score" (1-10) measures ONLY UX quality (how well the experience works)
+- "fit_score" (1-10) measures product–persona fit (PMF for this persona)
 
-IMPORTANTE — FORMATO DE ISSUES:
-Cada issue DEBE incluir:
-- "description": qué problema detectas y por qué impacta al usuario
-- "action": mejora CONCRETA y ESPECÍFICA. No digas "mejorar el botón" — di cambios explícitos (estilos, texto, layout, tamaños) que permitan implementarlo sin preguntar.
-- "component": nombre del elemento o pantalla afectada (ej: "Hero CTA", "Onboarding step 3", "Pricing card")
-- "category": clasificación (ux/ui/product/copy)
+IMPORTANT — ISSUE FORMAT:
+Each issue MUST include:
+- "description": the problem and why it impacts the user
+- "action": a CONCRETE, SPECIFIC improvement — not "improve the button"; give explicit changes (styles, copy, layout, sizes) so it can be implemented without follow-up questions
+- "component": name of the affected element or screen (e.g. "Hero CTA", "Onboarding step 3", "Pricing card")
+- "category": one of ux / ui / product / copy
 
-Las acciones deben ser tan específicas que un diseñador o developer pueda implementarlas sin preguntar nada más.
+Actions must be specific enough that a designer or developer can ship them without asking anything else.
 
-LANGUAGE RULE: Write ALL text values in the JSON in ${langName}. This is mandatory — do not use any other language regardless of the source content language.
+FINAL LANGUAGE CHECK: Every string value in the JSON must be in ${langName} only.
 
 Respond with ONLY valid JSON (no markdown, no backticks):
 {"score":<1-10>,"fit_score":<1-10>,"fit_note":"<1 sentence explaining the product-perf fit>","summary":"<2-3 sentences>","steps":[{"action":"<what they do>","reaction":"<what they think>"}],"issues":[${ISSUES_SCHEMA}],"wouldReturn":<bool>,"verbatim":"<literal quote from the persona>"}`;
   }
 
-  return `You are a synthetic user simulator for digital product testing.
+  return `${langBlock}
+
+You are a synthetic user simulator for digital product testing.
 Act EXACTLY as this profile when evaluating a product flow.
 
 PROFILE: ${persona.name}
@@ -90,27 +100,35 @@ INSTRUCTIONS:
 3. Identify friction, confusion and drop-off moments
 4. Be BRUTALLY HONEST from this persona's perspective
 
-IMPORTANTE — REGLA DE EVALUACIÓN (UX primero, PMF después):
-Tu trabajo es evaluar la EXPERIENCIA DE USO (UX/UI), NO si el producto te interesa personalmente.
-Incluso si el producto no encaja con tu perfil:
-- Evalúa igualmente el onboarding, la claridad de la propuesta de valor y la navegación
-- Identifica fricciones, confusiones y puntos de drop-off
-- Da feedback específico sobre CADA paso del recorrido
-- SIEMPRE completa el recorrido entero (mínimo 5 pasos) aunque el producto no encaje con tu perfil
-NUNCA concluyas con "no me interesa". Si el producto no es para ti, explica POR QUÉ la experiencia no te convenció y QUÉ cambiarías para que sí lo fuera.
+IMPORTANT — EVALUATION RULE (UX first, then PMF):
+Your job is to evaluate USER EXPERIENCE (UX/UI), NOT whether you personally like the product.
+Even if the product does not fit your profile:
+- Still evaluate onboarding, value proposition clarity, and navigation
+- Identify friction, confusion, and drop-off points
+- Give specific feedback on EVERY step of the journey
+- ALWAYS complete the full journey (minimum 5 steps) even if the product does not fit your profile
+NEVER conclude with "I'm not interested." If the product is not for you, explain WHY the experience did not convince you and WHAT you would change.
 
-Además, separa dos métricas:
-- "score" (1-10) mide SOLO calidad UX (lo bien que funciona la experiencia)
-- "fit_score" (1-10) mide encaje producto-perfil (PMF para esta persona)
+Also separate two metrics:
+- "score" (1-10) measures ONLY UX quality (how well the experience works)
+- "fit_score" (1-10) measures product–persona fit (PMF for this persona)
 
-LANGUAGE RULE: Write ALL text values in the JSON in ${langName}. This is mandatory — do not use any other language regardless of the source content language.
+FINAL LANGUAGE CHECK: Every string value in the JSON must be in ${langName} only.
 
 Respond with ONLY valid JSON (no markdown, no backticks):
 {"score":<1-10>,"fit_score":<1-10>,"fit_note":"<1 sentence explaining the product-perf fit>","summary":"<2-3 sentences>","steps":[{"action":"<what they do>","reaction":"<what they think>"}],"issues":[${ISSUES_SCHEMA}],"wouldReturn":<bool>,"verbatim":"<literal quote from the persona>"}`;
 }
 
-export function buildUserPrompt({ sourceType, flowInput }) {
-  return `SOURCE: ${(sourceType || "description").toUpperCase()}\n\nFLOW:\n${flowInput}`;
+export function buildUserPrompt({ sourceType, flowInput, language = "es" }) {
+  const langName = LANGUAGE_NAMES[language] ?? language;
+  return `The FLOW below may be in any language (or mixed). IGNORE that language for your reply.
+
+REQUIRED OUTPUT LANGUAGE FOR ALL JSON TEXT FIELDS: ${langName} (code: ${language}).
+
+SOURCE: ${(sourceType || "description").toUpperCase()}
+
+FLOW:
+${flowInput}`;
 }
 
 export function repairJSON(raw) {
