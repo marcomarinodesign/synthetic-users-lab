@@ -228,7 +228,7 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
       tech: { low: "No técnico", medium: "Intermedio", high: "Técnico" },
       frustration: { low: "baja", medium: "media", high: "alta" },
       frustrationLabel: "Frustración",
-      proSubtitle: "Experto que dan feedback accionable",
+      proSubtitle: "Experto con feedback accionable",
       proBadgeLabel: "PRO",
     },
     stepPrevAria: "Paso anterior",

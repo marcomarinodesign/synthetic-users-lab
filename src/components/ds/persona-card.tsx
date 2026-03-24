@@ -13,7 +13,6 @@ export interface PersonaCardProps {
 export function PersonaCard({ persona, selected, onToggle, meta }: PersonaCardProps) {
   const techLabel = meta.tech[persona.techLevel];
   const frustLabel = meta.frustration[persona.frustration];
-  /** Un solo tag: el más relevante = primer rasgo en el orden definido en datos. */
   const primaryTrait = persona.traits[0];
 
   return (
@@ -36,7 +35,14 @@ export function PersonaCard({ persona, selected, onToggle, meta }: PersonaCardPr
               {persona.name}
             </h3>
           </div>
-          <p className="m-0 mt-[var(--space-2)] text-[13px] font-normal leading-[1.45] text-foreground">
+          <p
+            className="m-0 mt-[var(--space-2)] overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-normal leading-[1.45] text-foreground"
+            title={
+              persona.category === "pro"
+                ? meta.proSubtitle
+                : `${techLabel} · ${meta.frustrationLabel} ${frustLabel}`
+            }
+          >
             {persona.category === "pro"
               ? meta.proSubtitle
               : `${techLabel} · ${meta.frustrationLabel} ${frustLabel}`}
@@ -44,12 +50,12 @@ export function PersonaCard({ persona, selected, onToggle, meta }: PersonaCardPr
           {primaryTrait || persona.category === "pro" ? (
             <div className="mt-[var(--space-3)] flex flex-wrap items-center gap-2">
               {primaryTrait ? (
-                <span className="inline-flex max-w-full items-center rounded-[var(--radius-full)] bg-[var(--color-beige-25)] px-[var(--space-3)] py-[5px] text-[12px] leading-[1.35] text-foreground">
+                <span className="inline-flex max-w-full items-center rounded-[8px] bg-[var(--color-beige-25)] p-2 text-[11px] leading-[1.2] text-foreground">
                   {primaryTrait}
                 </span>
               ) : null}
               {persona.category === "pro" ? (
-                <span className="inline-flex shrink-0 items-center rounded-[var(--radius-md)] bg-[var(--color-secondary)] px-2 py-0.5 text-[11px] font-semibold tracking-wide text-[var(--color-secondary-text)] uppercase">
+                <span className="inline-flex shrink-0 items-center rounded-[8px] bg-[var(--color-secondary)] p-2 text-[11px] font-semibold tracking-wide text-[var(--color-secondary-text)] uppercase">
                   {meta.proBadgeLabel}
                 </span>
               ) : null}

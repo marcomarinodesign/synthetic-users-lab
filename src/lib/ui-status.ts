@@ -14,7 +14,7 @@ const statusVariantBadgeClass: Record<StatusVariant, string> = {
   success:
     "bg-[var(--color-accent-100)] text-[var(--color-accent-700)] border-[var(--color-accent-300)]",
   warning:
-    "bg-[var(--color-warning-2)] text-[var(--color-warning-1)] border-[var(--color-warning-1)]",
+    "rounded-[8px] p-2 text-[11px] bg-[var(--color-warning-2)] text-[var(--color-warning-1)] border-[var(--color-warning-1)]",
   error:
     "bg-[var(--color-error-3)] text-[var(--color-error-1)] border-[var(--color-error-2)]",
 };
@@ -23,7 +23,7 @@ const issueSeverityBadgeClassMap: Record<IssueSeverity, string> = {
   critical:
     "bg-[var(--color-error-3)] text-[var(--color-error-1)] border-[var(--color-error-2)]",
   warning:
-    "bg-[var(--color-warning-2)] text-[var(--color-warning-1)] border-[var(--color-warning-1)]",
+    "rounded-[8px] p-2 text-[11px] bg-[var(--color-warning-2)] text-[var(--color-warning-1)] border-[var(--color-warning-1)]",
   info: "bg-[var(--color-info-2)] text-[var(--color-info-1)] border-[var(--color-info-1)]",
 };
 
@@ -56,7 +56,7 @@ export const issueSeverityBadgeClass = issueSeverityBadgeClassMap;
 
 /** Categoría de issue (UX/UI/Product/Copy) — neutro. */
 export const issueCategoryBadgeClass =
-  "bg-[var(--color-beige-50)] text-[var(--color-basics-black)] border-[var(--color-tertiary-border)]";
+  "rounded-[8px] p-2 text-[11px] bg-[var(--color-beige-50)] text-[var(--color-basics-black)] border-[var(--color-tertiary-border)]";
 
 /** Paso numerado en carousel de journey. */
 export const stepIndexBadgeClass =
