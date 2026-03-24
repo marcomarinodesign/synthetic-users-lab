@@ -54,7 +54,7 @@ export function SiteNavbar({ language, onLanguageChange, t }: SiteNavbarProps) {
           <div className="flex min-w-0 items-center gap-[var(--space-2)]">
             <div
               className={cn(
-                "flex h-[42px] shrink-0 items-center gap-2 rounded-[9999px] border-0 bg-[var(--color-basics-white)] px-4",
+                "flex h-[56px] shrink-0 items-center gap-2 rounded-[9999px] border-0 bg-[var(--color-basics-white)] px-4",
               )}
             >
               <span
@@ -71,7 +71,7 @@ export function SiteNavbar({ language, onLanguageChange, t }: SiteNavbarProps) {
               type="button"
               variant="outline"
               size="icon-lg"
-              className="size-[42px] min-h-[42px] min-w-[42px] shrink-0 rounded-[9999px] border-0 bg-[var(--color-basics-white)] p-0 shadow-none"
+              className="size-[56px] min-h-[56px] min-w-[56px] shrink-0 rounded-[9999px] border-0 bg-[var(--color-basics-white)] p-0 shadow-none"
               aria-label={t.navbarAboutAria}
               onClick={() => setAboutOpen(true)}
             >
@@ -83,7 +83,7 @@ export function SiteNavbar({ language, onLanguageChange, t }: SiteNavbarProps) {
             <Button
               type="button"
               variant="outline"
-              className="h-[42px] rounded-[9999px] border-0 bg-[var(--color-basics-white)] px-4 font-sans text-[14px] font-medium shadow-none"
+              className="h-[56px] rounded-[9999px] border-0 bg-[var(--color-basics-white)] px-4 font-sans text-[14px] font-medium shadow-none"
               onClick={() => setFeedbackOpen(true)}
             >
               {t.navbarFeedback}
@@ -97,21 +97,21 @@ export function SiteNavbar({ language, onLanguageChange, t }: SiteNavbarProps) {
                 value={language}
                 onChange={(e) => onLanguageChange(e.target.value as Lang)}
                 className={[
-                  "h-[42px] min-h-[42px] min-w-[120px] cursor-pointer appearance-none rounded-[9999px] border-0 bg-[var(--color-basics-white)]",
-                  "py-0 pr-9 pl-4 font-sans text-[14px] font-medium text-foreground",
+                  "h-[56px] min-h-[56px] w-[88px] cursor-pointer appearance-none rounded-[9999px] border-0 bg-[var(--color-basics-white)]",
+                  "py-0 pr-7 pl-4 font-sans text-[14px] font-medium text-foreground",
                   "transition-colors hover:bg-[var(--color-beige-50)]",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent-300)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-beige-25)]",
                 ].join(" ")}
               >
                 {LANG_OPTIONS.map(({ code, label }) => (
                   <option key={code} value={code}>
-                    {label}
+                    {code.toUpperCase()}
                   </option>
                 ))}
               </select>
               <IconChevronDown
                 aria-hidden
-                className="pointer-events-none absolute top-1/2 right-3 size-[18px] -translate-y-1/2 text-foreground"
+                className="pointer-events-none absolute top-1/2 right-[10px] size-[18px] -translate-y-1/2 text-foreground"
                 stroke={1.75}
               />
             </div>
