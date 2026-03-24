@@ -23,6 +23,8 @@ export const LANGUAGE_NAMES = {
 export const EXPERT_PERSONA_IDS = new Set(["ux-researcher", "ui-designer", "product-strategist"]);
 
 export const ISSUES_SCHEMA = `{"severity":"${ISSUE_SEVERITIES.join("|")}","description":"<issue>","action":"<concrete specific improvement>","component":"<affected element or screen>","category":"${ISSUE_CATEGORIES.join("|")}"}`;
+const ISSUE_SEVERITY_ORDER = { critical: 0, warning: 1, info: 2 };
+const ISSUE_CATEGORY_ORDER = { ux: 0, ui: 1, product: 2, copy: 3 };
 
 function outputLanguageBlock(langName, language) {
   return `PRIMARY OUTPUT LANGUAGE: ${langName} (code: ${language}).
@@ -132,15 +134,65 @@ ${flowInput}`;
 }
 
 export function repairJSON(raw) {
+  const normalizeSteps = (input) => {
+    if (!Array.isArray(input)) return [];
+    return input
+      .map((s) => {
+        if (!s || typeof s !== "object") return null;
+        const action = typeof s.action === "string" ? s.action.trim() : "";
+        const reaction = typeof s.reaction === "string" ? s.reaction.trim() : "";
+        if (!action && !reaction) return null;
+        return { action, reaction };
+      })
+      .filter(Boolean);
+  };
+
+  const normalizeIssues = (input) => {
+    if (!Array.isArray(input)) return null;
+    const out = input
+      .map((i) => {
+        if (!i || typeof i !== "object") return null;
+        const severity = ISSUE_SEVERITIES.includes(i.severity) ? i.severity : "warning";
+        const description = typeof i.description === "string" ? i.description.trim() : "";
+        if (!description) return null;
+        const action = typeof i.action === "string" && i.action.trim() ? i.action.trim() : undefined;
+        const component = typeof i.component === "string" && i.component.trim() ? i.component.trim() : undefined;
+        const category = ISSUE_CATEGORIES.includes(i.category) ? i.category : "ux";
+        return { severity, description, action, component, category };
+      })
+      .filter(Boolean);
+    return out.length > 0 ? out : null;
+  };
+
+  const canonicalizeIssues = (issues) => {
+    const sorted = [...issues].sort((a, b) => {
+      const sev = (ISSUE_SEVERITY_ORDER[a.severity] ?? 9) - (ISSUE_SEVERITY_ORDER[b.severity] ?? 9);
+      if (sev !== 0) return sev;
+      const cat = (ISSUE_CATEGORY_ORDER[a.category] ?? 9) - (ISSUE_CATEGORY_ORDER[b.category] ?? 9);
+      if (cat !== 0) return cat;
+      return a.description.localeCompare(b.description, "es", { sensitivity: "base" });
+    });
+    const deduped = [];
+    const seen = new Set();
+    for (const issue of sorted) {
+      const key = `${issue.category}|${issue.description.toLowerCase()}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      deduped.push(issue);
+    }
+    return deduped;
+  };
+
   const normalize = (input) => {
     const safe = input && typeof input === "object" ? input : {};
     const score = typeof safe.score === "number" && Number.isFinite(safe.score) ? safe.score : 5;
     const fitScore = typeof safe.fit_score === "number" && Number.isFinite(safe.fit_score) ? safe.fit_score : 5;
     const fitNote = typeof safe.fit_note === "string" ? safe.fit_note : "";
     const summary = typeof safe.summary === "string" && safe.summary.trim() ? safe.summary : "Respuesta parcial.";
-    const steps = Array.isArray(safe.steps) ? safe.steps : [];
-    const issues = Array.isArray(safe.issues)
-      ? safe.issues
+    const steps = normalizeSteps(safe.steps);
+    const normalizedIssues = normalizeIssues(safe.issues);
+    const issues = normalizedIssues
+      ? canonicalizeIssues(normalizedIssues)
       : [
           {
             severity: "warning",
@@ -276,8 +328,16 @@ ${flowInput}`;
 
 function normalizeObjectiveAnalysis(obj) {
   if (!obj || typeof obj !== "object") return null;
-  const pick = (k) =>
-    Array.isArray(obj[k]) ? obj[k].map((x) => String(x).trim()).filter(Boolean) : [];
+  const pick = (k) => {
+    if (!Array.isArray(obj[k])) return [];
+    const deduped = new Set();
+    for (const value of obj[k]) {
+      const normalized = String(value).replace(/\s+/g, " ").trim();
+      if (normalized) deduped.add(normalized);
+    }
+    // Cap array sizes to keep anchor context deterministic and bounded.
+    return Array.from(deduped).slice(0, 25);
+  };
   const elements = pick("elements");
   const flow = pick("flow");
   const objective_issues = pick("objective_issues");
