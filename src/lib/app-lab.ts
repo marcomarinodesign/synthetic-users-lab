@@ -54,6 +54,7 @@ export function buildCustomPersonaFromForm(
     id,
     name: nameTrim,
     category,
+    group: "custom",
     initials: input.name
       .split(" ")
       .map((w) => w[0])

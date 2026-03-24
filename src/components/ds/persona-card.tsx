@@ -35,22 +35,24 @@ export function PersonaCard({ persona, selected, onToggle, meta }: PersonaCardPr
             <h3 className="m-0 text-[17px] font-bold leading-[1.25] tracking-[-0.02em] text-foreground">
               {persona.name}
             </h3>
-            {persona.category === "pro" && (
-              <span className="inline-flex shrink-0 items-center rounded-[var(--radius-md)] bg-[var(--color-secondary)] px-2 py-0.5 text-[11px] font-semibold tracking-wide text-[var(--color-secondary-text)] uppercase">
-                {meta.proBadgeLabel}
-              </span>
-            )}
           </div>
           <p className="m-0 mt-[var(--space-2)] text-[13px] font-normal leading-[1.45] text-foreground">
             {persona.category === "pro"
               ? meta.proSubtitle
               : `${techLabel} · ${meta.frustrationLabel} ${frustLabel}`}
           </p>
-          {primaryTrait ? (
-            <div className="mt-[var(--space-3)]">
-              <span className="inline-flex max-w-full items-center rounded-[var(--radius-full)] bg-[var(--color-beige-25)] px-[var(--space-3)] py-[5px] text-[12px] leading-[1.35] text-foreground">
-                {primaryTrait}
-              </span>
+          {primaryTrait || persona.category === "pro" ? (
+            <div className="mt-[var(--space-3)] flex flex-wrap items-center gap-2">
+              {primaryTrait ? (
+                <span className="inline-flex max-w-full items-center rounded-[var(--radius-full)] bg-[var(--color-beige-25)] px-[var(--space-3)] py-[5px] text-[12px] leading-[1.35] text-foreground">
+                  {primaryTrait}
+                </span>
+              ) : null}
+              {persona.category === "pro" ? (
+                <span className="inline-flex shrink-0 items-center rounded-[var(--radius-md)] bg-[var(--color-secondary)] px-2 py-0.5 text-[11px] font-semibold tracking-wide text-[var(--color-secondary-text)] uppercase">
+                  {meta.proBadgeLabel}
+                </span>
+              ) : null}
             </div>
           ) : null}
         </div>

@@ -67,6 +67,42 @@ export const PRESET_TRANSLATIONS: Record<Exclude<Lang, "es">, Record<string, Per
       description: "Does everything on mobile. If the experience is not responsive, they leave.",
       traits: ["Mobile only", "Performance-sensitive", "Touch gestures", "No horizontal scroll"],
     },
+    "latam-founder": {
+      name: "LATAM Founder",
+      description:
+        "Founder in Mexico/Colombia focused on fast growth without sacrificing operational simplicity.",
+      traits: ["Watches costs closely", "Decides quickly", "Values Spanish support", "Needs clear flows"],
+    },
+    "eu-compliance-lead": {
+      name: "EU Compliance Lead",
+      description:
+        "Operations lead in Europe who prioritizes trust, privacy, and traceability at every step.",
+      traits: ["Demands legal clarity", "Spots trust risks", "Seeks consistency", "Values explicit confirmations"],
+    },
+    "fintech-analyst": {
+      name: "Fintech Analyst",
+      description:
+        "Financial product professional evaluating precision, perceived risk, and decision transparency.",
+      traits: ["Reads critical microcopy", "Values clear simulations", "Questions defaults", "Looks for advanced controls"],
+    },
+    "edtech-student": {
+      name: "EdTech Student",
+      description:
+        "Multitasking university student who needs to grasp value quickly and move forward with low friction.",
+      traits: ["Low on time", "Prefers visual examples", "Gets lost with jargon", "Low tolerance for long onboarding"],
+    },
+    "low-vision-advocate": {
+      name: "Low-vision User",
+      description:
+        "Person who relies on high contrast, strong hierarchy, and legible text to complete tasks.",
+      traits: ["Sensitive to contrast", "Needs clear typography", "Avoids dense interfaces", "Values visible feedback"],
+    },
+    "a11y-auditor": {
+      name: "Accessibility Auditor",
+      description:
+        "Specialist reviewing accessibility end to end with WCAG criteria and an inclusive lens.",
+      traits: ["Evaluates contrast and focus", "Checks navigation order", "Looks after labels and states", "Suggests actionable fixes"],
+    },
   },
   fr: {
     "early-adopter": {
@@ -125,6 +161,42 @@ export const PRESET_TRANSLATIONS: Record<Exclude<Lang, "es">, Record<string, Per
       name: "Utilisateur mobile-first",
       description: "Tout fait sur mobile. Si l’expérience n’est pas responsive, abandon.",
       traits: ["Mobile uniquement", "Sensible à la perf", "Gestes tactiles", "Pas de scroll horizontal"],
+    },
+    "latam-founder": {
+      name: "Fondatrice LATAM",
+      description:
+        "Entrepreneuse au Mexique/Colombie focalisee sur la croissance rapide sans perdre la simplicite operationnelle.",
+      traits: ["Surveille les couts", "Decide vite", "Valorise le support en espagnol", "A besoin de parcours clairs"],
+    },
+    "eu-compliance-lead": {
+      name: "Responsable conformite UE",
+      description:
+        "Responsable operations en Europe qui priorise confiance, confidentialite et tracabilite a chaque etape.",
+      traits: ["Exige clarte legale", "Repere les risques de confiance", "Cherche la coherence", "Prefere des confirmations explicites"],
+    },
+    "fintech-analyst": {
+      name: "Analyste Fintech",
+      description:
+        "Professionnel produit financier qui evalue precision, risque percu et transparence des decisions.",
+      traits: ["Lit le microcopy critique", "Valorise les simulations claires", "Questionne les options par defaut", "Cherche des controles avances"],
+    },
+    "edtech-student": {
+      name: "Etudiant EdTech",
+      description:
+        "Etudiant universitaire multitache qui doit comprendre la valeur vite et avancer sans friction.",
+      traits: ["Peu de temps", "Prefere des exemples visuels", "Se perd avec le jargon", "Tolere mal un onboarding long"],
+    },
+    "low-vision-advocate": {
+      name: "Utilisateur basse vision",
+      description:
+        "Personne qui depend d'un contraste eleve, d'une hierarchie forte et de textes lisibles pour accomplir ses taches.",
+      traits: ["Sensible au contraste", "Besoin d'une typo lisible", "Evite les interfaces denses", "Valorise un feedback visible"],
+    },
+    "a11y-auditor": {
+      name: "Auditrice accessibilite",
+      description:
+        "Specialiste qui examine l'accessibilite de bout en bout avec criteres WCAG et approche inclusive.",
+      traits: ["Evalue contraste et focus", "Verifie l'ordre de navigation", "Soigne labels et etats", "Propose des ameliorations actionnables"],
     },
   },
   pt: {
@@ -185,6 +257,42 @@ export const PRESET_TRANSLATIONS: Record<Exclude<Lang, "es">, Record<string, Per
       description: "Faz tudo no celular. Se a experiência não for responsiva, abandona.",
       traits: ["Só mobile", "Sensível a performance", "Gestos táteis", "Não tolera scroll horizontal"],
     },
+    "latam-founder": {
+      name: "Fundadora LATAM",
+      description:
+        "Empreendedora no Mexico/Colombia focada em crescer rapido sem perder simplicidade operacional.",
+      traits: ["Controla custos de perto", "Decide rapido", "Valoriza suporte em espanhol", "Precisa de fluxos claros"],
+    },
+    "eu-compliance-lead": {
+      name: "Responsavel de Compliance UE",
+      description:
+        "Lider de operacoes na Europa que prioriza confianca, privacidade e rastreabilidade em cada passo.",
+      traits: ["Exige clareza legal", "Detecta riscos de confianca", "Busca consistencia", "Valoriza confirmacoes explicitas"],
+    },
+    "fintech-analyst": {
+      name: "Analista Fintech",
+      description:
+        "Profissional de produto financeiro que avalia precisao, risco percebido e transparencia das decisoes.",
+      traits: ["Le microcopy critico", "Valoriza simulacoes claras", "Questiona defaults", "Busca controles avancados"],
+    },
+    "edtech-student": {
+      name: "Estudante EdTech",
+      description:
+        "Universitario multitarefa que precisa entender o valor rapido e avancar com baixa friccao.",
+      traits: ["Pouco tempo", "Prefere exemplos visuais", "Se perde com jargao", "Baixa tolerancia a onboarding longo"],
+    },
+    "low-vision-advocate": {
+      name: "Usuario com baixa visao",
+      description:
+        "Pessoa que depende de alto contraste, hierarquia forte e textos legiveis para concluir tarefas.",
+      traits: ["Sensivel a contraste", "Precisa de tipografia clara", "Evita interfaces densas", "Valoriza feedback visivel"],
+    },
+    "a11y-auditor": {
+      name: "Auditora de Acessibilidade",
+      description:
+        "Especialista que revisa acessibilidade ponta a ponta com criterio WCAG e abordagem inclusiva.",
+      traits: ["Avalia contraste e foco", "Revisa ordem de navegacao", "Cuida de labels e estados", "Sugere melhorias acionaveis"],
+    },
   },
   de: {
     "early-adopter": {
@@ -243,6 +351,42 @@ export const PRESET_TRANSLATIONS: Record<Exclude<Lang, "es">, Record<string, Per
       name: "Mobile-first-Nutzer:in",
       description: "Macht alles am Handy. Wenn die Erfahrung nicht responsive ist, Abbruch.",
       traits: ["Nur mobil", "Performance-sensibel", "Touch-Gesten", "Kein horizontales Scrollen"],
+    },
+    "latam-founder": {
+      name: "LATAM-Gruender:in",
+      description:
+        "Gruender:in in Mexiko/Kolumbien mit Fokus auf schnelles Wachstum ohne operative Komplexitaet.",
+      traits: ["Achtet stark auf Kosten", "Trifft schnelle Entscheidungen", "Schaetzt Support auf Spanisch", "Braucht klare Flows"],
+    },
+    "eu-compliance-lead": {
+      name: "EU-Compliance-Lead",
+      description:
+        "Operations-Lead in Europa, der Vertrauen, Datenschutz und Nachvollziehbarkeit in jedem Schritt priorisiert.",
+      traits: ["Fordert rechtliche Klarheit", "Erkennt Vertrauensrisiken", "Sucht Konsistenz", "Will explizite Bestaetigungen"],
+    },
+    "fintech-analyst": {
+      name: "Fintech-Analyst:in",
+      description:
+        "Fachperson im Finanzproduktbereich, die Praezision, wahrgenommenes Risiko und Entscheidungs-Transparenz bewertet.",
+      traits: ["Liest kritisches Microcopy", "Schaetzt klare Simulationen", "Hinterfragt Defaults", "Sucht erweiterte Kontrollen"],
+    },
+    "edtech-student": {
+      name: "EdTech-Student:in",
+      description:
+        "Multitasking-Studierende:r, die/der den Nutzen schnell erfassen und mit wenig Reibung weitermachen muss.",
+      traits: ["Wenig Zeit", "Bevorzugt visuelle Beispiele", "Verliert sich bei Fachjargon", "Geringe Toleranz fuer langes Onboarding"],
+    },
+    "low-vision-advocate": {
+      name: "Nutzer:in mit Sehschwaeche",
+      description:
+        "Person, die auf hohen Kontrast, starke Hierarchie und gut lesbare Texte angewiesen ist, um Aufgaben abzuschliessen.",
+      traits: ["Kontrast-sensibel", "Braucht gut lesbare Typografie", "Meidet dichte Interfaces", "Schaetzt sichtbares Feedback"],
+    },
+    "a11y-auditor": {
+      name: "Accessibility-Auditor:in",
+      description:
+        "Spezialist:in, die Barrierefreiheit Ende-zu-Ende nach WCAG mit inklusiver Perspektive prueft.",
+      traits: ["Bewertet Kontrast und Fokus", "Prueft Navigationsreihenfolge", "Achtet auf Labels und Zustande", "Schlaegt umsetzbare Verbesserungen vor"],
     },
   },
 };
