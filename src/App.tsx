@@ -45,6 +45,9 @@ import { Banner1 } from "@/components/pro-blocks/landing-page/banners/banner-1";
 import { SiteNavbar } from "@/components/SiteNavbar";
 
 const ISSUE_FILTER_IDS = ["all", "ux", "ui", "product", "copy"] as const;
+const PERSONA_GROUP_ORDER = ["region", "industry", "accessibility", "core", "custom"] as const;
+const PERSONA_SORT_GROUPS = ["region", "industry", "accessibility"] as const;
+type PersonaSortMode = "default" | (typeof PERSONA_SORT_GROUPS)[number];
 
 const easeOut = [0.22, 1, 0.36, 1] as const;
 
@@ -63,6 +66,7 @@ export default function SyntheticUsersLab() {
   const [showModal, setShowModal] = useState(false);
   const [language, setLanguage] = useState<Lang>(detectLang);
   const [issueCategoryFilter, setIssueCategoryFilter] = useState<"all" | IssueCategory>("all");
+  const [personaSortMode, setPersonaSortMode] = useState<PersonaSortMode>("default");
   const [flowError, setFlowError] = useState<string | undefined>();
   const [modalFieldErrors, setModalFieldErrors] = useState<{ name?: string; description?: string }>({});
   const t = TRANSLATIONS[language];
@@ -71,6 +75,70 @@ export default function SyntheticUsersLab() {
     () => personas.map((p) => getLocalizedPersona(p, language)),
     [personas, language]
   );
+  const personaGroupLabels = useMemo(
+    () =>
+      ({
+        es: {
+          region: "Por region",
+          industry: "Por industria",
+          accessibility: "Accesibilidad",
+          core: "Base",
+          custom: "Custom",
+        },
+        en: {
+          region: "By region",
+          industry: "By industry",
+          accessibility: "Accessibility",
+          core: "Core",
+          custom: "Custom",
+        },
+        fr: {
+          region: "Par region",
+          industry: "Par industrie",
+          accessibility: "Accessibilite",
+          core: "Base",
+          custom: "Custom",
+        },
+        pt: {
+          region: "Por regiao",
+          industry: "Por industria",
+          accessibility: "Acessibilidade",
+          core: "Base",
+          custom: "Custom",
+        },
+        de: {
+          region: "Nach Region",
+          industry: "Nach Branche",
+          accessibility: "Barrierefreiheit",
+          core: "Basis",
+          custom: "Custom",
+        },
+      })[language],
+    [language]
+  );
+  const sortLabels = useMemo(
+    () =>
+      ({
+        es: { label: "Ordenar por", default: "Predeterminado" },
+        en: { label: "Sort by", default: "Default" },
+        fr: { label: "Trier par", default: "Par defaut" },
+        pt: { label: "Ordenar por", default: "Padrao" },
+        de: { label: "Sortieren nach", default: "Standard" },
+      })[language],
+    [language]
+  );
+  const sortedPersonas = useMemo(() => {
+    if (personaSortMode === "default") return displayPersonas;
+    const selectedGroup: Persona["group"] = personaSortMode;
+    const baseOrder = PERSONA_GROUP_ORDER.filter((group) => group !== selectedGroup);
+    const rank = new Map<Persona["group"], number>([[selectedGroup, 0]]);
+    baseOrder.forEach((group, index) => rank.set(group, index + 1));
+    return [...displayPersonas].sort((a, b) => {
+      const groupDelta = (rank.get(a.group) ?? 99) - (rank.get(b.group) ?? 99);
+      if (groupDelta !== 0) return groupDelta;
+      return a.name.localeCompare(b.name);
+    });
+  }, [displayPersonas, personaSortMode]);
 
   const loadingOrderedPersonas = useMemo(() => {
     return selectedPersonas
@@ -281,10 +349,34 @@ export default function SyntheticUsersLab() {
               exit={reduceMotion ? undefined : { opacity: 0, y: -12 }}
               transition={tStep}
             >
-              <p className="m-0 text-[14px] text-foreground">{counterText}</p>
+              <div className="mx-[var(--space-1)] flex flex-wrap items-center justify-between gap-[var(--space-3)] md:mx-0">
+                <p className="m-0 text-[14px] text-foreground">{counterText}</p>
+                <div className="inline-flex items-center gap-2 text-[13px] text-foreground">
+                  <span>{sortLabels.label}</span>
+                  <label className="relative">
+                    <select
+                      value={personaSortMode}
+                      onChange={(e) => setPersonaSortMode(e.target.value as PersonaSortMode)}
+                      className="h-9 appearance-none rounded-[var(--radius-full)] border border-[var(--color-tertiary-border)] bg-[var(--color-beige-25)] py-0 pr-9 pl-3 text-[13px] font-medium text-foreground outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[var(--color-accent-300)]"
+                    >
+                      <option value="default">{sortLabels.default}</option>
+                      {PERSONA_SORT_GROUPS.map((group) => (
+                        <option key={group} value={group}>
+                          {personaGroupLabels[group]}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-foreground/70" aria-hidden>
+                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                        <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                  </label>
+                </div>
+              </div>
 
               <motion.ul
-                className="m-0 grid list-none grid-cols-1 gap-[var(--space-5)] p-0 sm:grid-cols-2 lg:grid-cols-3"
+                className="m-0 grid list-none grid-cols-1 gap-[var(--space-5)] px-[var(--space-1)] py-0 sm:grid-cols-2 md:px-0 lg:grid-cols-3"
                 variants={{
                   hidden: {},
                   show: {
@@ -297,7 +389,7 @@ export default function SyntheticUsersLab() {
                 initial="hidden"
                 animate="show"
               >
-                {displayPersonas.map((p) => (
+                {sortedPersonas.map((p) => (
                   <motion.li
                     key={p.id}
                     className="min-h-0"
@@ -433,7 +525,7 @@ export default function SyntheticUsersLab() {
                   </span>
                 </div>
                 <div className="flex items-center gap-[var(--space-3)]">
-                  {loadingPhase === "analyzing" ? (
+                  {loadingPhase === "analyzing_objective" || loadingPhase === "analyzing_persona" ? (
                     <div className="size-[20px] shrink-0 animate-[pSpin_0.8s_linear_infinite] rounded-full border-2 border-[var(--color-grey-soft)] border-t-[var(--color-primary)]" />
                   ) : (
                     <div className="size-[20px] shrink-0 rounded-full border-2 border-[var(--color-grey-soft)]" />
@@ -441,7 +533,7 @@ export default function SyntheticUsersLab() {
                   <span
                     className={[
                       "text-[14px]",
-                      loadingPhase === "analyzing"
+                      loadingPhase === "analyzing_objective" || loadingPhase === "analyzing_persona"
                         ? "font-semibold text-foreground"
                         : "font-normal text-foreground",
                     ].join(" ")}
@@ -450,15 +542,22 @@ export default function SyntheticUsersLab() {
                   </span>
                 </div>
               </div>
-              {loadingPhase === "analyzing" && progress.total > 0 && (
+              {(loadingPhase === "analyzing_objective" || loadingPhase === "analyzing_persona") && progress.total > 0 && (
                 <>
                   <div className="text-center">
                     <div className="text-[16px] font-semibold text-foreground">{progress.currentPersona}</div>
                     <div className="mt-1 text-[13px] text-foreground">
                       {t.userOf(progress.current, progress.total)}
                     </div>
+                    <div className="mt-1 text-[12px] text-foreground/80">
+                      {progress.currentPersonaPhase === "objective_analysis" ? "Fase: análisis objetivo" : "Fase: simulación de persona"}
+                    </div>
                   </div>
                   <ShadProgress value={(progress.current / progress.total) * 100} className="w-[180px]" />
+                  <div className="text-center text-[12px] text-foreground/80">
+                    <div>Tiempo análisis objetivo: {(progress.phaseDurationsMs.objective_analysis / 1000).toFixed(1)}s</div>
+                    <div>Tiempo simulación persona: {(progress.phaseDurationsMs.persona_simulation / 1000).toFixed(1)}s</div>
+                  </div>
                 </>
               )}
             </div>

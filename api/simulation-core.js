@@ -440,10 +440,32 @@ export async function callGemini(apiKey, { systemInstruction, userText, generati
  * @param {number} params.baseSeed
  */
 export async function runSimulateWithPhases({ apiKey, persona, sourceType, flowInput, productContext, language, baseSeed }) {
+  return runSimulateWithPhasesObservable({ apiKey, persona, sourceType, flowInput, productContext, language, baseSeed });
+}
+
+/**
+ * Igual que runSimulateWithPhases, pero emite hitos para streaming/UI.
+ * Todos los callbacks son opcionales.
+ */
+export async function runSimulateWithPhasesObservable({
+  apiKey,
+  persona,
+  sourceType,
+  flowInput,
+  productContext,
+  language,
+  baseSeed,
+  onPhaseStart,
+  onPhaseDone,
+  onModelCallStart,
+  onModelCallDone,
+}) {
   const lang = language || "es";
   const seedA = phaseSeed(baseSeed, 0);
   const seedB = phaseSeed(baseSeed, 1);
 
+  onPhaseStart?.({ phase: "objective_analysis" });
+  onModelCallStart?.({ phase: "objective_analysis", model: GEMINI_MODEL });
   const sysA = buildObjectiveAnalysisSystemPrompt({ productContext, language: lang });
   const userA = buildObjectiveAnalysisUserPrompt({ sourceType, flowInput, language: lang });
   const textA = await callGemini(apiKey, {
@@ -455,6 +477,7 @@ export async function runSimulateWithPhases({ apiKey, persona, sourceType, flowI
       seed: seedA,
     },
   });
+  onModelCallDone?.({ phase: "objective_analysis", model: GEMINI_MODEL });
 
   const analysis = repairObjectiveAnalysisJSON(textA);
   if (!analysis) {
@@ -462,7 +485,10 @@ export async function runSimulateWithPhases({ apiKey, persona, sourceType, flowI
     err.code = "OBJECTIVE_ANALYSIS_PARSE_FAILED";
     throw err;
   }
+  onPhaseDone?.({ phase: "objective_analysis" });
 
+  onPhaseStart?.({ phase: "persona_simulation" });
+  onModelCallStart?.({ phase: "persona_simulation", model: GEMINI_MODEL });
   const systemPrompt = buildSystemPrompt({ persona, productContext, language: lang });
   const userPrompt = buildAnchoredUserPrompt({
     sourceType,
@@ -480,6 +506,7 @@ export async function runSimulateWithPhases({ apiKey, persona, sourceType, flowI
       seed: seedB,
     },
   });
+  onModelCallDone?.({ phase: "persona_simulation", model: GEMINI_MODEL });
 
   if (!textB.trim()) {
     const err = new Error("SIMULATION_EMPTY");
@@ -493,6 +520,7 @@ export async function runSimulateWithPhases({ apiKey, persona, sourceType, flowI
     err.code = "SIMULATION_PARSE_FAILED";
     throw err;
   }
+  onPhaseDone?.({ phase: "persona_simulation" });
   return parsed;
 }
 

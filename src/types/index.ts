@@ -1,6 +1,7 @@
 import type { SourceType } from "@/domain/simulation";
 
 export type { Persona } from "./persona";
+export type { SimulationPhase, SimulationStreamEvent } from "./simulation-stream";
 export type {
   FlowStep,
   Issue,

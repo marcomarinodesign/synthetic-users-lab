@@ -3,6 +3,7 @@ import type { Persona, SimulationResult } from "@/types";
 import type { Lang } from "@/lib/i18n";
 import type { PreparedSimulationInput } from "@/lib/simulation-service";
 import { prepareInput, runBatch } from "@/lib/simulation-service";
+import type { SimulationPhase } from "@/types/simulation-stream";
 
 export interface RunSimulationParams {
   flowInput: string;
@@ -18,8 +19,17 @@ export interface RunSimulationResult {
 
 export function useRunSimulation() {
   const [loading, setLoading] = useState(false);
-  const [loadingPhase, setLoadingPhase] = useState<"fetching" | "analyzing">("fetching");
-  const [progress, setProgress] = useState({ current: 0, total: 0, currentPersona: "" });
+  const [loadingPhase, setLoadingPhase] = useState<"fetching" | "analyzing_objective" | "analyzing_persona" | "done">("fetching");
+  const [progress, setProgress] = useState({
+    current: 0,
+    total: 0,
+    currentPersona: "",
+    currentPersonaPhase: null as SimulationPhase | null,
+    phaseDurationsMs: {
+      objective_analysis: 0,
+      persona_simulation: 0,
+    },
+  });
 
   const run = useCallback(async (params: RunSimulationParams): Promise<RunSimulationResult> => {
     const { flowInput, productContext, language, selectedPersonas } = params;
@@ -28,15 +38,47 @@ export function useRunSimulation() {
       setLoadingPhase("fetching");
       const prepared = await prepareInput(flowInput);
 
-      setLoadingPhase("analyzing");
-      setProgress({ current: 0, total: selectedPersonas.length, currentPersona: "" });
-
-      const results = await runBatch(selectedPersonas, prepared, productContext, language, {
-        onProgress: (current, total, personaName) => {
-          setProgress({ current, total, currentPersona: personaName });
+      setLoadingPhase("analyzing_objective");
+      setProgress({
+        current: 0,
+        total: selectedPersonas.length,
+        currentPersona: "",
+        currentPersonaPhase: null,
+        phaseDurationsMs: {
+          objective_analysis: 0,
+          persona_simulation: 0,
         },
       });
 
+      const phaseStartByPersona = new Map<string, Partial<Record<SimulationPhase, number>>>();
+
+      const results = await runBatch(selectedPersonas, prepared, productContext, language, {
+        onProgress: (current, total, personaName) => {
+          setProgress((prev) => ({ ...prev, current, total, currentPersona: personaName }));
+        },
+        onPhaseChange: (phase, status, personaName, timestamp) => {
+          const starts = phaseStartByPersona.get(personaName) ?? {};
+          if (status === "start") {
+            starts[phase] = timestamp;
+            phaseStartByPersona.set(personaName, starts);
+            setLoadingPhase(phase === "objective_analysis" ? "analyzing_objective" : "analyzing_persona");
+            setProgress((prev) => ({ ...prev, currentPersona: personaName, currentPersonaPhase: phase }));
+            return;
+          }
+
+          const startedAt = starts[phase];
+          const elapsed = startedAt ? Math.max(0, timestamp - startedAt) : 0;
+          setProgress((prev) => ({
+            ...prev,
+            phaseDurationsMs: {
+              ...prev.phaseDurationsMs,
+              [phase]: prev.phaseDurationsMs[phase] + elapsed,
+            },
+          }));
+        },
+      });
+
+      setLoadingPhase("done");
       return { results, prepared };
     } finally {
       setLoading(false);

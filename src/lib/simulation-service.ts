@@ -1,7 +1,8 @@
 import type { Persona, SimulationResult, SourceType } from "@/types";
+import type { SimulationPhase } from "@/types/simulation-stream";
 import { getSimulationErrorCopy, type Lang } from "@/lib/i18n";
 import { normalizeSimulationResult } from "@/domain/simulation";
-import { fetchUrlContent, simulatePersona } from "@/lib/simulation";
+import { fetchUrlContent, simulatePersonaStream } from "@/lib/simulation";
 
 export { normalizeSimulationResult as normalizeResult } from "@/domain/simulation";
 
@@ -32,6 +33,7 @@ export async function prepareInput(
 
 export interface RunBatchOptions {
   onProgress?: (current: number, total: number, personaName: string) => void;
+  onPhaseChange?: (phase: SimulationPhase, status: "start" | "done", personaName: string, timestamp: number) => void;
 }
 
 /**
@@ -50,7 +52,15 @@ export async function runBatch(
     const p = personas[i];
     options?.onProgress?.(i + 1, personas.length, p.name);
     try {
-      out.push(await simulatePersona(p, prepared.sourceType, prepared.content, productContext, language));
+      out.push(
+        await simulatePersonaStream(p, prepared.sourceType, prepared.content, productContext, language, undefined, (evt) => {
+          if (evt.type === "phase:start") {
+            options?.onPhaseChange?.(evt.phase, "start", p.name, Date.now());
+          } else if (evt.type === "phase:done") {
+            options?.onPhaseChange?.(evt.phase, "done", p.name, Date.now());
+          }
+        })
+      );
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       out.push(
