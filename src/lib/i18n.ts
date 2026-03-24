@@ -34,6 +34,7 @@ export interface Translations {
   linkPlaceholder: string;
   contextLabel: string;
   contextOptional: string;
+  contextHint: string;
   contextPlaceholder: string;
   languageLabel: string;
   launchBtn: string;
@@ -83,6 +84,10 @@ export interface Translations {
   validationFlowRequired: string;
   /** Ayuda bajo el campo de enlace (paso flujo). */
   flowInputHint: string;
+  /** Paso 1: título principal del formulario de flujo. */
+  flowStepTitle: string;
+  /** Paso 1: etiqueta sobre chips de usuarios elegidos. */
+  flowSelectedHeading: string;
   /** Ayuda bajo rasgos en modal de persona custom. */
   traitsFieldHint: string;
   /** Título principal de la app (marca). */
@@ -193,7 +198,8 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     linkPlaceholder: "https://tu-web.com o https://github.com/user/repo",
     contextLabel: "Contexto del producto",
     contextOptional: "(opcional)",
-    contextPlaceholder: "Qué es, para quién, qué problema resuelve...",
+    contextHint: "Añade contexto de lo que necesitas (Opcional)",
+    contextPlaceholder: "Describe la web",
     languageLabel: "Idioma",
     launchBtn: "Lanzar simulación",
     fetchingPhase: "Leyendo contenido de las URLs...",
@@ -260,6 +266,8 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     validationDescriptionRequired: "Indica una descripción.",
     validationFlowRequired: "Indica un enlace o URL para analizar.",
     flowInputHint: "Puedes pegar una URL web o un enlace a repositorio (p. ej. GitHub).",
+    flowStepTitle: "Añade los datos para simular tus flujos",
+    flowSelectedHeading: "Usuarios seleccionados",
     traitsFieldHint: "Opcional. Varios rasgos, separados por coma.",
     appTitle: "Synthetic Users Lab",
     unknownPersonaName: "Usuario",
@@ -300,7 +308,8 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     linkPlaceholder: "https://your-site.com or https://github.com/user/repo",
     contextLabel: "Product context",
     contextOptional: "(optional)",
-    contextPlaceholder: "What it is, who it's for, what problem it solves...",
+    contextHint: "Add context about what you need (Optional)",
+    contextPlaceholder: "Describe the website",
     languageLabel: "Language",
     launchBtn: "Launch simulation",
     fetchingPhase: "Reading URL content...",
@@ -367,6 +376,8 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     validationDescriptionRequired: "Enter a description.",
     validationFlowRequired: "Enter a link or URL to analyze.",
     flowInputHint: "Paste a web URL or a repository link (e.g. GitHub).",
+    flowStepTitle: "Add the data to simulate your flows",
+    flowSelectedHeading: "Selected users",
     traitsFieldHint: "Optional. Multiple traits, comma-separated.",
     appTitle: "Synthetic Users Lab",
     unknownPersonaName: "User",
@@ -407,7 +418,8 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     linkPlaceholder: "https://votre-site.com ou https://github.com/user/repo",
     contextLabel: "Contexte produit",
     contextOptional: "(optionnel)",
-    contextPlaceholder: "Ce que c'est, pour qui, quel problème ça résout...",
+    contextHint: "Ajoutez du contexte sur votre besoin (optionnel)",
+    contextPlaceholder: "Decrivez le site web",
     languageLabel: "Langue",
     launchBtn: "Lancer la simulation",
     fetchingPhase: "Lecture du contenu des URLs...",
@@ -474,6 +486,8 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     validationDescriptionRequired: "Indiquez une description.",
     validationFlowRequired: "Indiquez un lien ou une URL à analyser.",
     flowInputHint: "Collez une URL web ou un lien de dépôt (ex. GitHub).",
+    flowStepTitle: "Ajoutez les donnees pour simuler vos flux",
+    flowSelectedHeading: "Utilisateurs selectionnes",
     traitsFieldHint: "Optionnel. Plusieurs traits, séparés par des virgules.",
     appTitle: "Synthetic Users Lab",
     unknownPersonaName: "Utilisateur",
@@ -514,7 +528,8 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     linkPlaceholder: "https://seu-site.com ou https://github.com/user/repo",
     contextLabel: "Contexto do produto",
     contextOptional: "(opcional)",
-    contextPlaceholder: "O que é, para quem, qual problema resolve...",
+    contextHint: "Adicione contexto sobre o que voce precisa (Opcional)",
+    contextPlaceholder: "Descreva o site",
     languageLabel: "Idioma",
     launchBtn: "Lançar simulação",
     fetchingPhase: "Lendo conteúdo das URLs...",
@@ -581,6 +596,8 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     validationDescriptionRequired: "Informe uma descrição.",
     validationFlowRequired: "Informe um link ou URL para analisar.",
     flowInputHint: "Cole uma URL ou link de repositório (ex.: GitHub).",
+    flowStepTitle: "Adicione os dados para simular seus fluxos",
+    flowSelectedHeading: "Usuarios selecionados",
     traitsFieldHint: "Opcional. Várias características, separadas por vírgula.",
     appTitle: "Synthetic Users Lab",
     unknownPersonaName: "Usuário",
@@ -621,7 +638,8 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     linkPlaceholder: "https://ihre-seite.com oder https://github.com/user/repo",
     contextLabel: "Produktkontext",
     contextOptional: "(optional)",
-    contextPlaceholder: "Was es ist, für wen, welches Problem es löst...",
+    contextHint: "Fugen Sie optionalen Kontext zu Ihrem Bedarf hinzu",
+    contextPlaceholder: "Beschreiben Sie die Website",
     languageLabel: "Sprache",
     launchBtn: "Simulation starten",
     fetchingPhase: "URL-Inhalt wird gelesen...",
@@ -688,6 +706,8 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     validationDescriptionRequired: "Bitte eine Beschreibung eingeben.",
     validationFlowRequired: "Bitte einen Link oder eine URL zum Analysieren eingeben.",
     flowInputHint: "Web-URL oder Repository-Link einfügen (z. B. GitHub).",
+    flowStepTitle: "Fugen Sie Daten hinzu, um Ihre Flows zu simulieren",
+    flowSelectedHeading: "Ausgewahlte Nutzer",
     traitsFieldHint: "Optional. Mehrere Merkmale, kommagetrennt.",
     appTitle: "Synthetic Users Lab",
     unknownPersonaName: "Nutzer:in",

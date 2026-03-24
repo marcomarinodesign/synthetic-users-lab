@@ -145,6 +145,7 @@ export default function SyntheticUsersLab() {
       .map((id) => displayPersonas.find((p) => p.id === id))
       .filter((p): p is Persona => p != null);
   }, [selectedPersonas, displayPersonas]);
+  const flowSelectedPersonas = loadingOrderedPersonas;
 
   const toggle = (id: string) =>
     setSelectedPersonas((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
@@ -429,44 +430,76 @@ export default function SyntheticUsersLab() {
           {step === 1 && (
             <motion.div
               key="step-1"
-              className="mx-auto flex w-full max-w-[680px] flex-col gap-[var(--space-5)]"
+              className="mx-auto flex w-full max-w-[680px] flex-col gap-6"
               initial={reduceMotion ? false : { opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               exit={reduceMotion ? undefined : { opacity: 0, y: -12 }}
               transition={tStep}
             >
-            <div>
-              <ShadLabel htmlFor="flow-input">{t.linkLabel}</ShadLabel>
-              <FieldHint id="flow-input-hint">{t.flowInputHint}</FieldHint>
-              <ShadInput
-                id="flow-input"
-                value={flowInput}
-                onChange={(e) => {
-                  setFlowInput(e.target.value);
-                  setFlowError(undefined);
-                }}
-                placeholder={t.linkPlaceholder}
-                className="mt-1"
-                aria-invalid={Boolean(flowError)}
-                aria-describedby={
-                  [flowError ? "flow-input-error" : "", "flow-input-hint"].filter(Boolean).join(" ") || undefined
-                }
-              />
-              <FieldError id="flow-input-error">{flowError}</FieldError>
-            </div>
-            <div>
-              <ShadLabel htmlFor="product-context">
-                {t.contextLabel}{" "}
-                <span className="font-normal text-foreground">{t.contextOptional}</span>
-              </ShadLabel>
-              <ShadTextarea
-                id="product-context"
-                value={productContext}
-                onChange={(e) => setProductContext(e.target.value)}
-                placeholder={t.contextPlaceholder}
-                rows={7}
-              />
-            </div>
+              <div className="flex flex-col items-center gap-9 text-center">
+                <h2 className="m-0 text-[16px] font-bold leading-[1.15] text-foreground">
+                  {t.flowStepTitle}
+                </h2>
+                {flowSelectedPersonas.length > 0 ? (
+                  <div className="w-full max-w-[520px]">
+                    <ul className="m-0 flex w-full list-none flex-wrap gap-2 p-0" aria-label={t.flowSelectedHeading}>
+                      {flowSelectedPersonas.map((p) => (
+                        <li
+                          key={p.id}
+                          className="flex h-[40px] max-w-[min(100%,220px)] items-center gap-2 rounded-[var(--radius-full)] border border-[var(--color-tertiary-border)] bg-[var(--color-basics-white)] px-[12px] py-[8px]"
+                        >
+                          <Avatar persona={p} size={24} border="1px solid var(--color-primary)" />
+                          <span className="min-w-0 truncate text-[14px] font-bold text-foreground">{p.name}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="mx-auto flex w-full max-w-[520px] flex-col gap-7">
+                <div>
+                  <ShadLabel htmlFor="flow-input" className="text-[16px] font-semibold text-foreground">
+                    {t.linkLabel}
+                  </ShadLabel>
+                  <FieldHint id="flow-input-hint" className="mt-2 text-[16px] text-foreground/70">
+                    {t.flowInputHint}
+                  </FieldHint>
+                  <ShadInput
+                    id="flow-input"
+                    value={flowInput}
+                    onChange={(e) => {
+                      setFlowInput(e.target.value);
+                      setFlowError(undefined);
+                    }}
+                    placeholder={t.linkPlaceholder}
+                    className="mt-2 h-14 rounded-[8px] border-0 bg-[var(--color-basics-white)] px-4 shadow-none placeholder:text-foreground/80 focus-visible:border-[var(--color-accent-300)]"
+                    aria-invalid={Boolean(flowError)}
+                    aria-describedby={
+                      [flowError ? "flow-input-error" : "", "flow-input-hint"].filter(Boolean).join(" ") || undefined
+                    }
+                  />
+                  <FieldError id="flow-input-error">{flowError}</FieldError>
+                </div>
+                <div>
+                  <ShadLabel htmlFor="product-context" className="text-[16px] font-semibold text-foreground">
+                    {t.contextLabel}{" "}
+                    <span className="font-normal text-foreground">{t.contextOptional}</span>
+                  </ShadLabel>
+                  <FieldHint id="product-context-hint" className="mt-2 text-[16px] text-foreground/70">
+                    {t.contextHint}
+                  </FieldHint>
+                  <ShadTextarea
+                    id="product-context"
+                    value={productContext}
+                    onChange={(e) => setProductContext(e.target.value)}
+                    placeholder={t.contextPlaceholder}
+                    rows={7}
+                    className="mt-2 min-h-[190px] rounded-[8px] border-0 bg-[var(--color-basics-white)] px-4 py-3 shadow-none placeholder:text-foreground/80 focus-visible:border-[var(--color-accent-300)]"
+                    aria-describedby="product-context-hint"
+                  />
+                </div>
+              </div>
             </motion.div>
           )}
 
