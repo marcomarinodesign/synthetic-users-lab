@@ -47,7 +47,9 @@ export interface Translations {
   issuesLabel: string;
   criticalLabel: string;
   retentionLabel: string;
+  usersLabel: string;
   resultsByUser: string;
+  filterLabel: string;
   newTestBtn: string;
   editFlowBtn: string;
   modalTitle: string;
@@ -210,7 +212,9 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     issuesLabel: "Issues",
     criticalLabel: "Críticos",
     retentionLabel: "Retención",
-    resultsByUser: "Resultados por usuario",
+    usersLabel: "Usuarios",
+    resultsByUser: "Resultados de tu analisis",
+    filterLabel: "Filtrar",
     newTestBtn: "Nuevo test",
     editFlowBtn: "Editar flujo",
     modalTitle: "Nuevo usuario sintético",
@@ -320,7 +324,9 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     issuesLabel: "Issues",
     criticalLabel: "Critical",
     retentionLabel: "Retention",
-    resultsByUser: "Results by user",
+    usersLabel: "Users",
+    resultsByUser: "Analysis results",
+    filterLabel: "Filter",
     newTestBtn: "New test",
     editFlowBtn: "Edit flow",
     modalTitle: "New synthetic user",
@@ -430,7 +436,9 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     issuesLabel: "Problèmes",
     criticalLabel: "Critiques",
     retentionLabel: "Rétention",
-    resultsByUser: "Résultats par utilisateur",
+    usersLabel: "Utilisateurs",
+    resultsByUser: "Resultats de votre analyse",
+    filterLabel: "Filtrer",
     newTestBtn: "Nouveau test",
     editFlowBtn: "Modifier le flux",
     modalTitle: "Nouvel utilisateur synthétique",
@@ -540,7 +548,9 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     issuesLabel: "Issues",
     criticalLabel: "Críticos",
     retentionLabel: "Retenção",
-    resultsByUser: "Resultados por usuário",
+    usersLabel: "Usuarios",
+    resultsByUser: "Resultados da sua analise",
+    filterLabel: "Filtrar",
     newTestBtn: "Novo teste",
     editFlowBtn: "Editar fluxo",
     modalTitle: "Novo usuário sintético",
@@ -650,7 +660,9 @@ export const TRANSLATIONS: Record<Lang, Translations> = {
     issuesLabel: "Probleme",
     criticalLabel: "Kritisch",
     retentionLabel: "Bindung",
-    resultsByUser: "Ergebnisse nach Nutzer",
+    usersLabel: "Nutzer",
+    resultsByUser: "Ergebnisse Ihrer Analyse",
+    filterLabel: "Filtern",
     newTestBtn: "Neuer Test",
     editFlowBtn: "Flow bearbeiten",
     modalTitle: "Neuer synthetischer Nutzer",

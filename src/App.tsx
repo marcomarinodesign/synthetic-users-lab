@@ -607,8 +607,34 @@ export default function SyntheticUsersLab() {
               exit={reduceMotion ? undefined : { opacity: 0, y: -12 }}
               transition={tStep}
             >
+              <div className="flex flex-wrap items-center justify-between gap-[var(--space-3)]">
+                <div className="text-[18px] leading-none font-semibold tracking-[-0.01em] text-foreground">
+                  {t.resultsByUser}
+                </div>
+                <div className="inline-flex items-center gap-2 text-[13px] text-foreground">
+                  <span className="font-medium">{t.filterLabel}</span>
+                  <label className="relative">
+                    <select
+                      value={issueCategoryFilter}
+                      onChange={(e) => setIssueCategoryFilter(e.target.value as "all" | IssueCategory)}
+                      className="h-9 appearance-none rounded-[var(--radius-full)] border-0 bg-[var(--color-basics-white)] py-0 pr-9 pl-3 text-[13px] font-medium text-foreground outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[var(--color-accent-300)]"
+                    >
+                      {ISSUE_FILTER_IDS.map((id) => (
+                        <option key={id} value={id}>
+                          {t.issueFilterLabels[id]}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-foreground/70" aria-hidden>
+                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                        <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                  </label>
+                </div>
+              </div>
               <motion.div
-                className="grid grid-cols-2 gap-2.5 sm:grid-cols-4"
+                className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5"
                 variants={{
                   hidden: {},
                   show: {
@@ -623,15 +649,22 @@ export default function SyntheticUsersLab() {
               >
                 {(
                   [
-                    { label: t.scoreLabel, value: avg, variant: scoreToTier(avgScore) },
-                    { label: t.issuesLabel, value: issueCount, variant: "warning" satisfies StatusVariant },
-                    { label: t.criticalLabel, value: critCount, variant: "error" satisfies StatusVariant },
+                    {
+                      label: t.usersLabel,
+                      value: results.length,
+                      variant: "success" satisfies StatusVariant,
+                      kind: "users" as const,
+                    },
+                    { label: t.scoreLabel, value: Math.round(avgScore), variant: scoreToTier(avgScore), kind: "default" as const },
+                    { label: t.issuesLabel, value: issueCount, variant: "warning" satisfies StatusVariant, kind: "default" as const },
+                    { label: t.criticalLabel, value: critCount, variant: "error" satisfies StatusVariant, kind: "default" as const },
                     {
                       label: t.retentionLabel,
                       value: `${retainCount}/${results.length}`,
                       variant: "success" satisfies StatusVariant,
+                      kind: "default" as const,
                     },
-                  ] satisfies { label: string; value: string | number; variant: StatusVariant }[]
+                  ] satisfies { label: string; value: string | number; variant: StatusVariant; kind: "default" | "users" }[]
                 ).map((m, i) => (
                   <motion.div
                     key={`${m.label}-${i}`}
@@ -641,26 +674,16 @@ export default function SyntheticUsersLab() {
                     }}
                     transition={tStagger}
                   >
-                    <MetricCard label={m.label} value={m.value} variant={m.variant} />
+                    <MetricCard
+                      label={m.label}
+                      value={m.value}
+                      variant={m.variant}
+                      kind={m.kind}
+                      personas={m.kind === "users" ? loadingOrderedPersonas : undefined}
+                    />
                   </motion.div>
                 ))}
               </motion.div>
-            <div className="flex flex-wrap items-center justify-between gap-[var(--space-3)]">
-              <div className="text-base font-bold text-foreground">{t.resultsByUser}</div>
-              <div className="flex flex-wrap gap-[var(--space-2)]">
-                {ISSUE_FILTER_IDS.map((id) => (
-                  <ShadButton
-                    key={id}
-                    onClick={() => setIssueCategoryFilter(id)}
-                    variant={issueCategoryFilter === id ? "default" : "outline"}
-                    size="sm"
-                    className="rounded-full"
-                  >
-                    {t.issueFilterLabels[id]}
-                  </ShadButton>
-                ))}
-              </div>
-            </div>
             <motion.div
               className="flex flex-col gap-[var(--space-5)]"
               variants={{
