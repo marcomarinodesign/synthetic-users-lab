@@ -14,6 +14,12 @@ export function PersonaCard({ persona, selected, onToggle, meta }: PersonaCardPr
   const techLabel = meta.tech[persona.techLevel];
   const frustLabel = meta.frustration[persona.frustration];
   const primaryTrait = persona.traits[0];
+  const topicTagBaseClass =
+    "inline-flex shrink-0 items-center rounded-[8px] p-2 text-[11px] leading-[1.2] uppercase";
+  const topicTagVariantClass = {
+    neutral: "max-w-full bg-[var(--color-beige-25)] text-foreground",
+    pro: "bg-[var(--color-secondary)] font-semibold tracking-wide text-[var(--color-secondary-text)] uppercase",
+  } as const;
 
   return (
     <button
@@ -50,12 +56,12 @@ export function PersonaCard({ persona, selected, onToggle, meta }: PersonaCardPr
           {primaryTrait || persona.category === "pro" ? (
             <div className="mt-[var(--space-3)] flex flex-wrap items-center gap-2">
               {primaryTrait ? (
-                <span className="inline-flex max-w-full items-center rounded-[8px] bg-[var(--color-beige-25)] p-2 text-[11px] leading-[1.2] text-foreground">
+                <span className={cn(topicTagBaseClass, topicTagVariantClass.neutral)}>
                   {primaryTrait}
                 </span>
               ) : null}
               {persona.category === "pro" ? (
-                <span className="inline-flex shrink-0 items-center rounded-[8px] bg-[var(--color-secondary)] p-2 text-[11px] font-semibold tracking-wide text-[var(--color-secondary-text)] uppercase">
+                <span className={cn(topicTagBaseClass, topicTagVariantClass.pro)}>
                   {meta.proBadgeLabel}
                 </span>
               ) : null}
