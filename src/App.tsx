@@ -220,41 +220,46 @@ export default function SyntheticUsersLab() {
   const showFlowBottomBar =
     (step === 0 && totalSelected > 0) || step === 1;
 
+  const isLoadingStep = step === 2 && loading;
+
   return (
     <div className="relative z-[1] flex min-h-[100vh] flex-col font-sans text-foreground antialiased">
       <Banner1 t={t} />
-      <SiteNavbar t={t} onLogoClick={resetToInitialState} />
+      {!isLoadingStep ? <SiteNavbar t={t} onLogoClick={resetToInitialState} /> : null}
       <div
         className={[
           "relative flex-1 px-[var(--space-5)] py-[var(--space-10)] md:px-[var(--space-8)]",
           showFlowBottomBar ? "pb-[calc(var(--space-10)+5.5rem)]" : "",
+          isLoadingStep ? "flex flex-col justify-center py-[var(--space-6)]" : "",
         ].join(" ")}
       >
         <div className="relative mx-auto w-full max-w-[1200px]">
-        <motion.header
-          className="relative z-[1] mb-[36px] w-full"
-          initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={tHero}
-        >
-          <motion.h1
-            className="m-0 w-full text-center text-[clamp(2.5rem,10vw,5rem)] font-normal leading-[1.05] tracking-[-0.02em] text-foreground md:text-[80px]"
-            style={{ fontFamily: "var(--font-serif)" }}
-            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+        {!isLoadingStep ? (
+          <motion.header
+            className="relative z-[1] mb-[36px] w-full"
+            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ ...tHero, delay: reduceMotion ? 0 : 0.1 }}
+            transition={tHero}
           >
-            {t.appTitle}
-          </motion.h1>
-          <motion.p
-            className="m-0 mx-auto mt-[var(--space-4)] max-w-[42rem] text-center text-[18px] leading-[1.45] text-foreground"
-            initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ ...tHero, delay: reduceMotion ? 0 : 0.18 }}
-          >
-            {t.subtitle}
-          </motion.p>
-        </motion.header>
+            <motion.h1
+              className="m-0 w-full text-center text-[clamp(2.5rem,10vw,5rem)] font-normal leading-[1.05] tracking-[-0.02em] text-foreground md:text-[80px]"
+              style={{ fontFamily: "var(--font-serif)" }}
+              initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...tHero, delay: reduceMotion ? 0 : 0.1 }}
+            >
+              {t.appTitle}
+            </motion.h1>
+            <motion.p
+              className="m-0 mx-auto mt-[var(--space-4)] max-w-[42rem] text-center text-[18px] leading-[1.45] text-foreground"
+              initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...tHero, delay: reduceMotion ? 0 : 0.18 }}
+            >
+              {t.subtitle}
+            </motion.p>
+          </motion.header>
+        ) : null}
 
         <Dialog
           open={showModal}
@@ -742,7 +747,7 @@ export default function SyntheticUsersLab() {
         </div>
       </div>
 
-      <SiteFooter reserveSpaceForOverlay={showFlowBottomBar} />
+      {!isLoadingStep ? <SiteFooter reserveSpaceForOverlay={showFlowBottomBar} /> : null}
 
       {showFlowBottomBar && (
         <FlowBottomBar
