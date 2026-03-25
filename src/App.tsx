@@ -36,7 +36,6 @@ import {
 import { Input as ShadInput } from "@/components/ui/input";
 import { Label as ShadLabel } from "@/components/ui/label";
 import { Textarea as ShadTextarea } from "@/components/ui/textarea";
-import { Progress as ShadProgress } from "@/components/ui/progress";
 import { FieldError } from "@/components/ui/field-error";
 import { FieldHint } from "@/components/ui/field-hint";
 import { FlowBottomBar } from "@/components/FlowBottomBar";
@@ -586,7 +585,6 @@ export default function SyntheticUsersLab() {
                       {progress.currentPersonaPhase === "objective_analysis" ? "Fase: análisis objetivo" : "Fase: simulación de persona"}
                     </div>
                   </div>
-                  <ShadProgress value={(progress.current / progress.total) * 100} className="w-[180px]" />
                   <div className="text-center text-[12px] text-foreground/80">
                     <div>Tiempo análisis objetivo: {(progress.phaseDurationsMs.objective_analysis / 1000).toFixed(1)}s</div>
                     <div>Tiempo simulación persona: {(progress.phaseDurationsMs.persona_simulation / 1000).toFixed(1)}s</div>
