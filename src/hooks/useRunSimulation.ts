@@ -25,6 +25,8 @@ export function useRunSimulation() {
     total: 0,
     currentPersona: "",
     currentPersonaPhase: null as SimulationPhase | null,
+    /** Inicio de la fase Gemini en curso (para cronómetro en vivo); null si no hay fase activa */
+    currentPhaseStartAt: null as number | null,
     phaseDurationsMs: {
       objective_analysis: 0,
       persona_simulation: 0,
@@ -44,6 +46,7 @@ export function useRunSimulation() {
         total: selectedPersonas.length,
         currentPersona: "",
         currentPersonaPhase: null,
+        currentPhaseStartAt: null,
         phaseDurationsMs: {
           objective_analysis: 0,
           persona_simulation: 0,
@@ -62,7 +65,12 @@ export function useRunSimulation() {
             starts[phase] = timestamp;
             phaseStartByPersona.set(personaName, starts);
             setLoadingPhase(phase === "objective_analysis" ? "analyzing_objective" : "analyzing_persona");
-            setProgress((prev) => ({ ...prev, currentPersona: personaName, currentPersonaPhase: phase }));
+            setProgress((prev) => ({
+              ...prev,
+              currentPersona: personaName,
+              currentPersonaPhase: phase,
+              currentPhaseStartAt: timestamp,
+            }));
             return;
           }
 
@@ -70,6 +78,7 @@ export function useRunSimulation() {
           const elapsed = startedAt ? Math.max(0, timestamp - startedAt) : 0;
           setProgress((prev) => ({
             ...prev,
+            currentPhaseStartAt: null,
             phaseDurationsMs: {
               ...prev.phaseDurationsMs,
               [phase]: prev.phaseDurationsMs[phase] + elapsed,

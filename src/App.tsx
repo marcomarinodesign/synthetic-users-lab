@@ -7,6 +7,7 @@ import { appendSimulation } from "@/lib/storage";
 import { TRANSLATIONS, detectLang, pickResultCardLabels, type Lang } from "@/lib/i18n";
 import { getLocalizedPersona } from "@/lib/persona-localize";
 import { useRunSimulation } from "@/hooks/useRunSimulation";
+import { useLiveElapsedMs } from "@/hooks/useLiveElapsedMs";
 import type { PreparedSimulationInput } from "@/lib/simulation-service";
 import { nextRegenerationSeed, simulatePersona } from "@/lib/simulation";
 import {
@@ -62,6 +63,7 @@ export default function SyntheticUsersLab() {
   const [lastPrepared, setLastPrepared] = useState<PreparedSimulationInput | null>(null);
   const [regeneratingPersonaId, setRegeneratingPersonaId] = useState<string | null>(null);
   const { run: runSimulation, loading, loadingPhase, progress } = useRunSimulation();
+  const livePhaseMs = useLiveElapsedMs(loading ? progress.currentPhaseStartAt : null);
   const [showModal, setShowModal] = useState(false);
   const [language, setLanguage] = useState<Lang>(detectLang);
   const [issueCategoryFilter, setIssueCategoryFilter] = useState<"all" | IssueCategory>("all");
@@ -585,9 +587,29 @@ export default function SyntheticUsersLab() {
                       {progress.currentPersonaPhase === "objective_analysis" ? "Fase: análisis objetivo" : "Fase: simulación de persona"}
                     </div>
                   </div>
-                  <div className="text-center text-[12px] text-foreground/80">
-                    <div>Tiempo análisis objetivo: {(progress.phaseDurationsMs.objective_analysis / 1000).toFixed(1)}s</div>
-                    <div>Tiempo simulación persona: {(progress.phaseDurationsMs.persona_simulation / 1000).toFixed(1)}s</div>
+                  <div
+                    className="text-center text-[12px] text-foreground/80"
+                    aria-live="polite"
+                    aria-atomic="false"
+                  >
+                    <div>
+                      Tiempo análisis objetivo:{" "}
+                      {(
+                        (progress.phaseDurationsMs.objective_analysis +
+                          (progress.currentPersonaPhase === "objective_analysis" ? livePhaseMs : 0)) /
+                        1000
+                      ).toFixed(1)}
+                      s
+                    </div>
+                    <div>
+                      Tiempo simulación persona:{" "}
+                      {(
+                        (progress.phaseDurationsMs.persona_simulation +
+                          (progress.currentPersonaPhase === "persona_simulation" ? livePhaseMs : 0)) /
+                        1000
+                      ).toFixed(1)}
+                      s
+                    </div>
                   </div>
                 </>
               )}
