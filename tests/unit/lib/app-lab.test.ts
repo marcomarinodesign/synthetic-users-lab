@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   aggregateSimulationResults,
   buildCustomPersonaFromForm,
+  canAddPersonaSelection,
   countSelectionByCategory,
   personaSelectionLabel,
   validateCustomPersonaForm,
@@ -10,6 +11,12 @@ import {
 import { makePersonaWithCategory } from "../../factories/persona.js";
 import { makeSimulationResult } from "../../factories/simulationResult.js";
 import { translationsStubEn } from "../../fixtures/translations-stub.js";
+
+test("canAddPersonaSelection permite hasta 3", () => {
+  assert.equal(canAddPersonaSelection(0), true);
+  assert.equal(canAddPersonaSelection(2), true);
+  assert.equal(canAddPersonaSelection(3), false);
+});
 
 test("countSelectionByCategory cuenta simple y pro", () => {
   const personas = [

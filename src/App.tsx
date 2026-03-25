@@ -10,6 +10,7 @@ import { useLiveElapsedMs } from "@/hooks/useLiveElapsedMs";
 import {
   aggregateSimulationResults,
   buildCustomPersonaFromForm,
+  canAddPersonaSelection,
   countSelectionByCategory,
   personaSelectionLabel,
   validateCustomPersonaForm,
@@ -117,7 +118,11 @@ export default function SyntheticUsersLab() {
   const flowSelectedPersonas = loadingOrderedPersonas;
 
   const toggle = (id: string) =>
-    setSelectedPersonas((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
+    setSelectedPersonas((p) => {
+      if (p.includes(id)) return p.filter((x) => x !== id);
+      if (!canAddPersonaSelection(p.length)) return p;
+      return [...p, id];
+    });
   const canAdd = Boolean(customPersona.name.trim() && customPersona.description.trim());
   const { simpleCount, proCount, totalSelected } = countSelectionByCategory(personas, selectedPersonas);
   const counterText = personaSelectionLabel(t, simpleCount, proCount, totalSelected);
@@ -135,7 +140,7 @@ export default function SyntheticUsersLab() {
     const id = `custom-${Date.now()}`;
     const newPersona = buildCustomPersonaFromForm(customPersona, "simple", id);
     setPersonas((prev) => [...prev, newPersona]);
-    setSelectedPersonas((p) => [...p, id]);
+    setSelectedPersonas((p) => (canAddPersonaSelection(p.length) ? [...p, id] : p));
     setCustomPersona({ name: "", description: "", traits: "" });
     setShowModal(false);
   };
@@ -401,6 +406,8 @@ export default function SyntheticUsersLab() {
                       selected={selectedPersonas.includes(p.id)}
                       onToggle={toggle}
                       meta={t.personaMeta}
+                      selectionDisabled={!selectedPersonas.includes(p.id) && !canAddPersonaSelection(totalSelected)}
+                      selectionLimitTitle={t.selectionLimitReachedTitle}
                     />
                   </motion.li>
                 ))}
@@ -417,6 +424,8 @@ export default function SyntheticUsersLab() {
                     title={t.createBtn}
                     hint={t.modalDesc}
                     onClick={() => setShowModal(true)}
+                    disabled={!canAddPersonaSelection(totalSelected)}
+                    disabledHint={t.selectionLimitHintAddCard}
                   />
                 </motion.li>
               </motion.ul>
@@ -531,6 +540,9 @@ export default function SyntheticUsersLab() {
                   </ul>
                 </div>
               ) : null}
+              <p className="m-0 max-w-[32rem] text-center text-[14px] leading-relaxed text-foreground/75">
+                {t.loadingPatienceNote}
+              </p>
               <div className="flex w-[260px] flex-col gap-[14px]">
                 <div className="flex items-center gap-[var(--space-3)]">
                   {loadingPhase === "fetching" ? (

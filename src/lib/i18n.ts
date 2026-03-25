@@ -1,4 +1,5 @@
 import type { IssueFilterLabels, ResultCardLabels } from "@/types/ds";
+import { MAX_SELECTED_PERSONAS_PER_FLOW } from "@/lib/persona-selection-limits";
 
 export interface PersonaMetaCopy {
   tech: { low: string; medium: string; high: string };
@@ -42,6 +43,8 @@ export interface Translations {
   loadingObjectiveTimeLabel: string;
   /** Loading step 2: timer line for persona simulation. */
   loadingPersonaTimeLabel: string;
+  /** Loading step 2: explains wait time when multiple personas run sequentially. */
+  loadingPatienceNote: string;
   userOf: (c: number, t: number) => string;
   scoreLabel: string;
   issuesLabel: string;
@@ -76,6 +79,10 @@ export interface Translations {
   stepCounter: (current: number, total: number) => string;
   issuesEmptyFilter: string;
   selectAtLeastOne: string;
+  /** Step 0: shown when 3 profiles already selected; unselected cards are not clickable. */
+  selectionLimitReachedTitle: string;
+  /** Step 0: add-custom card when max selection reached. */
+  selectionLimitHintAddCard: string;
   formatSelectionCounter: (simpleCount: number, proCount: number, totalSelected?: number) => string;
   personaTabs: PersonaTabsCopy;
   issueFilterLabels: IssueFilterLabels;
@@ -140,6 +147,8 @@ export const t: Translations = {
   loadingPhasePersona: "Phase: persona simulation",
   loadingObjectiveTimeLabel: "Objective analysis time:",
   loadingPersonaTimeLabel: "Persona simulation time:",
+  loadingPatienceNote:
+    "If you've picked several synthetic users, give it ~1 minute: we're running a full pass for each profile, one after another, so the feedback stays nuanced and real.",
   userOf: (c, tot) => `User ${c} of ${tot}`,
   scoreLabel: "Avg score",
   issuesLabel: "Issues",
@@ -180,11 +189,15 @@ export const t: Translations = {
   stepCounter: (current, total) => `Step ${current} of ${total}`,
   issuesEmptyFilter: "No issues in this category.",
   selectAtLeastOne: "Select at least one profile",
-  formatSelectionCounter: (simpleCount, proCount) => {
+  selectionLimitReachedTitle: "Maximum 3 profiles per simulation — deselect one to choose another",
+  selectionLimitHintAddCard:
+    "You can select up to 3 profiles per run. Deselect one to create a custom user or pick another profile.",
+  formatSelectionCounter: (simpleCount, proCount, totalSelected = 0) => {
     const parts: string[] = [];
     if (simpleCount > 0) parts.push(`${simpleCount} user${simpleCount !== 1 ? "s" : ""}`);
     if (proCount > 0) parts.push(`${proCount} pro`);
-    return parts.join(" + ") + " selected";
+    const base = parts.join(" + ") + " selected";
+    return `${base} (${totalSelected}/${MAX_SELECTED_PERSONAS_PER_FLOW})`;
   },
   personaTabs: {
     simpleTitle: "👤 Users",

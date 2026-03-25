@@ -8,9 +8,13 @@ export interface PersonaCardProps {
   selected: boolean;
   onToggle: (id: string) => void;
   meta: PersonaMetaCopy;
+  /** When true, card cannot be selected (max reached); deselect still allowed via parent not passing this for selected cards. */
+  selectionDisabled?: boolean;
+  /** Explains why selection is blocked (e.g. max profiles). */
+  selectionLimitTitle?: string;
 }
 
-export function PersonaCard({ persona, selected, onToggle, meta }: PersonaCardProps) {
+export function PersonaCard({ persona, selected, onToggle, meta, selectionDisabled, selectionLimitTitle }: PersonaCardProps) {
   const techLabel = meta.tech[persona.techLevel];
   const frustLabel = meta.frustration[persona.frustration];
   const primaryTrait = persona.traits[0];
@@ -21,16 +25,25 @@ export function PersonaCard({ persona, selected, onToggle, meta }: PersonaCardPr
     pro: "bg-[var(--color-secondary)] font-semibold tracking-wide text-[var(--color-secondary-text)] uppercase",
   } as const;
 
+  const isBlocked = Boolean(selectionDisabled && !selected);
+  const ariaLabel =
+    isBlocked && selectionLimitTitle ? `${persona.name}. ${selectionLimitTitle}` : persona.name;
+
   return (
     <button
       type="button"
+      disabled={isBlocked}
       onClick={() => onToggle(persona.id)}
       aria-pressed={selected}
-      aria-label={persona.name}
+      aria-label={ariaLabel}
+      title={isBlocked ? selectionLimitTitle : undefined}
       className={cn(
-        "flex h-[310px] min-h-[310px] w-full shrink-0 cursor-pointer flex-col rounded-[var(--space-8)] bg-[var(--color-basics-white)] p-[var(--space-8)] text-left outline-none transition-all duration-150",
-        "focus-visible:ring-2 focus-visible:ring-[var(--color-accent-300)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-beige-25)]",
-        selected &&
+        "flex h-[310px] min-h-[310px] w-full shrink-0 flex-col rounded-[var(--space-8)] bg-[var(--color-basics-white)] p-[var(--space-8)] text-left outline-none transition-all duration-150",
+        isBlocked
+          ? "cursor-not-allowed opacity-50"
+          : "cursor-pointer focus-visible:ring-2 focus-visible:ring-[var(--color-accent-300)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-beige-25)]",
+        !isBlocked &&
+          selected &&
           "ring-2 ring-[var(--color-palette-pomegranate)] ring-offset-2 ring-offset-[var(--color-beige-25)]",
       )}
     >

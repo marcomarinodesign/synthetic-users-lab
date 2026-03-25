@@ -1,6 +1,8 @@
 import type { Persona, SimulationResult } from "@/types";
 import type { Translations } from "@/lib/i18n";
 
+export { MAX_SELECTED_PERSONAS_PER_FLOW, canAddPersonaSelection } from "@/lib/persona-selection-limits";
+
 export function countSelectionByCategory(
   personas: Persona[],
   selectedIds: string[]
