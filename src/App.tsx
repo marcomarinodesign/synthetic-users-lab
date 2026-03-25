@@ -1,15 +1,12 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { Persona, SimulationResult } from "@/types";
 import type { IssueCategory } from "@/domain/simulation";
 import { PRESET_PERSONAS } from "@/lib/personas";
 import { appendSimulation } from "@/lib/storage";
-import { TRANSLATIONS, detectLang, pickResultCardLabels, type Lang } from "@/lib/i18n";
-import { getLocalizedPersona } from "@/lib/persona-localize";
+import { t, pickResultCardLabels } from "@/lib/i18n";
 import { useRunSimulation } from "@/hooks/useRunSimulation";
 import { useLiveElapsedMs } from "@/hooks/useLiveElapsedMs";
-import type { PreparedSimulationInput } from "@/lib/simulation-service";
-import { nextRegenerationSeed, simulatePersona } from "@/lib/simulation";
 import {
   aggregateSimulationResults,
   buildCustomPersonaFromForm,
@@ -22,7 +19,9 @@ import { MetricCard } from "@/components/ds/metric-card";
 import { AddPersonaEmptyCard } from "@/components/ds/add-persona-empty-card";
 import { Avatar } from "@/components/ds/avatar";
 import { PersonaCard } from "@/components/ds/persona-card";
+import { PersonaResultTabs } from "@/components/ds/persona-result-tabs";
 import { ResultCard } from "@/components/ds/result-card";
+import { IconPencil } from "@tabler/icons-react";
 
 import { Button as ShadButton } from "@/components/ui/button";
 import { Card as ShadCard } from "@/components/ui/card";
@@ -49,7 +48,35 @@ const PERSONA_GROUP_ORDER = ["region", "industry", "accessibility", "core", "cus
 const PERSONA_SORT_GROUPS = ["region", "industry", "accessibility"] as const;
 type PersonaSortMode = "default" | (typeof PERSONA_SORT_GROUPS)[number];
 
+const PERSONA_GROUP_LABELS: Record<Persona["group"], string> = {
+  region: "By region",
+  industry: "By industry",
+  accessibility: "Accessibility",
+  core: "Core",
+  custom: "Custom",
+};
+
+const SORT_LABELS = { label: "Sort by", default: "Default" } as const;
+
 const easeOut = [0.22, 1, 0.36, 1] as const;
+
+const RESULT_PERSONA_TABPANEL_ID = "result-persona-tabpanel";
+
+function fallbackPersonaForTab(personaId: string): Persona {
+  return {
+    id: personaId,
+    name: personaId,
+    initials: "?",
+    avatarBg: "var(--color-accent-100)",
+    avatarColor: "var(--color-accent-700)",
+    category: "simple",
+    group: "custom",
+    description: "",
+    traits: [],
+    frustration: "low",
+    techLevel: "medium",
+  };
+}
 
 export default function SyntheticUsersLab() {
   const reduceMotion = useReducedMotion();
@@ -60,92 +87,33 @@ export default function SyntheticUsersLab() {
   const [flowInput, setFlowInput] = useState("");
   const [productContext, setProductContext] = useState("");
   const [results, setResults] = useState<SimulationResult[] | null>(null);
-  const [lastPrepared, setLastPrepared] = useState<PreparedSimulationInput | null>(null);
-  const [regeneratingPersonaId, setRegeneratingPersonaId] = useState<string | null>(null);
   const { run: runSimulation, loading, loadingPhase, progress } = useRunSimulation();
   const livePhaseMs = useLiveElapsedMs(loading ? progress.currentPhaseStartAt : null);
   const [showModal, setShowModal] = useState(false);
-  const [language, setLanguage] = useState<Lang>(detectLang);
   const [issueCategoryFilter, setIssueCategoryFilter] = useState<"all" | IssueCategory>("all");
   const [personaSortMode, setPersonaSortMode] = useState<PersonaSortMode>("default");
   const [flowError, setFlowError] = useState<string | undefined>();
   const [modalFieldErrors, setModalFieldErrors] = useState<{ name?: string; description?: string }>({});
-  const t = TRANSLATIONS[language];
+  const [selectedResultsPersonaId, setSelectedResultsPersonaId] = useState<string | null>(null);
   const resultCardLabels = pickResultCardLabels(t);
-  const displayPersonas = useMemo(
-    () => personas.map((p) => getLocalizedPersona(p, language)),
-    [personas, language]
-  );
-  const personaGroupLabels = useMemo(
-    () =>
-      ({
-        es: {
-          region: "Por region",
-          industry: "Por industria",
-          accessibility: "Accesibilidad",
-          core: "Base",
-          custom: "Custom",
-        },
-        en: {
-          region: "By region",
-          industry: "By industry",
-          accessibility: "Accessibility",
-          core: "Core",
-          custom: "Custom",
-        },
-        fr: {
-          region: "Par region",
-          industry: "Par industrie",
-          accessibility: "Accessibilite",
-          core: "Base",
-          custom: "Custom",
-        },
-        pt: {
-          region: "Por regiao",
-          industry: "Por industria",
-          accessibility: "Acessibilidade",
-          core: "Base",
-          custom: "Custom",
-        },
-        de: {
-          region: "Nach Region",
-          industry: "Nach Branche",
-          accessibility: "Barrierefreiheit",
-          core: "Basis",
-          custom: "Custom",
-        },
-      })[language],
-    [language]
-  );
-  const sortLabels = useMemo(
-    () =>
-      ({
-        es: { label: "Ordenar por", default: "Predeterminado" },
-        en: { label: "Sort by", default: "Default" },
-        fr: { label: "Trier par", default: "Par defaut" },
-        pt: { label: "Ordenar por", default: "Padrao" },
-        de: { label: "Sortieren nach", default: "Standard" },
-      })[language],
-    [language]
-  );
   const sortedPersonas = useMemo(() => {
-    if (personaSortMode === "default") return displayPersonas;
+    if (personaSortMode === "default") return personas;
     const selectedGroup: Persona["group"] = personaSortMode;
     const baseOrder = PERSONA_GROUP_ORDER.filter((group) => group !== selectedGroup);
     const rank = new Map<Persona["group"], number>([[selectedGroup, 0]]);
     baseOrder.forEach((group, index) => rank.set(group, index + 1));
-    return [...displayPersonas].sort((a, b) => {
+    return [...personas].sort((a, b) => {
       const groupDelta = (rank.get(a.group) ?? 99) - (rank.get(b.group) ?? 99);
       if (groupDelta !== 0) return groupDelta;
       return a.name.localeCompare(b.name);
     });
-  }, [displayPersonas, personaSortMode]);
+  }, [personas, personaSortMode]);
 
   const loadingOrderedPersonas = useMemo(() => {
     return selectedPersonas
-      .map((id) => displayPersonas.find((p) => p.id === id))
+      .map((id) => personas.find((p) => p.id === id))
       .filter((p): p is Persona => p != null);
-  }, [selectedPersonas, displayPersonas]);
+  }, [selectedPersonas, personas]);
   const flowSelectedPersonas = loadingOrderedPersonas;
 
   const toggle = (id: string) =>
@@ -172,56 +140,78 @@ export default function SyntheticUsersLab() {
     setShowModal(false);
   };
 
-  const handleRegeneratePersona = useCallback(
-    async (personaId: string) => {
-      if (!lastPrepared) return;
-      const persona = displayPersonas.find((p) => p.id === personaId);
-      if (!persona) return;
-      setRegeneratingPersonaId(personaId);
-      try {
-        const newResult = await simulatePersona(
-          persona,
-          lastPrepared.sourceType,
-          lastPrepared.content,
-          productContext,
-          language,
-          nextRegenerationSeed()
-        );
-        setResults((prev) => (prev ? prev.map((r) => (r.personaId === personaId ? newResult : r)) : prev));
-      } finally {
-        setRegeneratingPersonaId(null);
-      }
-    },
-    [lastPrepared, displayPersonas, productContext, language]
-  );
+  const resetToInitialState = useCallback(() => {
+    setStep(0);
+    setSelectedPersonas([]);
+    setFlowInput("");
+    setProductContext("");
+    setResults(null);
+    setIssueCategoryFilter("all");
+    setSelectedResultsPersonaId(null);
+    setFlowError(undefined);
+    setShowModal(false);
+    setModalFieldErrors({});
+  }, []);
+
+  const goToEditFlow = useCallback(() => {
+    setStep(1);
+    setResults(null);
+  }, []);
 
   const run = useCallback(async () => {
     setResults(null);
-    setLastPrepared(null);
     setIssueCategoryFilter("all");
     const selectedPersonaRecords = personas.filter((p) => selectedPersonas.includes(p.id));
-    const localizedSelected = selectedPersonaRecords.map((p) => getLocalizedPersona(p, language));
     const { results: all, prepared } = await runSimulation({
       flowInput,
       productContext,
-      language,
-      selectedPersonas: localizedSelected,
+      selectedPersonas: selectedPersonaRecords,
+      analysisMode: "max",
     });
-    setLastPrepared(prepared);
     setResults(all);
     appendSimulation({
       flowInput: flowInput.trim(),
       sourceType: prepared.sourceType,
       productContext,
-      language,
+      language: "en",
       personaIds: selectedPersonaRecords.map((p) => p.id),
       results: all,
-      personasSnapshot: localizedSelected,
+      personasSnapshot: selectedPersonaRecords,
+      analysisMode: "max",
     });
     setStep(3);
-  }, [selectedPersonas, flowInput, productContext, language, personas, runSimulation]);
+  }, [selectedPersonas, flowInput, productContext, personas, runSimulation]);
 
-  const { avgScore, avgFormatted: avg, issueCount, critCount, retainCount } = aggregateSimulationResults(results);
+  const { avgScore, issueCount, critCount, retainCount } = aggregateSimulationResults(results);
+
+  useEffect(() => {
+    if (!results?.length) return;
+    setSelectedResultsPersonaId((prev) => {
+      if (prev && results.some((r) => r.personaId === prev)) return prev;
+      return results[0].personaId;
+    });
+  }, [results]);
+
+  const personaResultTabItems = useMemo(() => {
+    if (!results?.length) return [];
+    return results.map((r) => ({
+      personaId: r.personaId,
+      persona: personas.find((p) => p.id === r.personaId) ?? fallbackPersonaForTab(r.personaId),
+    }));
+  }, [results, personas]);
+
+  const tabSelectedPersonaId = useMemo(() => {
+    if (!results?.length) return "";
+    if (selectedResultsPersonaId && results.some((r) => r.personaId === selectedResultsPersonaId)) {
+      return selectedResultsPersonaId;
+    }
+    return results[0].personaId;
+  }, [results, selectedResultsPersonaId]);
+
+  const selectedResultForPersonaTab = useMemo(() => {
+    if (!results?.length || !tabSelectedPersonaId) return null;
+    return results.find((r) => r.personaId === tabSelectedPersonaId) ?? null;
+  }, [results, tabSelectedPersonaId]);
 
   const tStep = reduceMotion ? { duration: 0 } : { duration: 0.32, ease: easeOut };
   const tHero = reduceMotion ? { duration: 0 } : { duration: 0.45, ease: easeOut };
@@ -233,7 +223,7 @@ export default function SyntheticUsersLab() {
   return (
     <div className="relative z-[1] flex min-h-[100vh] flex-col font-sans text-foreground antialiased">
       <Banner1 t={t} />
-      <SiteNavbar language={language} onLanguageChange={setLanguage} t={t} />
+      <SiteNavbar t={t} onLogoClick={resetToInitialState} />
       <div
         className={[
           "relative flex-1 px-[var(--space-5)] py-[var(--space-10)] md:px-[var(--space-8)]",
@@ -354,17 +344,17 @@ export default function SyntheticUsersLab() {
               <div className="mx-[var(--space-1)] flex flex-wrap items-center justify-between gap-[var(--space-3)] md:mx-0">
                 <p className="m-0 text-[14px] text-foreground">{counterText}</p>
                 <div className="inline-flex items-center gap-2 text-[13px] text-foreground">
-                  <span>{sortLabels.label}</span>
+                  <span>{SORT_LABELS.label}</span>
                   <label className="relative">
                     <select
                       value={personaSortMode}
                       onChange={(e) => setPersonaSortMode(e.target.value as PersonaSortMode)}
                       className="h-9 appearance-none rounded-[var(--radius-full)] border border-[var(--color-tertiary-border)] bg-[var(--color-beige-25)] py-0 pr-9 pl-3 text-[13px] font-medium text-foreground outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[var(--color-accent-300)]"
                     >
-                      <option value="default">{sortLabels.default}</option>
+                      <option value="default">{SORT_LABELS.default}</option>
                       {PERSONA_SORT_GROUPS.map((group) => (
                         <option key={group} value={group}>
-                          {personaGroupLabels[group]}
+                          {PERSONA_GROUP_LABELS[group]}
                         </option>
                       ))}
                     </select>
@@ -584,7 +574,9 @@ export default function SyntheticUsersLab() {
                       {t.userOf(progress.current, progress.total)}
                     </div>
                     <div className="mt-1 text-[12px] text-foreground/80">
-                      {progress.currentPersonaPhase === "objective_analysis" ? "Fase: análisis objetivo" : "Fase: simulación de persona"}
+                      {progress.currentPersonaPhase === "objective_analysis"
+                        ? t.loadingPhaseObjective
+                        : t.loadingPhasePersona}
                     </div>
                   </div>
                   <div
@@ -593,7 +585,7 @@ export default function SyntheticUsersLab() {
                     aria-atomic="false"
                   >
                     <div>
-                      Tiempo análisis objetivo:{" "}
+                      {t.loadingObjectiveTimeLabel}{" "}
                       {(
                         (progress.phaseDurationsMs.objective_analysis +
                           (progress.currentPersonaPhase === "objective_analysis" ? livePhaseMs : 0)) /
@@ -602,7 +594,7 @@ export default function SyntheticUsersLab() {
                       s
                     </div>
                     <div>
-                      Tiempo simulación persona:{" "}
+                      {t.loadingPersonaTimeLabel}{" "}
                       {(
                         (progress.phaseDurationsMs.persona_simulation +
                           (progress.currentPersonaPhase === "persona_simulation" ? livePhaseMs : 0)) /
@@ -627,31 +619,20 @@ export default function SyntheticUsersLab() {
               exit={reduceMotion ? undefined : { opacity: 0, y: -12 }}
               transition={tStep}
             >
-              <div className="flex flex-wrap items-center justify-between gap-[var(--space-3)]">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="text-[18px] leading-none font-semibold tracking-[-0.01em] text-foreground">
                   {t.resultsByUser}
                 </div>
-                <div className="inline-flex items-center gap-2 text-[13px] text-foreground">
-                  <span className="font-medium">{t.filterLabel}</span>
-                  <label className="relative">
-                    <select
-                      value={issueCategoryFilter}
-                      onChange={(e) => setIssueCategoryFilter(e.target.value as "all" | IssueCategory)}
-                      className="h-9 appearance-none rounded-[var(--radius-full)] border-0 bg-[var(--color-basics-white)] py-0 pr-9 pl-3 text-[13px] font-medium text-foreground outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[var(--color-accent-300)]"
-                    >
-                      {ISSUE_FILTER_IDS.map((id) => (
-                        <option key={id} value={id}>
-                          {t.issueFilterLabels[id]}
-                        </option>
-                      ))}
-                    </select>
-                    <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-foreground/70" aria-hidden>
-                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                        <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </span>
-                  </label>
-                </div>
+                {results && results.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={goToEditFlow}
+                    className="inline-flex items-center gap-1.5 text-[14px] font-medium text-[var(--color-primary)] underline underline-offset-4 transition-opacity hover:opacity-80"
+                  >
+                    <IconPencil aria-hidden className="size-[18px] shrink-0" stroke={1.5} />
+                    {t.editFlowBtn}
+                  </button>
+                ) : null}
               </div>
               <motion.div
                 className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5"
@@ -704,6 +685,15 @@ export default function SyntheticUsersLab() {
                   </motion.div>
                 ))}
               </motion.div>
+              {personaResultTabItems.length > 0 && tabSelectedPersonaId ? (
+                <PersonaResultTabs
+                  items={personaResultTabItems}
+                  selectedId={tabSelectedPersonaId}
+                  onSelect={setSelectedResultsPersonaId}
+                  tabPanelId={RESULT_PERSONA_TABPANEL_ID}
+                  tablistLabel={t.usersLabel}
+                />
+              ) : null}
             <motion.div
               className="flex flex-col gap-[var(--space-5)]"
               variants={{
@@ -715,50 +705,37 @@ export default function SyntheticUsersLab() {
               initial="hidden"
               animate="show"
             >
-              {results.map((r, i) => (
+              {selectedResultForPersonaTab ? (
                 <motion.div
-                  key={r.personaId ?? i}
+                  key={selectedResultForPersonaTab.personaId}
                   variants={{
                     hidden: { opacity: 0, y: 16 },
                     show: { opacity: 1, y: 0 },
                   }}
                   transition={tStagger}
                 >
-                  <ResultCard
-                    result={r}
-                    index={i}
-                    labels={resultCardLabels}
-                    issueCategoryFilter={issueCategoryFilter}
-                    personas={displayPersonas}
-                    onRegenerate={lastPrepared ? () => void handleRegeneratePersona(r.personaId) : undefined}
-                    regenerateDisabled={regeneratingPersonaId === r.personaId}
-                  />
+                  <div
+                    role="tabpanel"
+                    id={RESULT_PERSONA_TABPANEL_ID}
+                    aria-labelledby={`result-tab-${tabSelectedPersonaId}`}
+                  >
+                    <ResultCard
+                      variant="panel"
+                      result={selectedResultForPersonaTab}
+                      index={0}
+                      labels={resultCardLabels}
+                      issueCategoryFilter={issueCategoryFilter}
+                      personas={personas}
+                      issueFilterOptions={ISSUE_FILTER_IDS.map((id) => ({
+                        id,
+                        label: t.issueFilterLabels[id],
+                      }))}
+                      onIssueCategoryFilterChange={(v) => setIssueCategoryFilter(v)}
+                    />
+                  </div>
                 </motion.div>
-              ))}
+              ) : null}
             </motion.div>
-            <div className="mt-[var(--space-2)] flex flex-col items-stretch gap-[10px] self-center">
-              <ShadButton
-                onClick={() => {
-                  setStep(0);
-                  setResults(null);
-                  setLastPrepared(null);
-                }}
-                className="w-full rounded-full"
-              >
-                {t.newTestBtn}
-              </ShadButton>
-              <ShadButton
-                variant="secondary"
-                onClick={() => {
-                  setStep(1);
-                  setResults(null);
-                  setLastPrepared(null);
-                }}
-                className="w-full rounded-full"
-              >
-                {t.editFlowBtn}
-              </ShadButton>
-            </div>
             </motion.div>
           )}
         </AnimatePresence>

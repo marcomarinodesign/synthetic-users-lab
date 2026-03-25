@@ -17,7 +17,7 @@ export function validateSimulationRequest(body) {
     return { ok: false, error: "Body inválido" };
   }
 
-  const { persona, sourceType, flowInput, productContext, language, seed } = body;
+  const { persona, sourceType, flowInput, productContext, language, seed, analysisMode } = body;
 
   if (!persona || typeof persona !== "object") {
     return { ok: false, error: "Missing persona" };
@@ -69,6 +69,12 @@ export function validateSimulationRequest(body) {
     }
   }
 
+  if (analysisMode !== undefined) {
+    if (analysisMode !== "fast" && analysisMode !== "max") {
+      return { ok: false, error: "Invalid analysisMode" };
+    }
+  }
+
   return {
     ok: true,
     value: {
@@ -83,7 +89,8 @@ export function validateSimulationRequest(body) {
       sourceType,
       flowInput: flowInput.trim(),
       productContext,
-      language: typeof language === "string" ? language : "es",
+      language: typeof language === "string" ? language : "en",
+      analysisMode: analysisMode === "fast" ? "fast" : "max",
       ...(seed !== undefined ? { seed } : {}),
     },
   };

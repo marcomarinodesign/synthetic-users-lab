@@ -1,6 +1,7 @@
 import type { Persona, SimulationResult, SourceType } from "@/types";
+import type { AnalysisMode } from "@/domain/simulation";
 import type { SimulationPhase } from "@/types/simulation-stream";
-import { getSimulationErrorCopy, type Lang } from "@/lib/i18n";
+import { getSimulationErrorCopy } from "@/lib/i18n";
 import { normalizeSimulationResult } from "@/domain/simulation";
 import { fetchUrlContent, simulatePersonaStream } from "@/lib/simulation";
 
@@ -34,6 +35,7 @@ export async function prepareInput(
 export interface RunBatchOptions {
   onProgress?: (current: number, total: number, personaName: string) => void;
   onPhaseChange?: (phase: SimulationPhase, status: "start" | "done", personaName: string, timestamp: number) => void;
+  analysisMode?: AnalysisMode;
 }
 
 /**
@@ -43,23 +45,32 @@ export async function runBatch(
   personas: Persona[],
   prepared: PreparedSimulationInput,
   productContext: string,
-  language: Lang,
   options?: RunBatchOptions
 ): Promise<SimulationResult[]> {
   const out: SimulationResult[] = [];
-  const errCopy = getSimulationErrorCopy(language);
+  const errCopy = getSimulationErrorCopy();
+  const analysisMode = options?.analysisMode ?? "max";
   for (let i = 0; i < personas.length; i++) {
     const p = personas[i];
     options?.onProgress?.(i + 1, personas.length, p.name);
     try {
       out.push(
-        await simulatePersonaStream(p, prepared.sourceType, prepared.content, productContext, language, undefined, (evt) => {
-          if (evt.type === "phase:start") {
-            options?.onPhaseChange?.(evt.phase, "start", p.name, Date.now());
-          } else if (evt.type === "phase:done") {
-            options?.onPhaseChange?.(evt.phase, "done", p.name, Date.now());
-          }
-        })
+        await simulatePersonaStream(
+          p,
+          prepared.sourceType,
+          prepared.content,
+          productContext,
+          "en",
+          undefined,
+          (evt) => {
+            if (evt.type === "phase:start") {
+              options?.onPhaseChange?.(evt.phase, "start", p.name, Date.now());
+            } else if (evt.type === "phase:done") {
+              options?.onPhaseChange?.(evt.phase, "done", p.name, Date.now());
+            }
+          },
+          analysisMode
+        )
       );
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);

@@ -19,19 +19,20 @@ import { assertRepairJsonOutputShape } from "../../helpers/contracts.js";
 
 const basePersona = {
   id: "busy-manager",
-  name: "Manager Ocupado",
-  description: "Tiene poco tiempo",
-  traits: ["Impaciente", "Busca ROI"],
+  name: "Busy Manager",
+  description: "Short on time",
+  traits: ["Impatient", "Looks for ROI"],
   frustration: "high",
   techLevel: "medium",
 };
 
 test("buildUserPrompt: contrato SOURCE + FLOW + idioma", () => {
-  const prompt = buildUserPrompt({ sourceType: "url", flowInput: "https://app.example.com", language: "es" });
+  const prompt = buildUserPrompt({ sourceType: "url", flowInput: "https://app.example.com", language: "en" });
   assert.match(prompt, /^SOURCE: /m);
   assert.match(prompt, /^FLOW:\n/m);
   assert.ok(prompt.includes("https://app.example.com"));
   assert.ok(prompt.includes("REQUIRED OUTPUT LANGUAGE"));
+  assert.ok(prompt.includes("English"));
 });
 
 test("buildUserPrompt: refuerza idioma distinto del FLOW", () => {
@@ -54,7 +55,7 @@ test("buildSystemPrompt: variante expert cuando id está en EXPERT", () => {
   const prompt = buildSystemPrompt({
     persona: { ...basePersona, id: "ux-researcher", name: "UX Researcher" },
     productContext: "",
-    language: "es",
+    language: "en",
   });
   assert.ok(prompt.includes("PROFESSIONAL EVALUATION"));
 });
@@ -183,7 +184,7 @@ test("buildAnchoredUserPrompt: incluye anchor y FLOW", () => {
   const p = buildAnchoredUserPrompt({
     sourceType: "url",
     flowInput: "hello",
-    language: "es",
+    language: "en",
     objectiveAnalysis: {
       elements: ["e1"],
       flow: ["f1"],

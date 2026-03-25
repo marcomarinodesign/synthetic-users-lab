@@ -1,6 +1,6 @@
 import type { Persona, SimulationResult, SourceType } from "@/types";
 import type { SimulationStreamEvent } from "@/types/simulation-stream";
-import type { SimulationRequest } from "@/domain/simulation";
+import type { AnalysisMode, SimulationRequest } from "@/domain/simulation";
 import { normalizeSimulationResult } from "@/domain/simulation";
 
 export async function fetchUrlContent(url: string): Promise<string> {
@@ -118,8 +118,9 @@ export async function simulatePersona(
   sourceType: SourceType,
   flowInput: string,
   productContext: string,
-  language = "es",
-  seed?: number
+  language = "en",
+  seed?: number,
+  analysisMode: AnalysisMode = "max"
 ): Promise<SimulationResult> {
   const body: SimulationRequest = {
     persona: {
@@ -134,6 +135,7 @@ export async function simulatePersona(
     flowInput,
     productContext,
     language,
+    analysisMode,
     ...(seed !== undefined ? { seed } : {}),
   };
   const raw = await postSimulate(body);
@@ -145,9 +147,10 @@ export async function simulatePersonaStream(
   sourceType: SourceType,
   flowInput: string,
   productContext: string,
-  language = "es",
+  language = "en",
   seed?: number,
-  onEvent?: (event: SimulationStreamEvent) => void
+  onEvent?: (event: SimulationStreamEvent) => void,
+  analysisMode: AnalysisMode = "max"
 ): Promise<SimulationResult> {
   const body: SimulationRequest = {
     persona: {
@@ -162,6 +165,7 @@ export async function simulatePersonaStream(
     flowInput,
     productContext,
     language,
+    analysisMode,
     ...(seed !== undefined ? { seed } : {}),
   };
 

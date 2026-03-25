@@ -49,6 +49,20 @@ export function getIssueSeverityBadgeClass(severity: IssueSeverity): string {
   return issueSeverityBadgeClassMap[severity];
 }
 
+/** Píldoras sólidas de severidad (vista panel resultados, Figma 1:714). */
+export function getIssueSeverityPanelPillClass(severity: IssueSeverity): string {
+  const base =
+    "inline-flex items-center justify-center rounded-[var(--radius-md)] px-2 py-2 text-[14px] font-medium text-white whitespace-nowrap";
+  switch (severity) {
+    case "critical":
+      return `${base} bg-[var(--color-error-1)]`;
+    case "warning":
+      return `${base} bg-[var(--color-warning-1)]`;
+    case "info":
+      return `${base} bg-[var(--color-info-1)]`;
+  }
+}
+
 /** @deprecated Prefer getStatusVariantBadgeClass — mapa expuesto para spreads puntuales. */
 export const scoreTierBadgeClass = statusVariantBadgeClass;
 

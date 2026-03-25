@@ -19,6 +19,13 @@ export type IssueSeverity = (typeof ISSUE_SEVERITIES)[number];
 export type IssueCategory = (typeof ISSUE_CATEGORIES)[number];
 export type SourceType = (typeof SOURCE_TYPES)[number];
 
+export const ANALYSIS_MODES = ["fast", "max"] as const;
+export type AnalysisMode = (typeof ANALYSIS_MODES)[number];
+
+export function isAnalysisMode(v: unknown): v is AnalysisMode {
+  return typeof v === "string" && (ANALYSIS_MODES as readonly string[]).includes(v);
+}
+
 export interface FlowStep {
   action: string;
   reaction: string;
@@ -54,6 +61,8 @@ export interface SimulationRequest {
   language?: string;
   /** Opcional: entero 0..2147483646. Si no se envía, el servidor deriva seed de flowInput + persona.id. */
   seed?: number;
+  /** Rápido = menos tokens/tiempo; máximo = más detalle (default en servidor: max). */
+  analysisMode?: AnalysisMode;
 }
 
 /** Respuesta del modelo / API (antes de normalizar en cliente). */

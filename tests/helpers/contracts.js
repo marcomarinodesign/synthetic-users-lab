@@ -24,6 +24,7 @@ export function assertSimulationRequestShape(value) {
     assert.ok(Number.isInteger(value.seed), "seed entero");
     assert.ok(value.seed >= 0 && value.seed <= 2147483646, "seed en rango Gemini");
   }
+  assert.ok(value.analysisMode === "fast" || value.analysisMode === "max", "analysisMode fast|max");
 }
 
 export function assertSimulationResultShape(value) {

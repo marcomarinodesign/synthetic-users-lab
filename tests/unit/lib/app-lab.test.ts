@@ -9,7 +9,7 @@ import {
 } from "../../../src/lib/app-lab.ts";
 import { makePersonaWithCategory } from "../../factories/persona.js";
 import { makeSimulationResult } from "../../factories/simulationResult.js";
-import { translationsStubEs } from "../../fixtures/translations-stub.js";
+import { translationsStubEn } from "../../fixtures/translations-stub.js";
 
 test("countSelectionByCategory cuenta simple y pro", () => {
   const personas = [
@@ -24,13 +24,13 @@ test("countSelectionByCategory cuenta simple y pro", () => {
 });
 
 test("personaSelectionLabel usa selectAtLeastOne cuando total 0", () => {
-  const text = personaSelectionLabel(translationsStubEs, 0, 0, 0);
-  assert.equal(text, translationsStubEs.selectAtLeastOne);
+  const text = personaSelectionLabel(translationsStubEn, 0, 0, 0);
+  assert.equal(text, translationsStubEn.selectAtLeastOne);
 });
 
 test("validateCustomPersonaForm devuelve errores si faltan campos", () => {
-  const err = validateCustomPersonaForm({ name: "", description: "x", traits: "" }, translationsStubEs);
-  assert.equal(err.name, translationsStubEs.validationNameRequired);
+  const err = validateCustomPersonaForm({ name: "", description: "x", traits: "" }, translationsStubEn);
+  assert.equal(err.name, translationsStubEn.validationNameRequired);
 });
 
 test("buildCustomPersonaFromForm construye persona con traits", () => {

@@ -24,13 +24,14 @@ export interface ResultCardLabels {
   issuesEmptyFilter: string;
   wouldReturn: string;
   wouldNotReturn: string;
+  /** Título del bloque hero cuando `wouldReturn` es null. */
+  feedbackHeroRetentionUnknown: string;
   /** Etiqueta del badge de puntuación UX (p. ej. "UX"). */
   uxScoreLabel: string;
   /** Etiqueta del badge de fit (p. ej. "Fit" / "Ajuste"). */
   fitScoreLabel: string;
   /** Si no hay persona en la lista (snapshot antiguo, etc.). */
   unknownPersonaName: string;
-  /** Botón para nueva variación con otro seed. */
-  regenerateLabel: string;
-  regenerateAria: (personaName: string) => string;
+  /** Etiqueta "Filtrar" junto al desplegable de categoría de issues (vista panel). */
+  filterLabel: string;
 }

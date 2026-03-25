@@ -1,6 +1,5 @@
+import type { AnalysisMode } from "@/domain/simulation";
 import type { Persona, SimulationResult, SourceType } from "@/types";
-import type { Lang } from "@/lib/i18n";
-
 /** Clave localStorage — mismo contrato que un futuro backend puede mapear 1:1. */
 export const STORAGE_KEY_HISTORY = "synthetic-users:history";
 
@@ -10,12 +9,15 @@ export interface SavedSimulation {
   flowInput: string;
   sourceType: SourceType;
   productContext: string;
-  language: Lang;
+  /** App language at save time (English-only app uses `"en"`). */
+  language: "en" | string;
   /** IDs de personas usadas en la corrida (preset + custom). */
   personaIds: string[];
   results: SimulationResult[];
   /** Copia de `Persona` para restaurar perfiles custom sin estado en memoria. */
   personasSnapshot?: Persona[];
+  /** Modo de análisis usado en la corrida (fast | max). */
+  analysisMode?: AnalysisMode;
 }
 
 function safeParse(json: string | null): SavedSimulation[] {

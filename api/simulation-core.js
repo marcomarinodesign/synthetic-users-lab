@@ -12,6 +12,23 @@ export const SOURCE_TYPES = enums.sourceTypes;
 
 export const GEMINI_MODEL = "gemini-2.5-flash";
 
+/** Límites por modo: misma pipeline de dos fases, distinto techo de salida y temperatura persona. */
+export const ANALYSIS_MODE_CONFIG = {
+  max: {
+    objective: { maxOutputTokens: 4096, temperature: 0.2 },
+    persona: { maxOutputTokens: 8192, temperature: 0.55 },
+  },
+  fast: {
+    objective: { maxOutputTokens: 2048, temperature: 0.2 },
+    persona: { maxOutputTokens: 4096, temperature: 0.35 },
+  },
+};
+
+/** @param {string} [mode] */
+export function resolveAnalysisMode(mode) {
+  return mode === "fast" ? "fast" : "max";
+}
+
 export const LANGUAGE_NAMES = {
   es: "español",
   en: "English",
@@ -31,7 +48,7 @@ function outputLanguageBlock(langName, language) {
 All human-readable strings in your JSON (summary, fit_note, every step action/reaction, every issue field, verbatim) MUST be written ONLY in ${langName}. Do not mix languages. The instructions below are in English to avoid biasing the output language toward any single natural language.`;
 }
 
-export function buildSystemPrompt({ persona, productContext, language = "es" }) {
+export function buildSystemPrompt({ persona, productContext, language = "en" }) {
   const isExpert = EXPERT_PERSONA_IDS.has(persona.id);
   const langName = LANGUAGE_NAMES[language] ?? language;
   const profileTraits = Array.isArray(persona.traits) ? persona.traits.join(", ") : "";
@@ -121,7 +138,7 @@ Respond with ONLY valid JSON (no markdown, no backticks):
 {"score":<1-10>,"fit_score":<1-10>,"fit_note":"<1 sentence explaining the product-perf fit>","summary":"<2-3 sentences>","steps":[{"action":"<what they do>","reaction":"<what they think>"}],"issues":[${ISSUES_SCHEMA}],"wouldReturn":<bool>,"verbatim":"<literal quote from the persona>"}`;
 }
 
-export function buildUserPrompt({ sourceType, flowInput, language = "es" }) {
+export function buildUserPrompt({ sourceType, flowInput, language = "en" }) {
   const langName = LANGUAGE_NAMES[language] ?? language;
   return `The FLOW below may be in any language (or mixed). IGNORE that language for your reply.
 
@@ -170,7 +187,7 @@ export function repairJSON(raw) {
       if (sev !== 0) return sev;
       const cat = (ISSUE_CATEGORY_ORDER[a.category] ?? 9) - (ISSUE_CATEGORY_ORDER[b.category] ?? 9);
       if (cat !== 0) return cat;
-      return a.description.localeCompare(b.description, "es", { sensitivity: "base" });
+      return a.description.localeCompare(b.description, "en", { sensitivity: "base" });
     });
     const deduped = [];
     const seen = new Set();
@@ -296,7 +313,7 @@ function objectiveOutputLanguageBlock(langName, language) {
 All human-readable strings in your JSON (elements, flow, objective_issues, strengths, copy_samples) MUST be written ONLY in ${langName}. Do not mix languages. The instructions below are in English to avoid biasing the output language toward any single natural language.`;
 }
 
-export function buildObjectiveAnalysisSystemPrompt({ productContext, language = "es" }) {
+export function buildObjectiveAnalysisSystemPrompt({ productContext, language = "en" }) {
   const langName = LANGUAGE_NAMES[language] ?? language;
   const langBlock = objectiveOutputLanguageBlock(langName, language);
   return `${langBlock}
@@ -316,7 +333,7 @@ Respond with ONLY valid JSON (no markdown, no backticks):
 {"elements":["..."],"flow":["..."],"objective_issues":["..."],"strengths":["..."],"copy_samples":["..."]}`;
 }
 
-export function buildObjectiveAnalysisUserPrompt({ sourceType, flowInput, language = "es" }) {
+export function buildObjectiveAnalysisUserPrompt({ sourceType, flowInput, language = "en" }) {
   const langName = LANGUAGE_NAMES[language] ?? language;
   return `The FLOW below may be in any language (or mixed). IGNORE that language for your structured output strings — use ${langName} only.
 
@@ -375,7 +392,7 @@ export function repairObjectiveAnalysisJSON(raw) {
   return normalizeObjectiveAnalysis(obj);
 }
 
-export function buildAnchoredUserPrompt({ sourceType, flowInput, language = "es", objectiveAnalysis }) {
+export function buildAnchoredUserPrompt({ sourceType, flowInput, language = "en", objectiveAnalysis }) {
   const base = buildUserPrompt({ sourceType, flowInput, language });
   const analysisJson = JSON.stringify(objectiveAnalysis);
   return `${base}
@@ -504,9 +521,19 @@ export async function callGemini(apiKey, { systemInstruction, userText, generati
  * @param {string} params.productContext
  * @param {string} [params.language]
  * @param {number} params.baseSeed
+ * @param {"fast"|"max"} [params.analysisMode]
  */
-export async function runSimulateWithPhases({ apiKey, persona, sourceType, flowInput, productContext, language, baseSeed }) {
-  return runSimulateWithPhasesObservable({ apiKey, persona, sourceType, flowInput, productContext, language, baseSeed });
+export async function runSimulateWithPhases({ apiKey, persona, sourceType, flowInput, productContext, language, baseSeed, analysisMode }) {
+  return runSimulateWithPhasesObservable({
+    apiKey,
+    persona,
+    sourceType,
+    flowInput,
+    productContext,
+    language,
+    baseSeed,
+    analysisMode,
+  });
 }
 
 /**
@@ -525,8 +552,11 @@ export async function runSimulateWithPhasesObservable({
   onPhaseDone,
   onModelCallStart,
   onModelCallDone,
+  analysisMode = "max",
 }) {
-  const lang = language || "es";
+  const lang = language || "en";
+  const mode = resolveAnalysisMode(analysisMode);
+  const genCfg = ANALYSIS_MODE_CONFIG[mode];
   const seedA = phaseSeed(baseSeed, 0);
   const seedB = phaseSeed(baseSeed, 1);
 
@@ -538,8 +568,8 @@ export async function runSimulateWithPhasesObservable({
     systemInstruction: sysA,
     userText: userA,
     generationConfig: {
-      maxOutputTokens: 4096,
-      temperature: 0.2,
+      maxOutputTokens: genCfg.objective.maxOutputTokens,
+      temperature: genCfg.objective.temperature,
       seed: seedA,
     },
   });
@@ -567,8 +597,8 @@ export async function runSimulateWithPhasesObservable({
     systemInstruction: systemPrompt,
     userText: userPrompt,
     generationConfig: {
-      maxOutputTokens: 8192,
-      temperature: 0.55,
+      maxOutputTokens: genCfg.persona.maxOutputTokens,
+      temperature: genCfg.persona.temperature,
       seed: seedB,
     },
   });

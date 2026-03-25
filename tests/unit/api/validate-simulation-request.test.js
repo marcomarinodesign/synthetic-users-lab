@@ -15,7 +15,7 @@ const validBody = {
   sourceType: "url",
   flowInput: "https://example.com",
   productContext: "",
-  language: "es",
+  language: "en",
 };
 
 test("validateSimulationRequest: body válido cumple contrato", () => {
@@ -49,4 +49,28 @@ test("validateSimulationRequest: rechaza seed decimal", () => {
 test("validateSimulationRequest: rechaza seed fuera de rango", () => {
   assert.equal(validateSimulationRequest({ ...validBody, seed: -1 }).ok, false);
   assert.equal(validateSimulationRequest({ ...validBody, seed: 2147483647 }).ok, false);
+});
+
+test("validateSimulationRequest: sin analysisMode implica max", () => {
+  const r = validateSimulationRequest(validBody);
+  assert.equal(r.ok, true);
+  assert.equal(r.value.analysisMode, "max");
+});
+
+test("validateSimulationRequest: acepta analysisMode fast", () => {
+  const r = validateSimulationRequest({ ...validBody, analysisMode: "fast" });
+  assert.equal(r.ok, true);
+  assert.equal(r.value.analysisMode, "fast");
+});
+
+test("validateSimulationRequest: rechaza analysisMode inválido", () => {
+  const r = validateSimulationRequest({ ...validBody, analysisMode: "turbo" });
+  assert.equal(r.ok, false);
+});
+
+test("validateSimulationRequest: sin language implica en", () => {
+  const { language: _omit, ...bodySinLang } = validBody;
+  const r = validateSimulationRequest(bodySinLang);
+  assert.equal(r.ok, true);
+  assert.equal(r.value.language, "en");
 });

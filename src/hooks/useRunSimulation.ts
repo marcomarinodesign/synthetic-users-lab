@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import type { Persona, SimulationResult } from "@/types";
-import type { Lang } from "@/lib/i18n";
+import type { AnalysisMode } from "@/domain/simulation";
 import type { PreparedSimulationInput } from "@/lib/simulation-service";
 import { prepareInput, runBatch } from "@/lib/simulation-service";
 import type { SimulationPhase } from "@/types/simulation-stream";
@@ -8,8 +8,8 @@ import type { SimulationPhase } from "@/types/simulation-stream";
 export interface RunSimulationParams {
   flowInput: string;
   productContext: string;
-  language: Lang;
   selectedPersonas: Persona[];
+  analysisMode?: AnalysisMode;
 }
 
 export interface RunSimulationResult {
@@ -34,7 +34,7 @@ export function useRunSimulation() {
   });
 
   const run = useCallback(async (params: RunSimulationParams): Promise<RunSimulationResult> => {
-    const { flowInput, productContext, language, selectedPersonas } = params;
+    const { flowInput, productContext, selectedPersonas, analysisMode = "max" } = params;
     setLoading(true);
     try {
       setLoadingPhase("fetching");
@@ -55,7 +55,8 @@ export function useRunSimulation() {
 
       const phaseStartByPersona = new Map<string, Partial<Record<SimulationPhase, number>>>();
 
-      const results = await runBatch(selectedPersonas, prepared, productContext, language, {
+      const results = await runBatch(selectedPersonas, prepared, productContext, {
+        analysisMode,
         onProgress: (current, total, personaName) => {
           setProgress((prev) => ({ ...prev, current, total, currentPersona: personaName }));
         },

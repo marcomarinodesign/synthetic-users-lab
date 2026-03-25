@@ -42,7 +42,7 @@ app.post("/api/simulate", async (req, res) => {
   if (!parsed.ok) {
     return res.status(400).json({ error: parsed.error });
   }
-  const { persona, sourceType, flowInput, productContext, language, seed } = parsed.value;
+  const { persona, sourceType, flowInput, productContext, language, seed, analysisMode } = parsed.value;
   const baseSeed = seed !== undefined ? seed : flowPersonaSeed(flowInput, persona.id);
 
   try {
@@ -54,6 +54,7 @@ app.post("/api/simulate", async (req, res) => {
       productContext,
       language,
       baseSeed,
+      analysisMode,
     });
     return res.json({ ...result, personaId: persona.id });
   } catch (err) {
@@ -87,7 +88,7 @@ app.post("/api/simulate-stream", async (req, res) => {
   if (!parsed.ok) {
     return res.status(400).json({ error: parsed.error });
   }
-  const { persona, sourceType, flowInput, productContext, language, seed } = parsed.value;
+  const { persona, sourceType, flowInput, productContext, language, seed, analysisMode } = parsed.value;
   const baseSeed = seed !== undefined ? seed : flowPersonaSeed(flowInput, persona.id);
 
   res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
@@ -110,6 +111,7 @@ app.post("/api/simulate-stream", async (req, res) => {
       productContext,
       language,
       baseSeed,
+      analysisMode,
       onPhaseStart: ({ phase }) => send("phase:start", { phase }),
       onPhaseDone: ({ phase }) => send("phase:done", { phase }),
     });
