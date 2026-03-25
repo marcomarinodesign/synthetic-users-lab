@@ -1,22 +1,11 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { flowPersonaSeed, runSimulateWithPhases, runSimulateWithPhasesObservable } from "./simulation-core.js";
+import {
+  flowPersonaSeed,
+  runSimulateWithPhases,
+  runSimulateWithPhasesObservable,
+  formatGeminiErrorForClient,
+} from "./simulation-core.js";
 import { validateSimulationRequest } from "./validate-simulation-request.js";
-
-function geminiHttpErrorMessage(status: number, errText: string): string {
-  let msg = `Gemini API error: ${status}`;
-  try {
-    const errJson = JSON.parse(errText) as { error?: { message?: string } };
-    const geminiMsg = errJson?.error?.message || "";
-    if (status === 400 && (geminiMsg.includes("API key") || geminiMsg.includes("invalid"))) {
-      msg = "API key inválida o bloqueada. Crea una NUEVA key en https://aistudio.google.com/app/apikey";
-    } else if (geminiMsg) {
-      msg = geminiMsg;
-    }
-  } catch {
-    // ignore
-  }
-  return msg;
-}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -58,7 +47,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const status = typeof e.status === "number" ? e.status : 502;
       const errText = typeof e.body === "string" ? e.body : "";
       console.error("Gemini API error:", status, errText);
-      const msg = geminiHttpErrorMessage(status, errText);
+      const msg = formatGeminiErrorForClient(status, errText);
       return res.status(status === 400 ? 400 : 502).json({ error: msg });
     }
     console.error("Simulate error:", err);
@@ -126,7 +115,7 @@ export async function streamHandler(req: VercelRequest, res: VercelResponse) {
       const e = err as { status?: number; body?: string };
       const status = typeof e.status === "number" ? e.status : 502;
       const errText = typeof e.body === "string" ? e.body : "";
-      const msg = geminiHttpErrorMessage(status, errText);
+      const msg = formatGeminiErrorForClient(status, errText);
       send("error", { error: msg, code: "GEMINI_HTTP_ERROR", status: status === 400 ? 400 : 502 });
       send("done", { ok: false });
       return res.end();

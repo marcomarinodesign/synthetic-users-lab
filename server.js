@@ -5,7 +5,13 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: join(__dirname, ".env.local") });
 dotenv.config();
 import express from "express";
-import { flowPersonaSeed, runSimulateWithPhases, runSimulateWithPhasesObservable, fetchUrlContent } from "./api/simulation-core.js";
+import {
+  flowPersonaSeed,
+  runSimulateWithPhases,
+  runSimulateWithPhasesObservable,
+  fetchUrlContent,
+  formatGeminiErrorForClient,
+} from "./api/simulation-core.js";
 import { validateSimulationRequest } from "./api/validate-simulation-request.js";
 
 const app = express();
@@ -61,16 +67,7 @@ app.post("/api/simulate", async (req, res) => {
       const status = err.status;
       const errText = typeof err.body === "string" ? err.body : "";
       console.error("Gemini API error:", status, errText);
-      let msg = `Gemini API error: ${status}`;
-      try {
-        const errJson = JSON.parse(errText);
-        const geminiMsg = errJson?.error?.message || "";
-        if (status === 400 && (geminiMsg.includes("API key") || geminiMsg.includes("invalid"))) {
-          msg = "API key inválida o bloqueada. Crea una NUEVA key en https://aistudio.google.com/app/apikey (las keys expuestas en repos se bloquean automáticamente)";
-        } else if (geminiMsg) {
-          msg = geminiMsg;
-        }
-      } catch {}
+      const msg = formatGeminiErrorForClient(status, errText);
       return res.status(status === 400 ? 400 : 502).json({ error: msg });
     }
     console.error("Simulate error:", err);
@@ -133,16 +130,7 @@ app.post("/api/simulate-stream", async (req, res) => {
     if (err && typeof err === "object" && "status" in err) {
       const status = err.status;
       const errText = typeof err.body === "string" ? err.body : "";
-      let msg = `Gemini API error: ${status}`;
-      try {
-        const errJson = JSON.parse(errText);
-        const geminiMsg = errJson?.error?.message || "";
-        if (status === 400 && (geminiMsg.includes("API key") || geminiMsg.includes("invalid"))) {
-          msg = "API key inválida o bloqueada. Crea una NUEVA key en https://aistudio.google.com/app/apikey (las keys expuestas en repos se bloquean automáticamente)";
-        } else if (geminiMsg) {
-          msg = geminiMsg;
-        }
-      } catch {}
+      const msg = formatGeminiErrorForClient(status, errText);
       send("error", { error: msg, code: "GEMINI_HTTP_ERROR", status: status === 400 ? 400 : 502 });
       send("done", { ok: false });
       return res.end();

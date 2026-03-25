@@ -390,6 +390,58 @@ RULES:
 - Complete at least 5 journey steps when the anchor flow has 5+ items; if the anchor flow is shorter, cover every step in the anchor flow.`;
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * @param {Response} response
+ * @param {string} errText
+ * @param {number} attemptIndex 0-based
+ */
+export function geminiRetryDelayMs(response, errText, attemptIndex) {
+  const ra = response.headers.get("Retry-After");
+  if (ra) {
+    const n = parseInt(ra, 10);
+    if (!Number.isNaN(n) && n > 0) return Math.min(n * 1000, 120_000);
+  }
+  const m = String(errText).match(/retry in ([\d.]+)\s*s/i);
+  if (m) {
+    const sec = parseFloat(m[1]);
+    if (Number.isFinite(sec) && sec > 0) return Math.min(Math.ceil(sec * 1000), 120_000);
+  }
+  const base = 2500;
+  return Math.min(base * 2 ** attemptIndex, 60_000);
+}
+
+/**
+ * Mensaje legible para el cliente (ES) a partir de la respuesta HTTP de Gemini.
+ * @param {number} status
+ * @param {string} errText
+ */
+export function formatGeminiErrorForClient(status, errText) {
+  let msg = `Gemini API error: ${status}`;
+  try {
+    const errJson = JSON.parse(errText);
+    const geminiMsg = errJson?.error?.message || "";
+    if (status === 400 && (geminiMsg.includes("API key") || geminiMsg.includes("invalid"))) {
+      return "API key inválida o bloqueada. Crea una NUEVA key en https://aistudio.google.com/app/apikey";
+    }
+    const quotaLike =
+      status === 429 ||
+      /quota exceeded|RESOURCE_EXHAUSTED|rate limit|too many requests/i.test(geminiMsg);
+    if (quotaLike) {
+      return "Cuota de la API de Gemini agotada o límite de peticiones. Opciones: activar facturación en Google AI (https://ai.google.dev/pricing), usar otra API key, o esperar unos minutos y reintentar.";
+    }
+    if (geminiMsg) msg = geminiMsg;
+  } catch {
+    // ignore
+  }
+  return msg;
+}
+
+const GEMINI_HTTP_MAX_ATTEMPTS = 6;
+
 /**
  * @param {string} apiKey
  * @param {{ systemInstruction?: string, userText: string, generationConfig: Record<string, unknown> }} opts
@@ -404,29 +456,43 @@ export async function callGemini(apiKey, { systemInstruction, userText, generati
     body.systemInstruction = { parts: [{ text: systemInstruction }] };
   }
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-    {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+  for (let attempt = 1; attempt <= GEMINI_HTTP_MAX_ATTEMPTS; attempt++) {
+    const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-goog-api-key": apiKey.trim(),
       },
       body: JSON.stringify(body),
-    }
-  );
+    });
 
-  if (!response.ok) {
+    if (response.ok) {
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("") || "";
+      return text;
+    }
+
     const errText = await response.text();
+    const retryable =
+      (response.status === 429 || response.status === 503) && attempt < GEMINI_HTTP_MAX_ATTEMPTS;
+    if (retryable) {
+      const delayMs = geminiRetryDelayMs(response, errText, attempt - 1);
+      console.warn(
+        `[SyntheticUsers] Gemini HTTP ${response.status}, reintento ${attempt}/${GEMINI_HTTP_MAX_ATTEMPTS} en ${delayMs}ms`
+      );
+      await sleep(delayMs);
+      continue;
+    }
+
     const err = new Error(`Gemini API error: ${response.status}`);
     err.status = response.status;
     err.body = errText;
     throw err;
   }
 
-  const data = await response.json();
-  const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("") || "";
-  return text;
+  throw new Error("Gemini API: agotados reintentos");
 }
 
 /**

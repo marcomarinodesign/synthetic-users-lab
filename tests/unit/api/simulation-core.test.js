@@ -12,6 +12,8 @@ import {
   ISSUE_SEVERITIES,
   ISSUE_CATEGORIES,
   ISSUES_SCHEMA,
+  geminiRetryDelayMs,
+  formatGeminiErrorForClient,
 } from "../../../api/simulation-core.js";
 import { assertRepairJsonOutputShape } from "../../helpers/contracts.js";
 
@@ -194,4 +196,23 @@ test("buildAnchoredUserPrompt: incluye anchor y FLOW", () => {
   assert.ok(p.includes("hello"));
   assert.ok(p.includes("OBJECTIVE ANCHOR"));
   assert.ok(p.includes('"elements":["e1"]'));
+});
+
+test("geminiRetryDelayMs: usa header Retry-After", () => {
+  const res = new Response(null, { status: 429, headers: { "Retry-After": "12" } });
+  assert.equal(geminiRetryDelayMs(res, "", 0), 12_000);
+});
+
+test("geminiRetryDelayMs: parsea retry in Xs del mensaje de error", () => {
+  const res = new Response(null, { status: 429 });
+  assert.equal(geminiRetryDelayMs(res, "Please retry in 40.172628547s.", 0), 40173);
+});
+
+test("formatGeminiErrorForClient: cuota Gemini → mensaje en español", () => {
+  const body = JSON.stringify({
+    error: { message: "Quota exceeded for metric: generate_content_free_tier_requests" },
+  });
+  const msg = formatGeminiErrorForClient(429, body);
+  assert.ok(msg.includes("Cuota"));
+  assert.ok(msg.includes("facturación") || msg.includes("pricing"));
 });
