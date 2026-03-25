@@ -45,6 +45,8 @@ export interface Translations {
   loadingPersonaTimeLabel: string;
   /** Loading step 2: explains wait time when multiple personas run sequentially. */
   loadingPatienceNote: string;
+  /** Loading step 2: accessible label for the progress bar. */
+  loadingProgressAriaLabel: string;
   userOf: (c: number, t: number) => string;
   scoreLabel: string;
   issuesLabel: string;
@@ -149,6 +151,7 @@ export const t: Translations = {
   loadingPersonaTimeLabel: "Persona simulation time:",
   loadingPatienceNote:
     "If you've picked several synthetic users, give it ~1 minute: we're running a full pass for each profile, one after another, so the feedback stays nuanced and real.",
+  loadingProgressAriaLabel: "Loading progress",
   userOf: (c, tot) => `User ${c} of ${tot}`,
   scoreLabel: "Avg score",
   issuesLabel: "Issues",

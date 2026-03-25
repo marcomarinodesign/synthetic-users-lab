@@ -97,6 +97,59 @@ export default function SyntheticUsersLab() {
   const [modalFieldErrors, setModalFieldErrors] = useState<{ name?: string; description?: string }>({});
   const [selectedResultsPersonaId, setSelectedResultsPersonaId] = useState<string | null>(null);
   const resultCardLabels = pickResultCardLabels(t);
+
+  const loadingProgressPercent = useMemo(() => {
+    const totalPersonas = progress.total;
+    if (totalPersonas <= 0) return 0;
+
+    const totalUnits = totalPersonas * 2; // objective_analysis + persona_simulation per persona
+    const minFetchingPercent = 6;
+    const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+
+    if (loadingPhase === "fetching") return minFetchingPercent;
+
+    const personaIndex = progress.current; // 1..N
+    if (personaIndex <= 0) return 0;
+
+    const completedPersonas = personaIndex - 1;
+    const hasActivePhaseStart = progress.currentPhaseStartAt != null;
+
+    const DEFAULT_OBJECTIVE_MS = 20000;
+    const DEFAULT_PERSONA_MS = 40000;
+
+    if (loadingPhase === "analyzing_objective") {
+      const completedObjectiveCount = Math.max(0, completedPersonas);
+      const avgObjectiveMs =
+        completedObjectiveCount > 0 ? progress.phaseDurationsMs.objective_analysis / completedObjectiveCount : DEFAULT_OBJECTIVE_MS;
+
+      const fraction = hasActivePhaseStart ? clamp(livePhaseMs / avgObjectiveMs, 0, 1) : 1;
+      const doneUnits = completedPersonas * 2 + fraction;
+      return (doneUnits / totalUnits) * 100;
+    }
+
+    if (loadingPhase === "analyzing_persona") {
+      const completedPersonaSimCount = Math.max(0, completedPersonas);
+      const avgPersonaMs =
+        completedPersonaSimCount > 0
+          ? progress.phaseDurationsMs.persona_simulation / completedPersonaSimCount
+          : DEFAULT_PERSONA_MS;
+
+      // If we momentarily have no active timestamp, the phase is already completed.
+      const fraction = hasActivePhaseStart ? clamp(livePhaseMs / avgPersonaMs, 0, 1) : 1;
+      const doneUnits = completedPersonas * 2 + 1 + fraction; // +1 because objective for current persona is complete
+      return (doneUnits / totalUnits) * 100;
+    }
+
+    return 0;
+  }, [
+    loadingPhase,
+    livePhaseMs,
+    progress.current,
+    progress.currentPhaseStartAt,
+    progress.phaseDurationsMs.objective_analysis,
+    progress.phaseDurationsMs.persona_simulation,
+    progress.total,
+  ]);
   const sortedPersonas = useMemo(() => {
     if (personaSortMode === "default") return personas;
     const selectedGroup: Persona["group"] = personaSortMode;
@@ -519,6 +572,19 @@ export default function SyntheticUsersLab() {
               <ShadCard className="mx-auto w-full max-w-[680px] border border-[var(--color-tertiary-border)] p-0 shadow-xs">
             <div className="flex flex-col items-center gap-[28px] px-[var(--space-5)] py-[60px]">
               <style>{`@keyframes pSpin{to{transform:rotate(360deg)}}`}</style>
+              <div
+                role="progressbar"
+                aria-label={t.loadingProgressAriaLabel}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(loadingProgressPercent)}
+                className="h-[10px] w-full overflow-hidden rounded-[9999px] bg-[var(--color-grey-soft)]"
+              >
+                <div
+                  className="h-full rounded-[9999px] bg-[var(--color-primary)] transition-[width] duration-150 ease-linear"
+                  style={{ width: `${Math.round(loadingProgressPercent)}%` }}
+                />
+              </div>
               {loadingOrderedPersonas.length > 0 ? (
                 <div className="flex w-full max-w-[420px] flex-col items-center gap-[var(--space-3)]">
                   <p className="m-0 text-center text-[11px] font-bold tracking-[0.05em] text-foreground uppercase">
