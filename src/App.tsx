@@ -444,6 +444,23 @@ export default function SyntheticUsersLab() {
                 initial="hidden"
                 animate="show"
               >
+                <motion.li
+                  key="add-persona-empty"
+                  className="min-h-0"
+                  variants={{
+                    hidden: { opacity: 0, y: 14 },
+                    show: { opacity: 1, y: 0 },
+                  }}
+                  transition={tStagger}
+                >
+                  <AddPersonaEmptyCard
+                    title={t.createBtn}
+                    hint={t.modalDesc}
+                    onClick={() => setShowModal(true)}
+                    disabled={!canAddPersonaSelection(totalSelected)}
+                    disabledHint={t.selectionLimitHintAddCard}
+                  />
+                </motion.li>
                 {sortedPersonas.map((p) => (
                   <motion.li
                     key={p.id}
@@ -464,23 +481,6 @@ export default function SyntheticUsersLab() {
                     />
                   </motion.li>
                 ))}
-                <motion.li
-                  key="add-persona-empty"
-                  className="min-h-0"
-                  variants={{
-                    hidden: { opacity: 0, y: 14 },
-                    show: { opacity: 1, y: 0 },
-                  }}
-                  transition={tStagger}
-                >
-                  <AddPersonaEmptyCard
-                    title={t.createBtn}
-                    hint={t.modalDesc}
-                    onClick={() => setShowModal(true)}
-                    disabled={!canAddPersonaSelection(totalSelected)}
-                    disabledHint={t.selectionLimitHintAddCard}
-                  />
-                </motion.li>
               </motion.ul>
             </motion.div>
           )}

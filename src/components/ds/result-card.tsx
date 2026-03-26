@@ -335,7 +335,7 @@ function ResultCardDetails({
           {labels.summaryLabel}
         </div>
         {!showedSummaryInHero && result.summary?.trim() ? (
-          <p className="m-0 text-[14px] leading-[1.6] text-foreground">{result.summary}</p>
+          <p className="m-0 text-[16px] leading-[1.6] text-foreground">{result.summary}</p>
         ) : null}
         <div className="mt-[10px] flex flex-wrap items-center gap-[var(--space-2)]">
           <ShadBadge variant="outline" className={fitBadgeClass}>
