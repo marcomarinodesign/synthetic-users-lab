@@ -569,127 +569,115 @@ export default function SyntheticUsersLab() {
               exit={reduceMotion ? undefined : { opacity: 0, y: -12 }}
               transition={tStep}
             >
-              <ShadCard className="mx-auto w-full max-w-[680px] border border-[var(--color-tertiary-border)] p-0 shadow-xs">
-            <div className="flex flex-col items-center gap-[28px] px-[var(--space-5)] py-[60px]">
               <style>{`@keyframes pSpin{to{transform:rotate(360deg)}}`}</style>
-              <div
-                role="progressbar"
-                aria-label={t.loadingProgressAriaLabel}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.round(loadingProgressPercent)}
-                className="h-[10px] w-full overflow-hidden rounded-[9999px] bg-[var(--color-grey-soft)]"
-              >
-                <div
-                  className="h-full rounded-[9999px] bg-[var(--color-primary)] transition-[width] duration-150 ease-linear"
-                  style={{ width: `${Math.round(loadingProgressPercent)}%` }}
-                />
-              </div>
-              {loadingOrderedPersonas.length > 0 ? (
-                <div className="flex w-full max-w-[420px] flex-col items-center gap-[var(--space-3)]">
-                  <p className="m-0 text-center text-[11px] font-bold tracking-[0.05em] text-foreground uppercase">
+              <div className="mx-auto w-full max-w-[680px] rounded-[8px] bg-[#f6f7f9]">
+                <div className="flex flex-col items-center gap-[24px] px-[var(--space-5)] py-[60px]">
+
+                  {/* Selected profiles heading */}
+                  <p className="m-0 text-center text-[14px] font-semibold uppercase tracking-[2px] text-[#1c1412]">
                     {t.loadingSelectedHeading}
                   </p>
-                  <ul
-                    className="m-0 flex w-full list-none flex-wrap justify-center gap-2 p-0"
-                    aria-label={t.loadingSelectedHeading}
+
+                  {/* Persona chips */}
+                  {loadingOrderedPersonas.length > 0 && (
+                    <ul
+                      className="m-0 flex list-none flex-wrap justify-center gap-2 p-0 py-[8px]"
+                      aria-label={t.loadingSelectedHeading}
+                    >
+                      {loadingOrderedPersonas.map((p) => (
+                        <li
+                          key={p.id}
+                          className="flex items-center gap-2 rounded-[48px] bg-white px-[12px] py-[8px]"
+                        >
+                          <Avatar persona={p} size={24} border="0.48px solid #1c1412" />
+                          <span className="text-[14px] font-bold text-[#1c1412]">{p.name}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {/* Progress bar */}
+                  <div
+                    role="progressbar"
+                    aria-label={t.loadingProgressAriaLabel}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={Math.round(loadingProgressPercent)}
+                    className="relative h-[10px] w-full overflow-hidden rounded-[100px]"
                   >
-                    {loadingOrderedPersonas.map((p) => (
-                      <li
-                        key={p.id}
-                        className="flex max-w-[min(100%,220px)] items-center gap-2 rounded-[var(--radius-full)] bg-[var(--color-beige-50)] py-1 pr-[var(--space-3)] pl-1"
-                      >
-                        <Avatar persona={p} size={28} />
-                        <span className="min-w-0 truncate text-[13px] font-medium text-foreground">{p.name}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-              <p className="m-0 max-w-[32rem] text-center text-[14px] leading-relaxed text-foreground/75">
-                {t.loadingPatienceNote}
-              </p>
-              <div className="flex w-[260px] flex-col gap-[14px]">
-                <div className="flex items-center gap-[var(--space-3)]">
-                  {loadingPhase === "fetching" ? (
-                    <div className="size-[20px] shrink-0 animate-[pSpin_0.8s_linear_infinite] rounded-full border-2 border-[var(--color-grey-soft)] border-t-[var(--color-primary)]" />
-                  ) : (
-                    <div className="flex size-[20px] shrink-0 items-center justify-center rounded-full bg-[var(--color-accent-300)] text-[var(--color-basics-white)]">
-                      <svg width="11" height="8" viewBox="0 0 11 8" fill="none" aria-hidden>
-                        <path d="M1 4L4 7L10 1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
+                    <div className="absolute inset-0 rounded-[100px] bg-[#1c1412] opacity-5" />
+                    <div
+                      className="absolute inset-y-0 left-0 rounded-[100px] bg-[#5f90f1] transition-[width] duration-150 ease-linear"
+                      style={{ width: `${Math.round(loadingProgressPercent)}%` }}
+                    />
+                  </div>
+
+                  {/* Profile details (shown while analyzing) */}
+                  {(loadingPhase === "analyzing_objective" || loadingPhase === "analyzing_persona") && progress.total > 0 && (
+                    <div className="flex w-full flex-col gap-[8px] text-center text-[16px] leading-[24px] text-[#1c1412]">
+                      <p className="m-0 font-bold">
+                        {progress.currentPersona} ({t.userOf(progress.current, progress.total)})
+                      </p>
+                      <p className="m-0 font-normal">{t.loadingPatienceNote}</p>
                     </div>
                   )}
-                  <span
+
+                  {/* Fetching step row */}
+                  <div
                     className={[
-                      "text-[14px]",
-                      loadingPhase === "fetching"
-                        ? "font-semibold text-foreground no-underline"
-                        : "font-normal text-[var(--color-palette-asfalt)] line-through",
+                      "flex w-full items-center gap-[8px] rounded-[8px] bg-white p-[12px] transition-opacity duration-200",
+                      loadingPhase !== "fetching" ? "opacity-50" : "",
                     ].join(" ")}
                   >
-                    {t.fetchingPhase}
-                  </span>
-                </div>
-                <div className="flex items-center gap-[var(--space-3)]">
-                  {loadingPhase === "analyzing_objective" || loadingPhase === "analyzing_persona" ? (
-                    <div className="size-[20px] shrink-0 animate-[pSpin_0.8s_linear_infinite] rounded-full border-2 border-[var(--color-grey-soft)] border-t-[var(--color-primary)]" />
-                  ) : (
-                    <div className="size-[20px] shrink-0 rounded-full border-2 border-[var(--color-grey-soft)]" />
+                    {loadingPhase === "fetching" ? (
+                      <img src="/assets/design/loader.gif" alt="" aria-hidden className="h-[18px] w-[27px] shrink-0 object-contain" />
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden className="shrink-0">
+                        <circle cx="9" cy="9" r="8.25" stroke="#1c1412" strokeWidth="1.5" />
+                        <path d="M5.5 9L7.5 11L12.5 6.5" stroke="#1c1412" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                    <span className="text-[16px] font-bold text-[#1c1412]">{t.fetchingPhase}</span>
+                  </div>
+
+                  {/* Analyzing step row */}
+                  <div
+                    className={[
+                      "flex w-full items-center gap-[8px] rounded-[8px] bg-white p-[12px] transition-opacity duration-200",
+                      loadingPhase === "fetching" ? "opacity-50" : "",
+                    ].join(" ")}
+                  >
+                    <img src="/assets/design/loader.gif" alt="" aria-hidden className="h-[18px] w-[27px] shrink-0 object-contain" />
+                    <span className="text-[16px] font-bold text-[#1c1412]">{t.analyzingPhase}</span>
+                  </div>
+
+                  {/* Timer rows */}
+                  {(loadingPhase === "analyzing_objective" || loadingPhase === "analyzing_persona") && progress.total > 0 && (
+                    <div
+                      className="flex flex-col gap-0 text-center text-[14px] font-semibold text-[#1c1412]"
+                      aria-live="polite"
+                      aria-atomic="false"
+                    >
+                      <p className="m-0 font-mono">
+                        {t.loadingObjectiveTimeLabel}{" "}
+                        {(
+                          (progress.phaseDurationsMs.objective_analysis +
+                            (progress.currentPersonaPhase === "objective_analysis" ? livePhaseMs : 0)) /
+                          1000
+                        ).toFixed(1)}s
+                      </p>
+                      <p className="m-0 font-mono">
+                        {t.loadingPersonaTimeLabel}{" "}
+                        {(
+                          (progress.phaseDurationsMs.persona_simulation +
+                            (progress.currentPersonaPhase === "persona_simulation" ? livePhaseMs : 0)) /
+                          1000
+                        ).toFixed(1)}s
+                      </p>
+                    </div>
                   )}
-                  <span
-                    className={[
-                      "text-[14px]",
-                      loadingPhase === "analyzing_objective" || loadingPhase === "analyzing_persona"
-                        ? "font-semibold text-foreground"
-                        : "font-normal text-foreground",
-                    ].join(" ")}
-                  >
-                    {t.analyzingPhase}
-                  </span>
                 </div>
               </div>
-              {(loadingPhase === "analyzing_objective" || loadingPhase === "analyzing_persona") && progress.total > 0 && (
-                <>
-                  <div className="text-center">
-                    <div className="text-[16px] font-semibold text-foreground">{progress.currentPersona}</div>
-                    <div className="mt-1 text-[13px] text-foreground">
-                      {t.userOf(progress.current, progress.total)}
-                    </div>
-                    <div className="mt-1 text-[12px] text-foreground/80">
-                      {progress.currentPersonaPhase === "objective_analysis"
-                        ? t.loadingPhaseObjective
-                        : t.loadingPhasePersona}
-                    </div>
-                  </div>
-                  <div
-                    className="text-center text-[12px] text-foreground/80"
-                    aria-live="polite"
-                    aria-atomic="false"
-                  >
-                    <div>
-                      {t.loadingObjectiveTimeLabel}{" "}
-                      {(
-                        (progress.phaseDurationsMs.objective_analysis +
-                          (progress.currentPersonaPhase === "objective_analysis" ? livePhaseMs : 0)) /
-                        1000
-                      ).toFixed(1)}
-                      s
-                    </div>
-                    <div>
-                      {t.loadingPersonaTimeLabel}{" "}
-                      {(
-                        (progress.phaseDurationsMs.persona_simulation +
-                          (progress.currentPersonaPhase === "persona_simulation" ? livePhaseMs : 0)) /
-                        1000
-                      ).toFixed(1)}
-                      s
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-            </ShadCard>
             </motion.div>
           )}
 
