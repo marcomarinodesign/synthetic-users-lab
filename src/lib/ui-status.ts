@@ -52,14 +52,14 @@ export function getIssueSeverityBadgeClass(severity: IssueSeverity): string {
 /** Píldoras sólidas de severidad (vista panel resultados, Figma 1:714). */
 export function getIssueSeverityPanelPillClass(severity: IssueSeverity): string {
   const base =
-    "inline-flex items-center justify-center rounded-[var(--radius-md)] px-2 py-2 text-[14px] font-medium text-white whitespace-nowrap";
+    "inline-flex items-center justify-center rounded-[var(--radius-md)] px-2 py-2 text-[14px] font-medium whitespace-nowrap";
   switch (severity) {
     case "critical":
-      return `${base} bg-[var(--color-error-1)]`;
+      return `${base} bg-[var(--color-error-3)] text-[var(--color-primary)]`;
     case "warning":
-      return `${base} bg-[var(--color-warning-1)]`;
+      return `${base} bg-[#fff1c2] text-[var(--color-primary)]`;
     case "info":
-      return `${base} bg-[var(--color-info-1)]`;
+      return `${base} bg-[var(--color-info-1)] text-[var(--color-primary)]`;
   }
 }
 

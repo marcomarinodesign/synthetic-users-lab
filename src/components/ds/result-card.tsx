@@ -122,23 +122,20 @@ function ResultCardDetails({
                 {labels.summaryLabel}
               </h2>
               <div className="flex flex-wrap justify-end gap-2">
-                <span className="inline-flex items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-error-1)] px-2 py-2 text-[14px] font-medium text-white whitespace-nowrap">
+                <span className="inline-flex items-center justify-center rounded-[var(--radius-md)] bg-[#fb673c] px-2 py-2 text-[14px] font-medium text-[var(--color-primary)] whitespace-nowrap">
                   {labels.uxScoreLabel} {Math.round(sc)}/10
                 </span>
-                <span className="inline-flex items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-info-1)] px-2 py-2 text-[14px] font-medium text-white whitespace-nowrap">
+                <span className="inline-flex items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-primary)] px-2 py-2 text-[14px] font-medium text-white whitespace-nowrap">
                   {labels.fitScoreLabel} {fit}/10
                 </span>
               </div>
             </div>
             {!showedSummaryInHero && summaryBlocks.length > 0 ? (
-              <div className="flex flex-col gap-[var(--space-6)] text-[18px] leading-6 text-foreground">
+              <div className="flex flex-col gap-[var(--space-6)] text-foreground">
                 {summaryBlocks.map((block, i) => (
                   <p
                     key={i}
-                    className={[
-                      "m-0",
-                      summaryBlocks.length > 1 && i === 0 ? "font-semibold" : "font-normal",
-                    ].join(" ")}
+                    className={i === 0 ? "m-0 text-[18px] font-semibold leading-6" : "m-0 text-[16px] font-normal leading-6"}
                   >
                     {block}
                   </p>
@@ -241,6 +238,7 @@ function ResultCardDetails({
 
         {result.issues && result.issues.length > 0 ? (
             <section className="mt-[var(--space-12)] flex flex-col gap-[var(--space-6)]">
+              <div className="h-px bg-[var(--color-beige-25)]" />
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <h2 className="m-0 font-serif text-[36px] font-normal italic leading-normal text-foreground">
                   {labels.issuesSectionLabel}
@@ -287,6 +285,7 @@ function ResultCardDetails({
                     const titleIsComponent = Boolean(issue.component?.trim());
                     return (
                       <div key={ii} className="flex flex-col gap-[var(--space-6)]">
+                        {ii > 0 && <div className="h-px bg-[var(--color-beige-25)]" />}
                         <p className="m-0 text-[18px] font-semibold leading-[22px] text-foreground">{title}</p>
                         <div className="flex flex-wrap gap-2">
                           {!titleIsComponent && issue.component?.trim() ? (
@@ -301,14 +300,33 @@ function ResultCardDetails({
                             {labels.sevLabels[issue.severity]}
                           </span>
                         </div>
-                        <p className="m-0 text-[16px] font-normal leading-[22px] text-foreground">{issue.description}</p>
-                        {issue.action ? (
-                          <div className="rounded-[20px] border-2 border-[var(--color-primary)] bg-[var(--color-basics-white)] p-6">
-                            <p className="m-0 text-[16px] font-medium leading-[22px] text-foreground">
-                              👉 {issue.action}
-                            </p>
+                        <div className="flex items-stretch gap-6">
+                          <div className="w-[386px] shrink-0 rounded-[20px] border-2 border-[var(--color-beige-25)] bg-[var(--color-basics-white)] p-6">
+                            <p className="m-0 text-[16px] font-normal leading-[22px] text-foreground">{issue.description}</p>
                           </div>
-                        ) : null}
+                          {issue.action ? (
+                            <>
+                              <div className="flex shrink-0 items-center">
+                                <div className="flex items-center justify-center rounded-full bg-[var(--color-beige-25)] p-2">
+                                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+                                    <path
+                                      d="M9 18L15 12L9 6"
+                                      stroke="currentColor"
+                                      strokeWidth="1.6"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                </div>
+                              </div>
+                              <div className="flex min-w-0 flex-1 items-stretch">
+                                <div className="flex w-full rounded-[20px] border-2 border-[var(--color-beige-25)] bg-[var(--color-basics-white)] p-6">
+                                  <p className="m-0 text-[16px] font-semibold leading-[22px] text-foreground">{issue.action}</p>
+                                </div>
+                              </div>
+                            </>
+                          ) : null}
+                        </div>
                       </div>
                     );
                   })}
