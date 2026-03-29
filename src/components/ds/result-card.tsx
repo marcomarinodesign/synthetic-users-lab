@@ -301,7 +301,8 @@ function ResultCardDetails({
                           </span>
                         </div>
                         <div className="flex items-stretch gap-6">
-                          <div className="w-[386px] shrink-0 rounded-[20px] border-2 border-[var(--color-beige-25)] bg-[var(--color-basics-white)] p-6">
+                          <div className="flex w-[386px] shrink-0 flex-col gap-4 rounded-[20px] border-2 border-[var(--color-beige-25)] bg-[var(--color-basics-white)] p-6">
+                            <p className="m-0 text-[18px] font-semibold leading-[22px] text-foreground">{labels.issueDescriptionLabel}</p>
                             <p className="m-0 text-[16px] font-normal leading-[22px] text-foreground">{issue.description}</p>
                           </div>
                           {issue.action ? (
@@ -320,8 +321,9 @@ function ResultCardDetails({
                                 </div>
                               </div>
                               <div className="flex min-w-0 flex-1 items-stretch">
-                                <div className="flex w-full rounded-[20px] border-2 border-[var(--color-beige-25)] bg-[var(--color-basics-white)] p-6">
-                                  <p className="m-0 text-[16px] font-semibold leading-[22px] text-foreground">{issue.action}</p>
+                                <div className="flex w-full flex-col gap-4 rounded-[20px] border-2 border-[var(--color-beige-25)] bg-[var(--color-basics-white)] p-6">
+                                  <p className="m-0 text-[18px] font-semibold leading-[22px] text-foreground">{labels.issueActionLabel}</p>
+                                  <p className="m-0 text-[16px] font-normal leading-[22px] text-foreground">{issue.action}</p>
                                 </div>
                               </div>
                             </>

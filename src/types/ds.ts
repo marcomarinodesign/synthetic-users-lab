@@ -34,4 +34,8 @@ export interface ResultCardLabels {
   unknownPersonaName: string;
   /** Etiqueta "Filtrar" junto al desplegable de categoría de issues (vista panel). */
   filterLabel: string;
+  /** Título de la card izquierda de cada issue (descripción del usuario). */
+  issueDescriptionLabel: string;
+  /** Título de la card derecha de cada issue (tip de mejora). */
+  issueActionLabel: string;
 }

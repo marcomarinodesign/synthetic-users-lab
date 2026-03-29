@@ -99,6 +99,8 @@ export interface Translations {
   unknownPersonaName: string;
   scoreUxLabel: string;
   scoreFitLabel: string;
+  issueDescriptionLabel: string;
+  issueActionLabel: string;
   errorPrefix: string;
   simulationErrorAction: string;
   simulationErrorComponent: string;
@@ -178,6 +180,8 @@ export const t: Translations = {
   summaryLabel: "Summary",
   stepsLabel: "Journey",
   issuesSectionLabel: "Issues",
+  issueDescriptionLabel: "User Analysis",
+  issueActionLabel: "Tip to improve the experience",
   sevLabels: { critical: "Critical", warning: "Warning", info: "Info" },
   personaMeta: {
     tech: { low: "Non-technical", medium: "Intermediate", high: "Technical" },
@@ -283,6 +287,8 @@ export function pickResultCardLabels(translations: Translations): ResultCardLabe
     fitScoreLabel: translations.scoreFitLabel,
     unknownPersonaName: translations.unknownPersonaName,
     filterLabel: translations.filterLabel,
+    issueDescriptionLabel: translations.issueDescriptionLabel,
+    issueActionLabel: translations.issueActionLabel,
   };
 }
 
