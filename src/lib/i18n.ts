@@ -134,7 +134,7 @@ export interface Translations {
 
 /** Single-language app (English). */
 export const t: Translations = {
-  subtitle: "Simulate real users testing your flows.",
+  subtitle: "Paste a URL. Pick 3 personas. Get UX feedback in minutes.",
   profilesSelected: (n) => `${n} profile${n !== 1 ? "s" : ""} selected`,
   newBtn: "New",
   nextBtn: "Next",
