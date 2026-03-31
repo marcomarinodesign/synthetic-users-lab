@@ -22,6 +22,7 @@ import { Avatar } from "@/components/ds/avatar";
 import { PersonaCard } from "@/components/ds/persona-card";
 import { PersonaResultTabs } from "@/components/ds/persona-result-tabs";
 import { ResultCard } from "@/components/ds/result-card";
+import { ExportButton } from "@/components/ds/export-button";
 import { IconPencil } from "@tabler/icons-react";
 
 import { Button as ShadButton } from "@/components/ui/button";
@@ -695,14 +696,28 @@ export default function SyntheticUsersLab() {
                   {t.resultsByUser}
                 </div>
                 {results && results.length > 0 ? (
-                  <button
-                    type="button"
-                    onClick={goToEditFlow}
-                    className="inline-flex items-center gap-1.5 text-[14px] font-medium text-[var(--color-primary)] underline underline-offset-4 transition-opacity hover:opacity-80"
-                  >
-                    <IconPencil aria-hidden className="size-[18px] shrink-0" stroke={1.5} />
-                    {t.editFlowBtn}
-                  </button>
+                  <div className="flex items-center gap-4">
+                    <ExportButton
+                      results={results}
+                      personas={personas}
+                      flowInput={flowInput}
+                      productContext={productContext}
+                      labels={{
+                        export: t.exportBtn,
+                        copyMarkdown: t.exportCopyMarkdown,
+                        downloadMarkdown: t.exportDownloadMarkdown,
+                        copied: t.exportCopied,
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={goToEditFlow}
+                      className="inline-flex items-center gap-1.5 text-[14px] font-medium text-[var(--color-primary)] underline underline-offset-4 transition-opacity hover:opacity-80"
+                    >
+                      <IconPencil aria-hidden className="size-[18px] shrink-0" stroke={1.5} />
+                      {t.editFlowBtn}
+                    </button>
+                  </div>
                 ) : null}
               </div>
               <motion.div

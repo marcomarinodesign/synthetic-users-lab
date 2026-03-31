@@ -126,6 +126,10 @@ export interface Translations {
   analysisModeFastDesc: string;
   analysisModeMaxLabel: string;
   analysisModeMaxDesc: string;
+  exportBtn: string;
+  exportCopyMarkdown: string;
+  exportDownloadMarkdown: string;
+  exportCopied: string;
 }
 
 /** Single-language app (English). */
@@ -258,6 +262,10 @@ export const t: Translations = {
   analysisModeMaxLabel: "Maximum",
   analysisModeMaxDesc:
     "Higher output cap: usually slower, with more detail in steps and issues.",
+  exportBtn: "Export",
+  exportCopyMarkdown: "Copy as Markdown",
+  exportDownloadMarkdown: "Download .md",
+  exportCopied: "Copied!",
 };
 
 export function pickResultCardLabels(translations: Translations): ResultCardLabels {
