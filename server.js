@@ -13,8 +13,30 @@ import {
   formatGeminiErrorForClient,
 } from "./api/simulation-core.js";
 import { validateSimulationRequest } from "./api/validate-simulation-request.js";
+import { fetchUrlMetadataResult } from "./api/url-meta-core.js";
 
 const app = express();
+
+// Browser dev (Vite :5173 / LAN) calls API on :3001 directly — needs CORS. (Vercel uses serverless, not this file.)
+if (!process.env.VERCEL) {
+  app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (origin) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Vary", "Origin");
+    } else {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+    }
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept");
+    if (req.method === "OPTIONS") {
+      res.status(204).end();
+      return;
+    }
+    next();
+  });
+}
+
 app.use(express.json());
 
 const PORT = 3001;
@@ -27,6 +49,19 @@ app.post("/api/fetch-content", async (req, res) => {
     return res.json({ content });
   } catch (err) {
     return res.status(502).json({ error: err.message || "Failed to fetch URL" });
+  }
+});
+
+app.post("/api/fetch-url-meta", async (req, res) => {
+  const { url } = req.body || {};
+  if (typeof url !== "string" || !url.trim()) {
+    return res.status(400).json({ error: "Missing url" });
+  }
+  try {
+    const result = await fetchUrlMetadataResult(url.trim());
+    return res.json(result);
+  } catch (err) {
+    return res.status(502).json({ error: err?.message || "Failed to fetch metadata" });
   }
 });
 

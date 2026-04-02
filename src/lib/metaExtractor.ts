@@ -1,6 +1,6 @@
 /**
- * Client-only metadata extraction for auto-filling product context from a URL.
- * Uses GitHub API + allorigins + DOMParser (browser).
+ * Product-context auto-fill: delegates to same-origin `/api/fetch-url-meta`
+ * (GitHub README + Jina Reader on the server) so WAF-protected sites work in production.
  */
 
 export type ExtractedFieldId = "product" | "description" | "mainHeading" | "keySections" | "keywords";
@@ -29,143 +29,34 @@ export function isValidHttpUrl(raw: string): boolean {
   }
 }
 
-function parseGitHubOwnerRepo(urlString: string): { owner: string; repo: string } | null {
-  let u: URL;
-  try {
-    u = new URL(urlString.trim());
-  } catch {
-    return null;
-  }
-  if (u.hostname !== "github.com") return null;
-  const parts = u.pathname.split("/").filter(Boolean);
-  if (parts.length < 2) return null;
-  return { owner: parts[0], repo: parts[1] };
-}
-
-async function fetchGithubReadmeRaw(owner: string, repo: string): Promise<string> {
-  const res = await fetch(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/readme`, {
-    headers: { Accept: "application/vnd.github.raw" },
-  });
-  if (!res.ok) throw new Error("readme_failed");
-  return await res.text();
-}
-
-async function fetchHtmlViaAllOrigins(url: string): Promise<string> {
-  const endpoint = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-  const res = await fetch(endpoint);
-  if (!res.ok) throw new MetadataFetchError();
-  const data: unknown = await res.json();
-  if (!data || typeof data !== "object" || !("contents" in data)) throw new MetadataFetchError();
-  const contents = (data as { contents: unknown }).contents;
-  if (typeof contents !== "string") throw new MetadataFetchError();
-  return contents;
-}
-
-function metaContent(doc: Document, attr: "property" | "name", value: string): string {
-  const el = doc.querySelector(`meta[${attr}="${value}"]`);
-  const c = el?.getAttribute("content");
-  return c?.trim() ?? "";
-}
-
-function firstNonEmpty(...vals: string[]): string {
-  for (const v of vals) {
-    const t = v.trim();
-    if (t) return t;
-  }
-  return "";
-}
-
-function normalizeForCompare(s: string): string {
-  return s.trim().replace(/\s+/g, " ").toLowerCase();
-}
-
-interface HtmlParts {
-  productLine: string;
-  resolvedTitle: string;
-  description: string;
-  h1: string;
-  h2s: string[];
-  keywords: string;
-}
-
-function extractHtmlParts(html: string): HtmlParts {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, "text/html");
-
-  const ogTitle = metaContent(doc, "property", "og:title");
-  const twitterTitle = metaContent(doc, "name", "twitter:title");
-  const titleTag = doc.querySelector("title")?.textContent?.trim() ?? "";
-  const resolvedTitle = firstNonEmpty(ogTitle, twitterTitle, titleTag);
-
-  const siteName = metaContent(doc, "property", "og:site_name");
-  const productLine = firstNonEmpty(siteName, resolvedTitle);
-
-  const description = firstNonEmpty(
-    metaContent(doc, "property", "og:description"),
-    metaContent(doc, "name", "description"),
-    metaContent(doc, "name", "twitter:description")
+function isExtractedFieldId(v: unknown): v is ExtractedFieldId {
+  return (
+    v === "product" ||
+    v === "description" ||
+    v === "mainHeading" ||
+    v === "keySections" ||
+    v === "keywords"
   );
-
-  const keywords = metaContent(doc, "name", "keywords");
-
-  const h1El = doc.querySelector("h1");
-  const h1 = h1El?.textContent?.trim() ?? "";
-
-  const h2s = [...doc.querySelectorAll("h2")]
-    .slice(0, 3)
-    .map((el) => el.textContent?.trim() ?? "")
-    .filter((t) => t.length > 0);
-
-  return { productLine, resolvedTitle, description, h1, h2s, keywords };
 }
 
-function buildBlockFromHtmlParts(p: HtmlParts): FetchMetadataResult {
-  const lines: string[] = [];
-  const fields: ExtractedFieldId[] = [];
-
-  if (p.productLine) {
-    lines.push(`Product: ${p.productLine}`);
-    fields.push("product");
+/**
+ * In dev, call the Express API on :3001 directly (avoids a stale Vite proxy target).
+ * In production, same-origin `/api/...` (e.g. Vercel).
+ */
+export function resolveFetchUrlMetaUrl(): string {
+  if (import.meta.env.PROD) {
+    return "/api/fetch-url-meta";
   }
-  if (p.description) {
-    lines.push(`Description: ${p.description}`);
-    fields.push("description");
+  if (typeof window === "undefined") {
+    return "/api/fetch-url-meta";
   }
-  if (p.h1 && normalizeForCompare(p.h1) !== normalizeForCompare(p.resolvedTitle)) {
-    lines.push(`Main heading: ${p.h1}`);
-    fields.push("mainHeading");
-  }
-  if (p.h2s.length > 0) {
-    lines.push(`Key sections: ${p.h2s.join(", ")}`);
-    fields.push("keySections");
-  }
-  if (p.keywords) {
-    lines.push(`Keywords: ${p.keywords}`);
-    fields.push("keywords");
-  }
-
-  const text = lines.join("\n");
-  if (!text.trim()) throw new MetadataFetchError();
-  return { text, extractedFields: fields };
+  const { protocol, hostname } = window.location;
+  const host = hostname === "127.0.0.1" ? "localhost" : hostname;
+  return `${protocol}//${host}:3001/api/fetch-url-meta`;
 }
 
-async function tryGithubReadme(url: string, owner: string, repo: string): Promise<FetchMetadataResult | null> {
-  try {
-    const readme = await fetchGithubReadmeRaw(owner, repo);
-    const desc = readme.trim().slice(0, 500);
-    const lines: string[] = [];
-    const fields: ExtractedFieldId[] = [];
-    lines.push(`Product: ${repo}`);
-    fields.push("product");
-    if (desc) {
-      lines.push(`Description: ${desc}`);
-      fields.push("description");
-    }
-    return { text: lines.join("\n"), extractedFields: fields };
-  } catch {
-    return null;
-  }
-}
+const STALE_API_DEV_MESSAGE =
+  "Restart dev: stop the terminal (Ctrl+C), then run npm run dev again so the API on port 3001 includes the latest routes.";
 
 /**
  * Fetches metadata and returns formatted product-context text plus field ids for UI chips.
@@ -176,18 +67,45 @@ export async function fetchMetadataResult(url: string): Promise<FetchMetadataRes
     throw new MetadataFetchError("Invalid URL");
   }
 
-  const gh = parseGitHubOwnerRepo(trimmed);
-  if (gh) {
-    const fromReadme = await tryGithubReadme(trimmed, gh.owner, gh.repo);
-    if (fromReadme) return fromReadme;
+  const endpoint = resolveFetchUrlMetaUrl();
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ url: trimmed }),
+  });
+
+  const contentType = res.headers.get("content-type") ?? "";
+  if (contentType.includes("text/html")) {
+    throw new MetadataFetchError(import.meta.env.DEV ? STALE_API_DEV_MESSAGE : undefined);
   }
 
-  const html = await fetchHtmlViaAllOrigins(trimmed);
-  const parts = extractHtmlParts(html);
-  return buildBlockFromHtmlParts(parts);
+  const raw: unknown = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    const msg =
+      raw &&
+      typeof raw === "object" &&
+      "error" in raw &&
+      typeof (raw as { error: unknown }).error === "string"
+        ? (raw as { error: string }).error
+        : undefined;
+    throw new MetadataFetchError(msg);
+  }
+
+  if (!raw || typeof raw !== "object") {
+    throw new MetadataFetchError();
+  }
+
+  const obj = raw as { text?: unknown; extractedFields?: unknown };
+  if (typeof obj.text !== "string" || !Array.isArray(obj.extractedFields)) {
+    throw new MetadataFetchError();
+  }
+
+  const extractedFields = obj.extractedFields.filter(isExtractedFieldId);
+  return { text: obj.text, extractedFields };
 }
 
-/** Spec-shaped helper: returns only the formatted block string. */
+/** Returns only the formatted block string. */
 export async function fetchMetadata(url: string): Promise<string> {
   const r = await fetchMetadataResult(url);
   return r.text;

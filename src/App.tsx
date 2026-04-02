@@ -5,7 +5,12 @@ import type { IssueCategory } from "@/domain/simulation";
 import { PRESET_PERSONAS } from "@/lib/personas";
 import { appendSimulation } from "@/lib/storage";
 import { t, pickResultCardLabels } from "@/lib/i18n";
-import { fetchMetadataResult, isValidHttpUrl, type ExtractedFieldId } from "@/lib/metaExtractor";
+import {
+  fetchMetadataResult,
+  isValidHttpUrl,
+  MetadataFetchError,
+  type ExtractedFieldId,
+} from "@/lib/metaExtractor";
 import { useRunSimulation } from "@/hooks/useRunSimulation";
 import { useLiveElapsedMs } from "@/hooks/useLiveElapsedMs";
 import {
@@ -247,8 +252,14 @@ export default function SyntheticUsersLab() {
         setProductContext(result.text);
         setExtractedMetadataFields([...result.extractedFields]);
         lastSuccessfulEnrichUrlRef.current = url;
-      } catch {
-        setUrlEnrichError(t.urlEnrichError);
+      } catch (e) {
+        const fallback = t.urlEnrichError;
+        if (e instanceof MetadataFetchError) {
+          const m = e.message.trim();
+          setUrlEnrichError(!m || m === "Failed to fetch page metadata" ? fallback : m);
+        } else {
+          setUrlEnrichError(fallback);
+        }
       } finally {
         enrichInflightRef.current = false;
         setMetaEnrichPending(false);
