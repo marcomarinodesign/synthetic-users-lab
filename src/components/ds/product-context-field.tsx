@@ -20,6 +20,8 @@ export interface ProductContextFieldProps {
   rows?: number;
   autoFillLabel: string;
   autoFillLoadingLabel: string;
+  /** Message over the textarea while the request runs. */
+  autoFillBusyLabel: string;
   onAutoFill: () => void | Promise<void>;
   autoFillPending: boolean;
   canAutoFill: boolean;
@@ -38,6 +40,7 @@ export function ProductContextField({
   rows = 7,
   autoFillLabel,
   autoFillLoadingLabel,
+  autoFillBusyLabel,
   onAutoFill,
   autoFillPending,
   canAutoFill,
@@ -45,6 +48,7 @@ export function ProductContextField({
   chipLabels,
 }: ProductContextFieldProps) {
   const showChips = extractedFields.length > 0 && !autoFillPending;
+  const hasHint = hint.trim().length > 0;
 
   return (
     <div>
@@ -70,18 +74,46 @@ export function ProductContextField({
           )}
         </ShadButton>
       </div>
-      <FieldHint id={hintId} className="mt-2 text-[16px] text-foreground/70">
-        {hint}
-      </FieldHint>
-      <ShadTextarea
-        id={id}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        rows={rows}
-        className="mt-2 min-h-[190px] rounded-[8px] border-0 bg-[var(--color-basics-white)] px-4 py-3 shadow-none placeholder:text-foreground/80 focus-visible:border-[var(--color-accent-300)]"
-        aria-describedby={hintId}
-      />
+      {hasHint ? (
+        <FieldHint id={hintId} className="mt-2 text-[14px] text-foreground/70">
+          {hint}
+        </FieldHint>
+      ) : null}
+      <div className="relative mt-2 min-h-[190px]">
+        <ShadTextarea
+          id={id}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          rows={rows}
+          readOnly={autoFillPending}
+          aria-busy={autoFillPending}
+          aria-describedby={
+            [hasHint ? hintId : "", autoFillPending ? `${id}-autofill-busy` : ""]
+              .filter(Boolean)
+              .join(" ") || undefined
+          }
+          className="min-h-[190px] rounded-[8px] border-0 bg-[var(--color-basics-white)] px-4 py-3 shadow-none read-only:cursor-wait placeholder:text-foreground/80 focus-visible:border-[var(--color-accent-300)]"
+        />
+        {autoFillPending ? (
+          <div
+            role="status"
+            aria-live="polite"
+            className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-[8px] bg-[var(--color-basics-white)]/88 px-4 backdrop-blur-[2px]"
+          >
+            <IconLoader2
+              className="size-9 shrink-0 animate-spin text-foreground"
+              aria-hidden
+            />
+            <p
+              id={`${id}-autofill-busy`}
+              className="m-0 max-w-[280px] text-center text-[14px] font-semibold leading-snug text-foreground"
+            >
+              {autoFillBusyLabel}
+            </p>
+          </div>
+        ) : null}
+      </div>
       {showChips ? (
         <ul className="m-0 mt-2 flex list-none flex-wrap gap-2 p-0" aria-label={autoFillLabel}>
           {CHIP_ORDER.filter((k) => extractedFields.includes(k)).map((k) => (

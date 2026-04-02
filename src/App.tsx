@@ -595,17 +595,13 @@ export default function SyntheticUsersLab() {
                   hintId="product-context-hint"
                   value={productContext}
                   onChange={(e) => setProductContext(e.target.value)}
-                  label={
-                    <>
-                      {t.contextLabel}{" "}
-                      <span className="font-normal text-foreground">{t.contextOptional}</span>
-                    </>
-                  }
+                  label={t.contextLabel}
                   hint={t.contextHint}
                   placeholder={t.contextPlaceholder}
                   rows={7}
                   autoFillLabel={t.contextAutoFillBtn}
                   autoFillLoadingLabel={t.contextAutoFillLoading}
+                  autoFillBusyLabel={t.contextAutoFillBusy}
                   onAutoFill={() => void tryEnrich({ force: true })}
                   autoFillPending={metaEnrichPending}
                   canAutoFill={canEnrichUrl}

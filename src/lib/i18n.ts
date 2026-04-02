@@ -29,7 +29,6 @@ export interface Translations {
   linkLabel: string;
   linkPlaceholder: string;
   contextLabel: string;
-  contextOptional: string;
   contextHint: string;
   contextPlaceholder: string;
   launchBtn: string;
@@ -132,6 +131,8 @@ export interface Translations {
   exportCopied: string;
   contextAutoFillBtn: string;
   contextAutoFillLoading: string;
+  /** Shown over the textarea while autofill is in progress. */
+  contextAutoFillBusy: string;
   urlEnrichError: string;
   metaChipProduct: string;
   metaChipDescription: string;
@@ -151,10 +152,9 @@ export const t: Translations = {
   createBtn: "Create user",
   linkLabel: "Link (web or repo)",
   linkPlaceholder: "https://your-site.com or https://github.com/user/repo",
-  contextLabel: "Product context",
-  contextOptional: "(optional)",
-  contextHint: "Add context about what you need (Optional)",
-  contextPlaceholder: "Describe the website",
+  contextLabel: "Product Context",
+  contextHint: "",
+  contextPlaceholder: "Auto-fills from your link, or type your own product context here.",
   launchBtn: "Launch simulation",
   fetchingPhase: "Reading URL content...",
   analyzingPhase: "Analyzing with Gemini...",
@@ -276,6 +276,7 @@ export const t: Translations = {
   exportCopied: "Copied!",
   contextAutoFillBtn: "Auto-fill",
   contextAutoFillLoading: "Filling…",
+  contextAutoFillBusy: "Fetching details from your link…",
   urlEnrichError: "We couldn’t load details from that link. You can still add context manually.",
   metaChipProduct: "Product",
   metaChipDescription: "Description",

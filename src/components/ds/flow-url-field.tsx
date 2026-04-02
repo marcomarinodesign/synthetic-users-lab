@@ -56,7 +56,7 @@ export function FlowUrlField({
       <ShadLabel htmlFor={id} className="text-[16px] font-semibold text-foreground">
         {label}
       </ShadLabel>
-      <FieldHint id={hintId} className="mt-2 text-[16px] text-foreground/70">
+      <FieldHint id={hintId} className="mt-2 text-[14px] text-foreground/70">
         {hint}
       </FieldHint>
       <ShadInput
