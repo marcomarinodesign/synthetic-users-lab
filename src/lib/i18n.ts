@@ -130,6 +130,14 @@ export interface Translations {
   exportCopyMarkdown: string;
   exportDownloadMarkdown: string;
   exportCopied: string;
+  contextAutoFillBtn: string;
+  contextAutoFillLoading: string;
+  urlEnrichError: string;
+  metaChipProduct: string;
+  metaChipDescription: string;
+  metaChipMainHeading: string;
+  metaChipKeySections: string;
+  metaChipKeywords: string;
 }
 
 /** Single-language app (English). */
@@ -266,6 +274,14 @@ export const t: Translations = {
   exportCopyMarkdown: "Copy as Markdown",
   exportDownloadMarkdown: "Download .md",
   exportCopied: "Copied!",
+  contextAutoFillBtn: "Auto-fill",
+  contextAutoFillLoading: "Filling…",
+  urlEnrichError: "We couldn’t load details from that link. You can still add context manually.",
+  metaChipProduct: "Product",
+  metaChipDescription: "Description",
+  metaChipMainHeading: "Main heading",
+  metaChipKeySections: "Key sections",
+  metaChipKeywords: "Keywords",
 };
 
 export function pickResultCardLabels(translations: Translations): ResultCardLabels {

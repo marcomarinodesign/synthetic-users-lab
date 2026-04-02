@@ -1,10 +1,11 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { Persona, SimulationResult } from "@/types";
 import type { IssueCategory } from "@/domain/simulation";
 import { PRESET_PERSONAS } from "@/lib/personas";
 import { appendSimulation } from "@/lib/storage";
 import { t, pickResultCardLabels } from "@/lib/i18n";
+import { fetchMetadataResult, isValidHttpUrl, type ExtractedFieldId } from "@/lib/metaExtractor";
 import { useRunSimulation } from "@/hooks/useRunSimulation";
 import { useLiveElapsedMs } from "@/hooks/useLiveElapsedMs";
 import {
@@ -23,10 +24,11 @@ import { PersonaCard } from "@/components/ds/persona-card";
 import { PersonaResultTabs } from "@/components/ds/persona-result-tabs";
 import { ResultCard } from "@/components/ds/result-card";
 import { ExportButton } from "@/components/ds/export-button";
+import { FlowUrlField } from "@/components/ds/flow-url-field";
+import { ProductContextField } from "@/components/ds/product-context-field";
 import { IconPencil } from "@tabler/icons-react";
 
 import { Button as ShadButton } from "@/components/ui/button";
-import { Card as ShadCard } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -95,6 +97,11 @@ export default function SyntheticUsersLab() {
   const [issueCategoryFilter, setIssueCategoryFilter] = useState<"all" | IssueCategory>("all");
   const [personaSortMode, setPersonaSortMode] = useState<PersonaSortMode>("default");
   const [flowError, setFlowError] = useState<string | undefined>();
+  const [urlEnrichError, setUrlEnrichError] = useState<string | undefined>();
+  const [metaEnrichPending, setMetaEnrichPending] = useState(false);
+  const [extractedMetadataFields, setExtractedMetadataFields] = useState<ExtractedFieldId[]>([]);
+  const enrichInflightRef = useRef(false);
+  const lastSuccessfulEnrichUrlRef = useRef<string | null>(null);
   const [modalFieldErrors, setModalFieldErrors] = useState<{ name?: string; description?: string }>({});
   const [selectedResultsPersonaId, setSelectedResultsPersonaId] = useState<string | null>(null);
   const resultCardLabels = pickResultCardLabels(t);
@@ -208,9 +215,47 @@ export default function SyntheticUsersLab() {
     setIssueCategoryFilter("all");
     setSelectedResultsPersonaId(null);
     setFlowError(undefined);
+    setUrlEnrichError(undefined);
+    setMetaEnrichPending(false);
+    setExtractedMetadataFields([]);
+    lastSuccessfulEnrichUrlRef.current = null;
     setShowModal(false);
     setModalFieldErrors({});
   }, []);
+
+  const clearUrlDerivedHints = useCallback(() => {
+    setUrlEnrichError(undefined);
+    setExtractedMetadataFields([]);
+    lastSuccessfulEnrichUrlRef.current = null;
+  }, []);
+
+  const canEnrichUrl = useMemo(() => isValidHttpUrl(flowInput.trim()), [flowInput]);
+
+  const tryEnrich = useCallback(
+    async (opts?: { force?: boolean }) => {
+      const url = flowInput.trim();
+      if (!isValidHttpUrl(url)) return;
+      if (enrichInflightRef.current) return;
+      if (!opts?.force && lastSuccessfulEnrichUrlRef.current === url) return;
+
+      enrichInflightRef.current = true;
+      setMetaEnrichPending(true);
+      setUrlEnrichError(undefined);
+
+      try {
+        const result = await fetchMetadataResult(url);
+        setProductContext(result.text);
+        setExtractedMetadataFields([...result.extractedFields]);
+        lastSuccessfulEnrichUrlRef.current = url;
+      } catch {
+        setUrlEnrichError(t.urlEnrichError);
+      } finally {
+        enrichInflightRef.current = false;
+        setMetaEnrichPending(false);
+      }
+    },
+    [flowInput]
+  );
 
   const goToEditFlow = useCallback(() => {
     setStep(1);
@@ -517,47 +562,51 @@ export default function SyntheticUsersLab() {
               </div>
 
               <div className="mx-auto flex w-full max-w-[520px] flex-col gap-7">
-                <div>
-                  <ShadLabel htmlFor="flow-input" className="text-[16px] font-semibold text-foreground">
-                    {t.linkLabel}
-                  </ShadLabel>
-                  <FieldHint id="flow-input-hint" className="mt-2 text-[16px] text-foreground/70">
-                    {t.flowInputHint}
-                  </FieldHint>
-                  <ShadInput
-                    id="flow-input"
-                    value={flowInput}
-                    onChange={(e) => {
-                      setFlowInput(e.target.value);
-                      setFlowError(undefined);
-                    }}
-                    placeholder={t.linkPlaceholder}
-                    className="mt-2 h-14 rounded-[8px] border-0 bg-[var(--color-basics-white)] px-4 shadow-none placeholder:text-foreground/80 focus-visible:border-[var(--color-accent-300)]"
-                    aria-invalid={Boolean(flowError)}
-                    aria-describedby={
-                      [flowError ? "flow-input-error" : "", "flow-input-hint"].filter(Boolean).join(" ") || undefined
-                    }
-                  />
-                  <FieldError id="flow-input-error">{flowError}</FieldError>
-                </div>
-                <div>
-                  <ShadLabel htmlFor="product-context" className="text-[16px] font-semibold text-foreground">
-                    {t.contextLabel}{" "}
-                    <span className="font-normal text-foreground">{t.contextOptional}</span>
-                  </ShadLabel>
-                  <FieldHint id="product-context-hint" className="mt-2 text-[16px] text-foreground/70">
-                    {t.contextHint}
-                  </FieldHint>
-                  <ShadTextarea
-                    id="product-context"
-                    value={productContext}
-                    onChange={(e) => setProductContext(e.target.value)}
-                    placeholder={t.contextPlaceholder}
-                    rows={7}
-                    className="mt-2 min-h-[190px] rounded-[8px] border-0 bg-[var(--color-basics-white)] px-4 py-3 shadow-none placeholder:text-foreground/80 focus-visible:border-[var(--color-accent-300)]"
-                    aria-describedby="product-context-hint"
-                  />
-                </div>
+                <FlowUrlField
+                  id="flow-input"
+                  hintId="flow-input-hint"
+                  value={flowInput}
+                  onChange={(e) => {
+                    setFlowInput(e.target.value);
+                    setFlowError(undefined);
+                  }}
+                  onClearEnrichError={clearUrlDerivedHints}
+                  label={t.linkLabel}
+                  hint={t.flowInputHint}
+                  placeholder={t.linkPlaceholder}
+                  validationError={flowError}
+                  enrichError={urlEnrichError}
+                  onEnrichRequest={tryEnrich}
+                  disabled={metaEnrichPending}
+                />
+                <ProductContextField
+                  id="product-context"
+                  hintId="product-context-hint"
+                  value={productContext}
+                  onChange={(e) => setProductContext(e.target.value)}
+                  label={
+                    <>
+                      {t.contextLabel}{" "}
+                      <span className="font-normal text-foreground">{t.contextOptional}</span>
+                    </>
+                  }
+                  hint={t.contextHint}
+                  placeholder={t.contextPlaceholder}
+                  rows={7}
+                  autoFillLabel={t.contextAutoFillBtn}
+                  autoFillLoadingLabel={t.contextAutoFillLoading}
+                  onAutoFill={() => void tryEnrich({ force: true })}
+                  autoFillPending={metaEnrichPending}
+                  canAutoFill={canEnrichUrl}
+                  extractedFields={extractedMetadataFields}
+                  chipLabels={{
+                    product: t.metaChipProduct,
+                    description: t.metaChipDescription,
+                    mainHeading: t.metaChipMainHeading,
+                    keySections: t.metaChipKeySections,
+                    keywords: t.metaChipKeywords,
+                  }}
+                />
               </div>
             </motion.div>
           )}
