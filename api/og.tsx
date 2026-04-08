@@ -10,7 +10,7 @@ const PERSONAS = [
   { initials: "A11", bg: "#c084fc", color: "#ffffff" },
 ];
 
-export default function handler() {
+export default function handler(_req: Request) {
   return new ImageResponse(
     (
       <div
