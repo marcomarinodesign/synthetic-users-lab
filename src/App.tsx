@@ -3,7 +3,8 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { Persona, SimulationResult } from "@/types";
 import type { IssueCategory } from "@/domain/simulation";
 import { PRESET_PERSONAS } from "@/lib/personas";
-import { appendSimulation } from "@/lib/storage";
+import { appendSimulation, deleteSimulation, loadSimulationHistory, type SavedSimulation } from "@/lib/storage";
+import { trackSimulationStarted, trackSimulationCompleted, trackExportResults } from "@/lib/analytics";
 import { t, pickResultCardLabels } from "@/lib/i18n";
 import {
   fetchMetadataResult,
@@ -47,6 +48,7 @@ import { Label as ShadLabel } from "@/components/ui/label";
 import { Textarea as ShadTextarea } from "@/components/ui/textarea";
 import { FieldError } from "@/components/ui/field-error";
 import { FieldHint } from "@/components/ui/field-hint";
+import { SimulationHistoryPanel } from "@/components/ds/simulation-history-panel";
 import { FlowBottomBar } from "@/components/FlowBottomBar";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Banner1 } from "@/components/pro-blocks/landing-page/banners/banner-1";
@@ -108,6 +110,9 @@ export default function SyntheticUsersLab() {
   const enrichInflightRef = useRef(false);
   const lastSuccessfulEnrichUrlRef = useRef<string | null>(null);
   const [modalFieldErrors, setModalFieldErrors] = useState<{ name?: string; description?: string }>({});
+  const [simulationHistory, setSimulationHistory] = useState<SavedSimulation[]>(() => loadSimulationHistory());
+  const [activeSavedId, setActiveSavedId] = useState<string | null>(null);
+  const [baselineSimId, setBaselineSimId] = useState<string | null>(null);
   const [selectedResultsPersonaId, setSelectedResultsPersonaId] = useState<string | null>(null);
   const resultCardLabels = pickResultCardLabels(t);
 
@@ -226,6 +231,32 @@ export default function SyntheticUsersLab() {
     lastSuccessfulEnrichUrlRef.current = null;
     setShowModal(false);
     setModalFieldErrors({});
+    setActiveSavedId(null);
+    setBaselineSimId(null);
+  }, []);
+
+  const restoreSimulation = useCallback((entry: SavedSimulation) => {
+    setFlowInput(entry.flowInput);
+    setProductContext(entry.productContext);
+    setResults(entry.results);
+    setIssueCategoryFilter("all");
+    setSelectedResultsPersonaId(entry.results[0]?.personaId ?? null);
+    if (entry.personasSnapshot?.length) {
+      setPersonas((prev) => {
+        const existingIds = new Set(prev.map((p) => p.id));
+        const newOnes = entry.personasSnapshot!.filter((p) => !existingIds.has(p.id));
+        return newOnes.length > 0 ? [...prev, ...newOnes] : prev;
+      });
+    }
+    setSelectedPersonas(entry.personaIds);
+    setActiveSavedId(entry.id);
+    setBaselineSimId(null);
+    setStep(3);
+  }, []);
+
+  const removeFromHistory = useCallback((id: string) => {
+    deleteSimulation(id);
+    setSimulationHistory(loadSimulationHistory());
   }, []);
 
   const clearUrlDerivedHints = useCallback(() => {
@@ -277,6 +308,12 @@ export default function SyntheticUsersLab() {
     setResults(null);
     setIssueCategoryFilter("all");
     const selectedPersonaRecords = personas.filter((p) => selectedPersonas.includes(p.id));
+    trackSimulationStarted({
+      personas_count: selectedPersonaRecords.length,
+      source_type: isValidHttpUrl(flowInput.trim())
+        ? flowInput.trim().includes("github.com") ? "repo" : "url"
+        : "description",
+    });
     const { results: all, prepared } = await runSimulation({
       flowInput,
       productContext,
@@ -284,7 +321,14 @@ export default function SyntheticUsersLab() {
       analysisMode: "max",
     });
     setResults(all);
-    appendSimulation({
+    const { avgScore: completedAvgScore, issueCount: completedIssueCount, critCount: completedCritCount } = aggregateSimulationResults(all);
+    trackSimulationCompleted({
+      personas_count: all.length,
+      avg_score: Math.round(completedAvgScore),
+      issues_count: completedIssueCount,
+      critical_count: completedCritCount,
+    });
+    const saved = appendSimulation({
       flowInput: flowInput.trim(),
       sourceType: prepared.sourceType,
       productContext,
@@ -294,10 +338,38 @@ export default function SyntheticUsersLab() {
       personasSnapshot: selectedPersonaRecords,
       analysisMode: "max",
     });
+    setSimulationHistory(loadSimulationHistory());
+    setActiveSavedId(saved.id);
+    setBaselineSimId(null);
     setStep(3);
   }, [selectedPersonas, flowInput, productContext, personas, runSimulation]);
 
   const { avgScore, issueCount, critCount, retainCount } = aggregateSimulationResults(results);
+
+  const baselineCandidates = useMemo(
+    () => simulationHistory.filter((e) => e.id !== activeSavedId),
+    [simulationHistory, activeSavedId]
+  );
+
+  const baselineEntry = useMemo(
+    () => baselineCandidates.find((e) => e.id === baselineSimId) ?? null,
+    [baselineCandidates, baselineSimId]
+  );
+
+  const baselineAgg = useMemo(
+    () => (baselineEntry ? aggregateSimulationResults(baselineEntry.results) : null),
+    [baselineEntry]
+  );
+
+  const metricDeltas = useMemo(() => {
+    if (!baselineAgg) return null;
+    return {
+      score: Math.round(avgScore) - Math.round(baselineAgg.avgScore),
+      issues: issueCount - baselineAgg.issueCount,
+      crits: critCount - baselineAgg.critCount,
+      retain: retainCount - baselineAgg.retainCount,
+    };
+  }, [baselineAgg, avgScore, issueCount, critCount, retainCount]);
 
   useEffect(() => {
     if (!results?.length) return;
@@ -539,6 +611,11 @@ export default function SyntheticUsersLab() {
                   </motion.li>
                 ))}
               </motion.ul>
+              <SimulationHistoryPanel
+                history={simulationHistory}
+                onRestore={restoreSimulation}
+                onDelete={removeFromHistory}
+              />
             </motion.div>
           )}
 
@@ -764,6 +841,7 @@ export default function SyntheticUsersLab() {
                         downloadMarkdown: t.exportDownloadMarkdown,
                         copied: t.exportCopied,
                       }}
+                      onExport={trackExportResults}
                     />
                     <button
                       type="button"
@@ -776,6 +854,30 @@ export default function SyntheticUsersLab() {
                   </div>
                 ) : null}
               </div>
+              {baselineCandidates.length > 0 ? (
+                <div className="flex items-center gap-3 text-[13px] text-foreground/70">
+                  <span className="font-medium shrink-0">Compare with</span>
+                  <label className="relative flex-1 max-w-[380px]">
+                    <select
+                      value={baselineSimId ?? ""}
+                      onChange={(e) => setBaselineSimId(e.target.value || null)}
+                      className="w-full h-9 appearance-none rounded-[var(--radius-full)] border border-[var(--color-tertiary-border)] bg-[var(--color-beige-25)] py-0 pr-9 pl-3 text-[13px] font-medium text-foreground outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[var(--color-accent-300)]"
+                    >
+                      <option value="">— none —</option>
+                      {baselineCandidates.slice(0, 10).map((e) => (
+                        <option key={e.id} value={e.id}>
+                          {new Intl.DateTimeFormat("en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(e.savedAt))} · {e.flowInput.slice(0, 48)}{e.flowInput.length > 48 ? "…" : ""}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-foreground/70" aria-hidden>
+                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                        <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                  </label>
+                </div>
+              ) : null}
               <motion.div
                 className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5"
                 variants={{
@@ -797,17 +899,21 @@ export default function SyntheticUsersLab() {
                       value: results.length,
                       variant: "success" satisfies StatusVariant,
                       kind: "users" as const,
+                      delta: undefined,
+                      deltaPositiveIsGood: true,
                     },
-                    { label: t.scoreLabel, value: Math.round(avgScore), variant: scoreToTier(avgScore), kind: "default" as const },
-                    { label: t.issuesLabel, value: issueCount, variant: "warning" satisfies StatusVariant, kind: "default" as const },
-                    { label: t.criticalLabel, value: critCount, variant: "error" satisfies StatusVariant, kind: "default" as const },
+                    { label: t.scoreLabel, value: Math.round(avgScore), variant: scoreToTier(avgScore), kind: "default" as const, delta: metricDeltas?.score, deltaPositiveIsGood: true },
+                    { label: t.issuesLabel, value: issueCount, variant: "warning" satisfies StatusVariant, kind: "default" as const, delta: metricDeltas?.issues, deltaPositiveIsGood: false },
+                    { label: t.criticalLabel, value: critCount, variant: "error" satisfies StatusVariant, kind: "default" as const, delta: metricDeltas?.crits, deltaPositiveIsGood: false },
                     {
                       label: t.retentionLabel,
                       value: `${retainCount}/${results.length}`,
                       variant: "success" satisfies StatusVariant,
                       kind: "default" as const,
+                      delta: metricDeltas?.retain,
+                      deltaPositiveIsGood: true,
                     },
-                  ] satisfies { label: string; value: string | number; variant: StatusVariant; kind: "default" | "users" }[]
+                  ] satisfies { label: string; value: string | number; variant: StatusVariant; kind: "default" | "users"; delta: number | undefined; deltaPositiveIsGood: boolean }[]
                 ).map((m, i) => (
                   <motion.div
                     key={`${m.label}-${i}`}
@@ -823,6 +929,8 @@ export default function SyntheticUsersLab() {
                       variant={m.variant}
                       kind={m.kind}
                       personas={m.kind === "users" ? loadingOrderedPersonas : undefined}
+                      delta={m.delta}
+                      deltaPositiveIsGood={m.deltaPositiveIsGood}
                     />
                   </motion.div>
                 ))}

@@ -5,6 +5,18 @@
     <link rel="icon" type="image/png" href="/assets/design/avatars/early-adopter.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Synthetic Users Lab</title>
+    <script>
+      /* Plausible Analytics — only injected when VITE_PLAUSIBLE_DOMAIN is set at build time */
+      (function () {
+        var domain = "%VITE_PLAUSIBLE_DOMAIN%";
+        if (!domain || domain === "%VITE_PLAUSIBLE_DOMAIN%") return;
+        var s = document.createElement("script");
+        s.defer = true;
+        s.dataset.domain = domain;
+        s.src = "https://plausible.io/js/script.js";
+        document.head.appendChild(s);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

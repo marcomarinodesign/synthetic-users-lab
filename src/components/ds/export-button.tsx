@@ -17,6 +17,7 @@ export interface ExportButtonProps {
   flowInput?: string;
   productContext?: string;
   labels: ExportButtonLabels;
+  onExport?: () => void;
 }
 
 export function ExportButton({
@@ -25,6 +26,7 @@ export function ExportButton({
   flowInput,
   productContext,
   labels,
+  onExport,
 }: ExportButtonProps) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -49,6 +51,7 @@ export function ExportButton({
     await copyToClipboard(md);
     setOpen(false);
     setCopied(true);
+    onExport?.();
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -56,6 +59,7 @@ export function ExportButton({
     const md = getMarkdown();
     downloadMarkdown(md, "synthetic-users-results.md");
     setOpen(false);
+    onExport?.();
   };
 
   return (
