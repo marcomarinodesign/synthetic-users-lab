@@ -15,12 +15,12 @@ export const GEMINI_MODEL = "gemini-2.5-flash";
 /** Límites por modo: misma pipeline de dos fases, distinto techo de salida y temperatura persona. */
 export const ANALYSIS_MODE_CONFIG = {
   max: {
-    objective: { maxOutputTokens: 4096, temperature: 0.2 },
-    persona: { maxOutputTokens: 8192, temperature: 0.55 },
+    objective: { maxOutputTokens: 2048, temperature: 0.2 },
+    persona: { maxOutputTokens: 4096, temperature: 0.55 },
   },
   fast: {
-    objective: { maxOutputTokens: 2048, temperature: 0.2 },
-    persona: { maxOutputTokens: 4096, temperature: 0.35 },
+    objective: { maxOutputTokens: 1024, temperature: 0.2 },
+    persona: { maxOutputTokens: 2048, temperature: 0.35 },
   },
 };
 
@@ -467,7 +467,9 @@ const GEMINI_HTTP_MAX_ATTEMPTS = 6;
 export async function callGemini(apiKey, { systemInstruction, userText, generationConfig }) {
   const body = {
     contents: [{ parts: [{ text: userText }] }],
-    generationConfig,
+    // Disable thinking mode on Gemini 2.5+ to avoid 30-50s overhead per call.
+    // thinkingBudget: 0 keeps 2.5 Flash quality without the latency penalty.
+    generationConfig: { ...generationConfig, thinkingConfig: { thinkingBudget: 0 } },
   };
   if (systemInstruction && systemInstruction.trim()) {
     body.systemInstruction = { parts: [{ text: systemInstruction }] };
