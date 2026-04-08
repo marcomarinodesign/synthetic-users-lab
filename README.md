@@ -1,5 +1,7 @@
 # Synthetic Users Lab
 
+🇬🇧 [English version: README.en.md](README.en.md)
+
 Herramienta de testing UX/product con usuarios sintéticos. Simula perfiles de usuario y perfiles expertos para evaluar onboarding, fricción y retorno esperado.
 
 ## Stack real
