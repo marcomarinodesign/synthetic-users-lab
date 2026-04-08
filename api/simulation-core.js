@@ -10,7 +10,7 @@ export const ISSUE_SEVERITIES = enums.issueSeverities;
 export const ISSUE_CATEGORIES = enums.issueCategories;
 export const SOURCE_TYPES = enums.sourceTypes;
 
-export const GEMINI_MODEL = "gemini-2.5-flash";
+export const GEMINI_MODEL = "gemini-2.5-flash-lite";
 
 /** Límites por modo: misma pipeline de dos fases, distinto techo de salida y temperatura persona. */
 export const ANALYSIS_MODE_CONFIG = {
@@ -427,8 +427,8 @@ export function geminiRetryDelayMs(response, errText, attemptIndex) {
     const sec = parseFloat(m[1]);
     if (Number.isFinite(sec) && sec > 0) return Math.min(Math.ceil(sec * 1000), 120_000);
   }
-  const base = 2500;
-  return Math.min(base * 2 ** attemptIndex, 60_000);
+  const base = 1000;
+  return Math.min(base * 2 ** attemptIndex, 30_000);
 }
 
 /**

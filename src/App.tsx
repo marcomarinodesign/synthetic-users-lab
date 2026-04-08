@@ -318,7 +318,7 @@ export default function SyntheticUsersLab() {
       flowInput,
       productContext,
       selectedPersonas: selectedPersonaRecords,
-      analysisMode: "max",
+      analysisMode: "fast",
     });
     setResults(all);
     const { avgScore: completedAvgScore, issueCount: completedIssueCount, critCount: completedCritCount } = aggregateSimulationResults(all);
@@ -336,7 +336,7 @@ export default function SyntheticUsersLab() {
       personaIds: selectedPersonaRecords.map((p) => p.id),
       results: all,
       personasSnapshot: selectedPersonaRecords,
-      analysisMode: "max",
+      analysisMode: "fast",
     });
     setSimulationHistory(loadSimulationHistory());
     setActiveSavedId(saved.id);
