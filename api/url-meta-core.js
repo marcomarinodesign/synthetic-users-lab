@@ -131,6 +131,143 @@ async function tryGithubReadme(_url, owner, repo) {
 }
 
 const JINA_TIMEOUT_MS = 28_000;
+const CACHE_TIMEOUT_MS = 15_000;
+
+/**
+ * Fetches a URL via Jina Reader proxy, which handles WAF-protected sites.
+ * @param {string} trimmed
+ * @returns {Promise<{ text: string, extractedFields: ExtractedFieldId[] } | null>}
+ */
+async function tryJinaReader(trimmed) {
+  const jinaUrl = `https://r.jina.ai/${trimmed}`;
+  const ac = new AbortController();
+  const tid = setTimeout(() => ac.abort(), JINA_TIMEOUT_MS);
+  try {
+    const res = await fetch(jinaUrl, {
+      signal: ac.signal,
+      headers: {
+        Accept: "text/plain",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      },
+    });
+    if (!res.ok) return null;
+    const text = await res.text();
+    const head = text.trim().slice(0, 80);
+    if (!text || text.length < 12) return null;
+    if (/^error code:/i.test(head)) return null;
+    return parseJinaReaderToResult(text);
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(tid);
+  }
+}
+
+/**
+ * Tries to fetch a cached version from Google Cache.
+ * @param {string} trimmed
+ * @returns {Promise<{ text: string, extractedFields: ExtractedFieldId[] } | null>}
+ */
+async function tryGoogleCache(trimmed) {
+  const cacheUrl = `https://webcache.googleusercontent.com/search?q=cache:${encodeURIComponent(trimmed)}&hl=es`;
+  const ac = new AbortController();
+  const tid = setTimeout(() => ac.abort(), CACHE_TIMEOUT_MS);
+  try {
+    const res = await fetch(cacheUrl, {
+      signal: ac.signal,
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        Accept: "text/html,application/xhtml+xml,*/*;q=0.8",
+        "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
+      },
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    if (html.length < 200) return null;
+
+    // Strip scripts/styles and extract plain text
+    const plain = html
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, " ")
+      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, " ")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 500);
+
+    if (!plain) return null;
+    return {
+      text: `Description: ${plain}`,
+      extractedFields: /** @type {ExtractedFieldId[]} */ (["description"]),
+    };
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(tid);
+  }
+}
+
+/**
+ * Tries to fetch the latest snapshot from Wayback Machine (archive.org).
+ * @param {string} trimmed
+ * @returns {Promise<{ text: string, extractedFields: ExtractedFieldId[] } | null>}
+ */
+async function tryWaybackMachine(trimmed) {
+  const ac = new AbortController();
+  const tid = setTimeout(() => ac.abort(), CACHE_TIMEOUT_MS);
+  try {
+    // First, get the latest snapshot URL from the CDX API
+    const cdxUrl = `https://archive.org/wayback/available?url=${encodeURIComponent(trimmed)}`;
+    const cdxRes = await fetch(cdxUrl, { signal: ac.signal });
+    if (!cdxRes.ok) return null;
+    const cdxData = await cdxRes.json();
+    const snapshotUrl = cdxData?.archived_snapshots?.closest?.url;
+    if (!snapshotUrl) return null;
+
+    const snapRes = await fetch(snapshotUrl, {
+      signal: ac.signal,
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        Accept: "text/html,application/xhtml+xml,*/*;q=0.8",
+      },
+    });
+    if (!snapRes.ok) return null;
+    const html = await snapRes.text();
+    if (html.length < 200) return null;
+
+    const plain = html
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, " ")
+      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, " ")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 500);
+
+    if (!plain) return null;
+    return {
+      text: `Description: ${plain}`,
+      extractedFields: /** @type {ExtractedFieldId[]} */ (["description"]),
+    };
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(tid);
+  }
+}
 
 /**
  * @param {string} url
@@ -142,34 +279,27 @@ export async function fetchUrlMetadataResult(url) {
     throw new MetadataFetchError("Invalid URL");
   }
 
+  // 1. GitHub repos → README via GitHub API
   const gh = parseGitHubOwnerRepo(trimmed);
   if (gh) {
     const fromReadme = await tryGithubReadme(trimmed, gh.owner, gh.repo);
     if (fromReadme) return fromReadme;
   }
 
-  const jinaUrl = `https://r.jina.ai/${trimmed}`;
-  const ac = new AbortController();
-  const tid = setTimeout(() => ac.abort(), JINA_TIMEOUT_MS);
-  try {
-    const res = await fetch(jinaUrl, {
-      signal: ac.signal,
-      headers: {
-        Accept: "text/plain",
-        "User-Agent":
-          "Mozilla/5.0 (compatible; SyntheticUsersLab/1.0; +https://github.com/marcomarinodesign/synthetic-users-lab)",
-      },
-    });
-    if (!res.ok) throw new MetadataFetchError();
-    const text = await res.text();
-    const head = text.trim().slice(0, 80);
-    if (!text || text.length < 12) throw new MetadataFetchError();
-    if (/^error code:/i.test(head)) throw new MetadataFetchError();
-    return parseJinaReaderToResult(text);
-  } catch (e) {
-    if (e instanceof MetadataFetchError) throw e;
-    throw new MetadataFetchError();
-  } finally {
-    clearTimeout(tid);
-  }
+  // 2. Jina Reader proxy (handles many WAF-protected sites)
+  const fromJina = await tryJinaReader(trimmed);
+  if (fromJina) return fromJina;
+
+  // 3. Google Cache (works when origin blocks bots but Google has a cached copy)
+  const fromGoogle = await tryGoogleCache(trimmed);
+  if (fromGoogle) return fromGoogle;
+
+  // 4. Wayback Machine / Internet Archive
+  const fromWayback = await tryWaybackMachine(trimmed);
+  if (fromWayback) return fromWayback;
+
+  // All strategies exhausted
+  throw new MetadataFetchError(
+    "No se pudo acceder al sitio web. Puede estar protegido por WAF/Cloudflare o no tener versión en caché. Por favor, describe el producto manualmente."
+  );
 }
