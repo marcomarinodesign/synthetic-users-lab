@@ -114,11 +114,11 @@ function ResultCardDetails({
     const showIssuesFilter = Boolean(onIssueCategoryFilterChange && issueFilterOptions?.length);
 
     return (
-      <div className="flex flex-col px-[var(--space-12)] pt-[var(--space-12)] pb-[var(--space-12)]">
+      <div className="flex flex-col px-[var(--space-5)] pt-[var(--space-6)] pb-[var(--space-6)] sm:px-[var(--space-8)] sm:pt-[var(--space-10)] sm:pb-[var(--space-10)] md:px-[var(--space-12)] md:pt-[var(--space-12)] md:pb-[var(--space-12)]">
         <div className="flex flex-col gap-[var(--space-6)]">
           <section className="flex flex-col gap-[var(--space-6)]">
             <div className="flex flex-wrap items-start justify-between gap-4">
-              <h2 className="m-0 max-w-[min(100%,28rem)] font-serif text-[36px] font-normal italic leading-normal text-foreground">
+              <h2 className="m-0 max-w-[min(100%,28rem)] font-serif text-[26px] font-normal italic leading-normal text-foreground sm:text-[32px] md:text-[36px]">
                 {labels.summaryLabel}
               </h2>
               <div className="flex flex-wrap justify-end gap-2">
@@ -165,7 +165,7 @@ function ResultCardDetails({
           <section className="flex flex-col gap-[var(--space-6)]">
             <h3 className="m-0 font-sans text-[18px] font-bold leading-normal text-foreground">{labels.stepsLabel}</h3>
             <div
-              className="flex min-h-[200px] items-center gap-4 rounded-[30px] bg-[var(--color-beige-25)] p-6"
+              className="flex min-h-[200px] items-center gap-2 rounded-[30px] bg-[var(--color-beige-25)] p-4 sm:gap-4 sm:p-6"
               onTouchStart={(e) => {
                 const t0 = e.touches[0];
                 if (!t0) return;
@@ -192,7 +192,7 @@ function ResultCardDetails({
                 disabled={currentStep === 0}
                 variant="ghost"
                 className={[
-                  "flex size-10 shrink-0 items-center justify-center rounded-full p-0 text-foreground",
+                  "hidden size-10 shrink-0 items-center justify-center rounded-full p-0 text-foreground sm:flex",
                   currentStep === 0 ? "pointer-events-none opacity-30" : "opacity-100",
                 ].join(" ")}
               >
@@ -207,8 +207,8 @@ function ResultCardDetails({
                 </svg>
               </ShadButton>
               <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-[var(--space-6)] text-[var(--color-primary)]">
-                <p className="m-0 text-[18px] font-semibold leading-6">{step.action}</p>
-                <p className="m-0 text-[16px] font-normal leading-[22px]">{step.reaction}</p>
+                <p className="m-0 text-[16px] font-semibold leading-6 sm:text-[18px]">{step.action}</p>
+                <p className="m-0 text-[15px] font-normal leading-[22px] sm:text-[16px]">{step.reaction}</p>
               </div>
               <ShadButton
                 type="button"
@@ -217,7 +217,7 @@ function ResultCardDetails({
                 disabled={currentStep >= result.steps.length - 1}
                 variant="ghost"
                 className={[
-                  "flex size-10 shrink-0 items-center justify-center rounded-full p-0 text-foreground",
+                  "hidden size-10 shrink-0 items-center justify-center rounded-full p-0 text-foreground sm:flex",
                   currentStep >= result.steps.length - 1 ? "pointer-events-none opacity-30" : "opacity-100",
                 ].join(" ")}
               >
@@ -232,6 +232,28 @@ function ResultCardDetails({
                 </svg>
               </ShadButton>
             </div>
+            {result.steps.length > 1 ? (
+              <div className="flex justify-center gap-[var(--space-2)] sm:hidden">
+                {result.steps.map((_, si) => (
+                  <button
+                    key={si}
+                    type="button"
+                    aria-label={labels.stepGoToAria(si + 1)}
+                    onClick={() => setCurrentStep(si)}
+                    className="appearance-none border-none bg-transparent p-0"
+                  >
+                    <span
+                      className={[
+                        "block rounded-full",
+                        si === currentStep
+                          ? "size-[8px] bg-[var(--color-basics-black)]"
+                          : "size-[6px] bg-[var(--color-grey-middle)]",
+                      ].join(" ")}
+                    />
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </section>
         ) : null}
         </div>
@@ -240,7 +262,7 @@ function ResultCardDetails({
             <section className="mt-[var(--space-12)] flex flex-col gap-[var(--space-6)]">
               <div className="h-px bg-[var(--color-beige-25)]" />
               <div className="flex flex-wrap items-center justify-between gap-4">
-                <h2 className="m-0 font-serif text-[36px] font-normal italic leading-normal text-foreground">
+                <h2 className="m-0 font-serif text-[26px] font-normal italic leading-normal text-foreground sm:text-[32px] md:text-[36px]">
                   {labels.issuesSectionLabel}
                 </h2>
                 {showIssuesFilter ? (
@@ -300,14 +322,14 @@ function ResultCardDetails({
                             {labels.sevLabels[issue.severity]}
                           </span>
                         </div>
-                        <div className="flex items-stretch gap-6">
-                          <div className="flex w-[386px] shrink-0 flex-col gap-4 rounded-[20px] border-2 border-[var(--color-beige-25)] bg-[var(--color-basics-white)] p-6">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:gap-6">
+                          <div className="flex w-full flex-col gap-4 rounded-[20px] border-2 border-[var(--color-beige-25)] bg-[var(--color-basics-white)] p-6 sm:w-[386px] sm:shrink-0">
                             <p className="m-0 text-[18px] font-semibold leading-[22px] text-foreground">{labels.issueDescriptionLabel}</p>
                             <p className="m-0 text-[16px] font-normal leading-[22px] text-foreground">{issue.description}</p>
                           </div>
                           {issue.action ? (
                             <>
-                              <div className="flex shrink-0 items-center">
+                              <div className="flex shrink-0 items-center sm:flex-col">
                                 <div className="flex items-center justify-center rounded-full bg-[var(--color-beige-25)] p-2">
                                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
                                     <path
