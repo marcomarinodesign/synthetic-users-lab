@@ -345,7 +345,7 @@ export default function SyntheticUsersLab() {
     setActiveSavedId(saved.id);
     setBaselineSimId(null);
     setStep(3);
-  }, [selectedPersonas, flowInput, productContext, personas, runSimulation]);
+  }, [selectedPersonas, flowInput, productContext, personas, runSimulation, uxAuditMode]);
 
   const { avgScore, issueCount, critCount, retainCount } = aggregateSimulationResults(results);
 

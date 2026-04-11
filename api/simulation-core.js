@@ -342,7 +342,11 @@ Respond with ONLY valid JSON (no markdown, no backticks):
 
 export function buildObjectiveAnalysisUserPrompt({ sourceType, flowInput, language = "en" }) {
   const langName = LANGUAGE_NAMES[language] ?? language;
-  return `The FLOW below may be in any language (or mixed). IGNORE that language for your structured output strings — use ${langName} only.
+  const isUrlOnly = /^https?:\/\/\S+$/.test(flowInput.trim());
+  const urlHint = isUrlOnly
+    ? `\nNOTE: Only a URL was provided (no scraped HTML). Use your training knowledge of this website/domain to complete the analysis. If you do not recognise the domain, infer from the URL path and TLD what type of product it is.`
+    : "";
+  return `The FLOW below may be in any language (or mixed). IGNORE that language for your structured output strings — use ${langName} only.${urlHint}
 
 SOURCE: ${(sourceType || "description").toUpperCase()}
 
@@ -723,9 +727,11 @@ export async function runSimulateWithPhasesObservable({
   onModelCallDone?.({ phase: "objective_analysis", model: GEMINI_MODEL });
 
   if (!analysis) {
-    const err = new Error("OBJECTIVE_ANALYSIS_PARSE_FAILED");
-    err.code = "OBJECTIVE_ANALYSIS_PARSE_FAILED";
-    throw err;
+    // Both retries failed (e.g. SPA with no scrapeable content, Gemini returned non-JSON).
+    // Use a minimal synthetic anchor so phase 1 can still run — the URL/description
+    // is still passed as flowInput so the persona simulation has context.
+    console.warn("[SyntheticUsers] Objective analysis parse failed after 2 attempts; using minimal fallback for", flowInput.slice(0, 100));
+    analysis = { elements: [], flow: [flowInput.slice(0, 300)], objective_issues: [], strengths: [], copy_samples: [] };
   }
   onPhaseDone?.({ phase: "objective_analysis" });
 
