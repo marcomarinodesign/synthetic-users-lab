@@ -367,8 +367,8 @@ function normalizeObjectiveAnalysis(obj) {
   const objective_issues = pick("objective_issues");
   const strengths = pick("strengths");
   const copy_samples = pick("copy_samples");
-  const total = elements.length + flow.length + objective_issues.length + strengths.length + copy_samples.length;
-  if (total === 0) return null;
+  // Require at least elements or flow — if both are empty the analysis is unusable.
+  if (elements.length === 0 && flow.length === 0) return null;
   return { elements, flow, objective_issues, strengths, copy_samples };
 }
 
@@ -698,18 +698,30 @@ export async function runSimulateWithPhasesObservable({
   onModelCallStart?.({ phase: "objective_analysis", model: GEMINI_MODEL });
   const sysA = buildObjectiveAnalysisSystemPrompt({ productContext, language: lang });
   const userA = buildObjectiveAnalysisUserPrompt({ sourceType, flowInput, language: lang });
-  const textA = await callGemini(apiKey, {
-    systemInstruction: sysA,
-    userText: userA,
-    generationConfig: {
-      maxOutputTokens: genCfg.objective.maxOutputTokens,
-      temperature: genCfg.objective.temperature,
-      seed: seedA,
-    },
-  });
+
+  // Retry objective analysis once on parse failure — Gemini occasionally returns
+  // malformed JSON for this phase even when the HTTP call succeeds.
+  let analysis = null;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const textA = await callGemini(apiKey, {
+      systemInstruction: sysA,
+      userText: userA,
+      generationConfig: {
+        maxOutputTokens: genCfg.objective.maxOutputTokens,
+        temperature: genCfg.objective.temperature,
+        seed: seedA + (attempt - 1), // shift seed on retry to get a different response
+      },
+    });
+    analysis = repairObjectiveAnalysisJSON(textA);
+    if (analysis) break;
+    console.error(
+      `[SyntheticUsers] Objective analysis parse failed (attempt ${attempt}/2). Raw response (first 500 chars):`,
+      textA?.slice(0, 500) ?? "(empty)"
+    );
+    if (attempt < 2) await sleep(800);
+  }
   onModelCallDone?.({ phase: "objective_analysis", model: GEMINI_MODEL });
 
-  const analysis = repairObjectiveAnalysisJSON(textA);
   if (!analysis) {
     const err = new Error("OBJECTIVE_ANALYSIS_PARSE_FAILED");
     err.code = "OBJECTIVE_ANALYSIS_PARSE_FAILED";
