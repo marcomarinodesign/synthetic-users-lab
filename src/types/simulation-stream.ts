@@ -1,6 +1,6 @@
 import type { SimulationResult } from "@/types";
 
-export type SimulationPhase = "objective_analysis" | "persona_simulation";
+export type SimulationPhase = "objective_analysis" | "persona_simulation" | "ux_audit";
 
 export type SimulationStreamEvent =
   | { type: "phase:start"; phase: SimulationPhase }

@@ -19,11 +19,28 @@ export type IssueSeverity = (typeof ISSUE_SEVERITIES)[number];
 export type IssueCategory = (typeof ISSUE_CATEGORIES)[number];
 export type SourceType = (typeof SOURCE_TYPES)[number];
 
-export const ANALYSIS_MODES = ["fast", "max"] as const;
+export const ANALYSIS_MODES = ["fast", "max", "ux-audit"] as const;
 export type AnalysisMode = (typeof ANALYSIS_MODES)[number];
 
 export function isAnalysisMode(v: unknown): v is AnalysisMode {
   return typeof v === "string" && (ANALYSIS_MODES as readonly string[]).includes(v);
+}
+
+export type UxAuditSeverity = "P1" | "P2" | "P3";
+
+export interface UxAuditIssue {
+  severity: UxAuditSeverity;
+  uxLaw: string;
+  observation: string;
+  impact: string;
+  recommendation: string;
+}
+
+export interface UxAuditReport {
+  issues: UxAuditIssue[];
+  strengths: string[];
+  prioritization: string[];
+  metrics: string[];
 }
 
 export interface FlowStep {
@@ -49,6 +66,7 @@ export interface SimulationResult {
   issues: Issue[];
   wouldReturn: boolean | null;
   verbatim?: string;
+  uxAudit?: UxAuditReport;
 }
 
 /** Payload enviado a `POST /api/simulate` (contrato de dominio). */
@@ -137,5 +155,6 @@ export function normalizeSimulationResult(data: unknown, personaId: string): Sim
     issues,
     wouldReturn: typeof d.wouldReturn === "boolean" ? d.wouldReturn : null,
     verbatim: typeof d.verbatim === "string" ? d.verbatim : undefined,
+    uxAudit: d.uxAudit as UxAuditReport | undefined,
   };
 }

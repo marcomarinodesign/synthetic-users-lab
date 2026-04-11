@@ -29,6 +29,7 @@ import { Avatar } from "@/components/ds/avatar";
 import { PersonaCard } from "@/components/ds/persona-card";
 import { PersonaResultTabs } from "@/components/ds/persona-result-tabs";
 import { ResultCard } from "@/components/ds/result-card";
+import { UxAuditReportCard } from "@/components/ds/ux-audit-report";
 import { ExportButton } from "@/components/ds/export-button";
 import { FlowUrlField } from "@/components/ds/flow-url-field";
 import { ProductContextField } from "@/components/ds/product-context-field";
@@ -114,6 +115,7 @@ export default function SyntheticUsersLab() {
   const [activeSavedId, setActiveSavedId] = useState<string | null>(null);
   const [baselineSimId, setBaselineSimId] = useState<string | null>(null);
   const [selectedResultsPersonaId, setSelectedResultsPersonaId] = useState<string | null>(null);
+  const [uxAuditMode, setUxAuditMode] = useState(false);
   const resultCardLabels = pickResultCardLabels(t);
 
   const loadingProgressPercent = useMemo(() => {
@@ -314,11 +316,12 @@ export default function SyntheticUsersLab() {
         ? flowInput.trim().includes("github.com") ? "repo" : "url"
         : "description",
     });
+    const resolvedMode = uxAuditMode ? "ux-audit" : "fast";
     const { results: all, prepared } = await runSimulation({
       flowInput,
       productContext,
       selectedPersonas: selectedPersonaRecords,
-      analysisMode: "fast",
+      analysisMode: resolvedMode,
     });
     setResults(all);
     const { avgScore: completedAvgScore, issueCount: completedIssueCount, critCount: completedCritCount } = aggregateSimulationResults(all);
@@ -336,7 +339,7 @@ export default function SyntheticUsersLab() {
       personaIds: selectedPersonaRecords.map((p) => p.id),
       results: all,
       personasSnapshot: selectedPersonaRecords,
-      analysisMode: "fast",
+      analysisMode: resolvedMode,
     });
     setSimulationHistory(loadSimulationHistory());
     setActiveSavedId(saved.id);
@@ -691,6 +694,29 @@ export default function SyntheticUsersLab() {
                     keywords: t.metaChipKeywords,
                   }}
                 />
+
+                {/* UX Audit mode toggle */}
+                <label className="flex cursor-pointer items-start gap-3 rounded-[var(--radius-lg)] border border-[var(--color-tertiary-border)] bg-[var(--color-basics-white)] p-4 transition-colors hover:bg-[var(--color-beige-25)]">
+                  <div className="relative mt-[2px] flex shrink-0 items-center">
+                    <input
+                      type="checkbox"
+                      checked={uxAuditMode}
+                      onChange={(e) => setUxAuditMode(e.target.checked)}
+                      className="peer sr-only"
+                      id="ux-audit-toggle"
+                    />
+                    <div className="h-5 w-9 rounded-full border border-[var(--color-tertiary-border)] bg-[var(--color-grey-soft-middle)] transition-colors peer-checked:border-[var(--color-primary)] peer-checked:bg-[var(--color-primary)] peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--color-accent-300)] peer-focus-visible:ring-offset-1" />
+                    <div className={`absolute left-[3px] top-[3px] h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${uxAuditMode ? "translate-x-4" : "translate-x-0"}`} />
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[14px] font-semibold text-foreground">
+                      🔬 {t.uxAuditModeLabel}
+                    </span>
+                    <span className="text-[13px] leading-[1.45] text-foreground/60">
+                      {t.uxAuditModeDesc}
+                    </span>
+                  </div>
+                </label>
               </div>
             </motion.div>
           )}
@@ -747,7 +773,7 @@ export default function SyntheticUsersLab() {
                   </div>
 
                   {/* Profile details (shown while analyzing) */}
-                  {(loadingPhase === "analyzing_objective" || loadingPhase === "analyzing_persona") && progress.total > 0 && (
+                  {(loadingPhase === "analyzing_objective" || loadingPhase === "analyzing_persona" || loadingPhase === "analyzing_audit") && progress.total > 0 && (
                     <div className="flex w-full flex-col gap-[8px] text-center text-[16px] leading-[24px] text-[#1c1412]">
                       <p className="m-0 font-bold">
                         {progress.currentPersona} ({t.userOf(progress.current, progress.total)})
@@ -786,7 +812,7 @@ export default function SyntheticUsersLab() {
                   </div>
 
                   {/* Timer rows */}
-                  {(loadingPhase === "analyzing_objective" || loadingPhase === "analyzing_persona") && progress.total > 0 && (
+                  {(loadingPhase === "analyzing_objective" || loadingPhase === "analyzing_persona" || loadingPhase === "analyzing_audit") && progress.total > 0 && (
                     <div
                       className="flex flex-col gap-0 text-center text-[14px] font-semibold text-[#1c1412]"
                       aria-live="polite"
@@ -982,6 +1008,18 @@ export default function SyntheticUsersLab() {
                       }))}
                       onIssueCategoryFilterChange={(v) => setIssueCategoryFilter(v)}
                     />
+                    {selectedResultForPersonaTab.uxAudit ? (
+                      <div className="mt-[var(--space-6)] rounded-[30px] border border-[var(--color-tertiary-border)] bg-[var(--color-basics-white)]">
+                        <UxAuditReportCard
+                          report={selectedResultForPersonaTab.uxAudit}
+                          personaName={
+                            personas.find((p) => p.id === selectedResultForPersonaTab.personaId)?.name ??
+                            selectedResultForPersonaTab.personaId
+                          }
+                          flowLabel={flowInput.length > 60 ? `${flowInput.slice(0, 60)}…` : flowInput}
+                        />
+                      </div>
+                    ) : null}
                   </div>
                 </motion.div>
               ) : null}

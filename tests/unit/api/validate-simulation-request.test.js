@@ -63,6 +63,12 @@ test("validateSimulationRequest: acepta analysisMode fast", () => {
   assert.equal(r.value.analysisMode, "fast");
 });
 
+test("validateSimulationRequest: acepta analysisMode ux-audit", () => {
+  const r = validateSimulationRequest({ ...validBody, analysisMode: "ux-audit" });
+  assert.equal(r.ok, true);
+  assert.equal(r.value.analysisMode, "ux-audit");
+});
+
 test("validateSimulationRequest: rechaza analysisMode inválido", () => {
   const r = validateSimulationRequest({ ...validBody, analysisMode: "turbo" });
   assert.equal(r.ok, false);

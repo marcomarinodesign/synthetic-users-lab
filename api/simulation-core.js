@@ -22,11 +22,18 @@ export const ANALYSIS_MODE_CONFIG = {
     objective: { maxOutputTokens: 1024, temperature: 0.2 },
     persona: { maxOutputTokens: 2048, temperature: 0.35 },
   },
+  "ux-audit": {
+    objective: { maxOutputTokens: 2048, temperature: 0.2 },
+    persona: { maxOutputTokens: 4096, temperature: 0.55 },
+    audit: { maxOutputTokens: 2048, temperature: 0.2 },
+  },
 };
 
 /** @param {string} [mode] */
 export function resolveAnalysisMode(mode) {
-  return mode === "fast" ? "fast" : "max";
+  if (mode === "fast") return "fast";
+  if (mode === "ux-audit") return "ux-audit";
+  return "max";
 }
 
 export const LANGUAGE_NAMES = {
@@ -407,6 +414,131 @@ RULES:
 - Complete at least 5 journey steps when the anchor flow has 5+ items; if the anchor flow is shorter, cover every step in the anchor flow.`;
 }
 
+const UX_LAWS = [
+  "Hick's Law",
+  "Fitts's Law",
+  "Miller's Law",
+  "Jakob's Law",
+  "Law of Proximity",
+  "Law of Common Region",
+  "Peak-End Rule",
+  "Doherty Threshold",
+  "Nielsen Heuristics",
+  "Aesthetic-Usability Effect",
+];
+
+/**
+ * Builds the system prompt for the UX audit phase (phase 2).
+ * @param {{ persona: object, productContext: string, language?: string }} params
+ */
+export function buildUxAuditSystemPrompt({ persona, productContext, language = "en" }) {
+  const langName = LANGUAGE_NAMES[language] ?? language;
+  const langBlock = outputLanguageBlock(langName, language);
+  const lawsList = UX_LAWS.join(", ");
+
+  return `${langBlock}
+
+You are a senior UX auditor. You have just received a synthetic user walkthrough of a product flow. Your task is to generate a structured UX audit report grounded in recognized UX laws and heuristics.
+
+PERSONA: ${persona.name}
+Description: ${persona.description}
+Tech level: ${persona.techLevel} | Frustration tolerance: ${persona.frustration}
+
+PRODUCT CONTEXT: ${productContext || "No additional context."}
+
+AVAILABLE UX LAWS (use only from this list): ${lawsList}
+
+AUDIT RULES:
+- Identify between 3 and 10 issues total across all severity levels
+- Assign severity: P1 (high — likely abandonment), P2 (medium — confusion/workaround), P3 (low — quality improvement)
+- Each issue MUST reference one UX law from the list above
+- observation: what the persona actually does or says at that friction point (ground it in the walkthrough)
+- impact: consequence on user behavior (conversion, completion, trust)
+- recommendation: a CONCRETE, SPECIFIC change — not "improve the button"; give explicit changes (copy, layout, sizing, interaction) so a designer can act without follow-up
+- Always include at least 2 strengths
+- Always include exactly 3 prioritization actions (by impact/effort ratio)
+- Always include 2-4 metrics to monitor post-fix
+- Tone: objective and constructive — the persona observes, never judges harshly
+
+FINAL LANGUAGE CHECK: Every string value in the JSON must be in ${langName} only.
+
+Respond with ONLY valid JSON (no markdown, no backticks):
+{"issues":[{"severity":"P1|P2|P3","uxLaw":"<law name>","observation":"<what persona does/says>","impact":"<behavioral consequence>","recommendation":"<concrete change>"}],"strengths":["<strength 1>","<strength 2>"],"prioritization":["<action 1>","<action 2>","<action 3>"],"metrics":["<metric 1>","<metric 2>"]}`;
+}
+
+/**
+ * Builds the user prompt for the UX audit phase.
+ * @param {{ steps: object[], issues: object[], objectiveAnalysis: object, language?: string }} params
+ */
+export function buildUxAuditUserPrompt({ steps, issues, objectiveAnalysis, language = "en" }) {
+  const langName = LANGUAGE_NAMES[language] ?? language;
+  return `REQUIRED OUTPUT LANGUAGE: ${langName}
+
+WALKTHROUGH (persona journey — use this as the ground truth for observations):
+${JSON.stringify(steps, null, 2)}
+
+FRICTION POINTS ALREADY IDENTIFIED (use these as candidates for P1/P2 issues):
+${JSON.stringify(issues, null, 2)}
+
+OBJECTIVE ANALYSIS (UI elements and flow context):
+${JSON.stringify(objectiveAnalysis, null, 2)}
+
+Now generate the structured UX audit report. Anchor every issue to a specific moment in the walkthrough above.`;
+}
+
+const UX_AUDIT_SEVERITY_ORDER = { P1: 0, P2: 1, P3: 2 };
+
+/**
+ * Normalizes and validates the UX audit JSON from the model.
+ * @param {string} raw
+ * @returns {object | null}
+ */
+export function repairUxAuditJSON(raw) {
+  if (typeof raw !== "string" || !raw.trim()) return null;
+  const clean = raw.replace(/```json|```/g, "").trim();
+
+  const tryParse = (s) => {
+    try { return JSON.parse(s); } catch { return null; }
+  };
+
+  let obj = tryParse(clean);
+  if (!obj) {
+    const start = clean.indexOf("{");
+    const end = clean.lastIndexOf("}");
+    if (start >= 0 && end > start) obj = tryParse(clean.slice(start, end + 1));
+  }
+  if (!obj || typeof obj !== "object") return null;
+
+  const normalizeIssue = (i) => {
+    if (!i || typeof i !== "object") return null;
+    const severity = ["P1", "P2", "P3"].includes(i.severity) ? i.severity : "P2";
+    const uxLaw = typeof i.uxLaw === "string" && i.uxLaw.trim() ? i.uxLaw.trim() : "Nielsen Heuristics";
+    const observation = typeof i.observation === "string" ? i.observation.trim() : "";
+    const impact = typeof i.impact === "string" ? i.impact.trim() : "";
+    const recommendation = typeof i.recommendation === "string" ? i.recommendation.trim() : "";
+    if (!observation && !recommendation) return null;
+    return { severity, uxLaw, observation, impact, recommendation };
+  };
+
+  const rawIssues = Array.isArray(obj.issues) ? obj.issues.map(normalizeIssue).filter(Boolean) : [];
+  const issues = [...rawIssues].sort(
+    (a, b) => (UX_AUDIT_SEVERITY_ORDER[a.severity] ?? 9) - (UX_AUDIT_SEVERITY_ORDER[b.severity] ?? 9)
+  );
+
+  const pickStrings = (key, minLen = 1) => {
+    if (!Array.isArray(obj[key])) return [];
+    return obj[key].map((s) => (typeof s === "string" ? s.trim() : "")).filter(Boolean).slice(0, minLen > 0 ? 10 : undefined);
+  };
+
+  const strengths = pickStrings("strengths");
+  const prioritization = pickStrings("prioritization").slice(0, 3);
+  const metrics = pickStrings("metrics");
+
+  if (issues.length === 0 && strengths.length === 0) return null;
+
+  return { issues, strengths, prioritization, metrics };
+}
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -619,7 +751,37 @@ export async function runSimulateWithPhasesObservable({
     throw err;
   }
   onPhaseDone?.({ phase: "persona_simulation" });
-  return parsed;
+
+  if (mode !== "ux-audit") return parsed;
+
+  // Phase 2 — UX audit pass
+  const auditCfg = genCfg.audit;
+  const seedC = phaseSeed(baseSeed, 2);
+
+  onPhaseStart?.({ phase: "ux_audit" });
+  onModelCallStart?.({ phase: "ux_audit", model: GEMINI_MODEL });
+  const sysC = buildUxAuditSystemPrompt({ persona, productContext, language: lang });
+  const userC = buildUxAuditUserPrompt({
+    steps: parsed.steps || [],
+    issues: parsed.issues || [],
+    objectiveAnalysis: analysis,
+    language: lang,
+  });
+  const textC = await callGemini(apiKey, {
+    systemInstruction: sysC,
+    userText: userC,
+    generationConfig: {
+      maxOutputTokens: auditCfg.maxOutputTokens,
+      temperature: auditCfg.temperature,
+      seed: seedC,
+    },
+  });
+  onModelCallDone?.({ phase: "ux_audit", model: GEMINI_MODEL });
+
+  const uxAudit = repairUxAuditJSON(textC);
+  onPhaseDone?.({ phase: "ux_audit" });
+
+  return { ...parsed, uxAudit: uxAudit ?? undefined };
 }
 
 export async function fetchUrlContent(url, options = {}) {
