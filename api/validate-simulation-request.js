@@ -69,11 +69,14 @@ export function validateSimulationRequest(body) {
     }
   }
 
+  const VALID_MODES = new Set(["fast", "max", "ux-audit"]);
   if (analysisMode !== undefined) {
-    if (analysisMode !== "fast" && analysisMode !== "max") {
+    if (!VALID_MODES.has(analysisMode)) {
       return { ok: false, error: "Invalid analysisMode" };
     }
   }
+
+  const resolvedMode = analysisMode === "fast" ? "fast" : analysisMode === "ux-audit" ? "ux-audit" : "max";
 
   return {
     ok: true,
@@ -90,7 +93,7 @@ export function validateSimulationRequest(body) {
       flowInput: flowInput.trim(),
       productContext,
       language: typeof language === "string" ? language : "en",
-      analysisMode: analysisMode === "fast" ? "fast" : "max",
+      analysisMode: resolvedMode,
       ...(seed !== undefined ? { seed } : {}),
     },
   };

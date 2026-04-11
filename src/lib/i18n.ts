@@ -139,6 +139,10 @@ export interface Translations {
   metaChipMainHeading: string;
   metaChipKeySections: string;
   metaChipKeywords: string;
+  uxAuditModeLabel: string;
+  uxAuditModeDesc: string;
+  uxAuditTabLabel: string;
+  loadingPhaseAudit: string;
 }
 
 /** Single-language app (English). */
@@ -283,6 +287,10 @@ export const t: Translations = {
   metaChipMainHeading: "Main heading",
   metaChipKeySections: "Key sections",
   metaChipKeywords: "Keywords",
+  uxAuditModeLabel: "UX Audit",
+  uxAuditModeDesc: "Adds a structured audit report with P1/P2/P3 issues anchored to UX laws",
+  uxAuditTabLabel: "UX Audit",
+  loadingPhaseAudit: "Phase: UX audit",
 };
 
 export function pickResultCardLabels(translations: Translations): ResultCardLabels {

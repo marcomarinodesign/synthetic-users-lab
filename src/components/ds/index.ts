@@ -8,4 +8,6 @@ export { ResultFeedbackHero, type ResultFeedbackHeroProps } from "@/components/d
 export { FlowUrlField, type FlowUrlFieldProps } from "@/components/ds/flow-url-field";
 export { ProductContextField, type ProductContextFieldProps } from "@/components/ds/product-context-field";
 
+export { UxAuditReportCard, type UxAuditReportProps } from "@/components/ds/ux-audit-report";
+
 export type { ResultCardLabels, IssueFilterLabels } from "@/types/ds";

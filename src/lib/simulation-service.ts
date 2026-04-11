@@ -24,7 +24,10 @@ export async function prepareInput(
   let content = flowInput;
   if (trimmed.startsWith("http")) {
     try {
-      content = await fetchContent(trimmed);
+      const fetched = await fetchContent(trimmed);
+      // SPAs and bot-protected sites return an empty or near-empty body.
+      // Fall back to the URL itself so Gemini can still infer context from it.
+      content = fetched.trim().length >= 100 ? fetched : flowInput;
     } catch {
       content = flowInput;
     }

@@ -19,7 +19,7 @@ export interface RunSimulationResult {
 
 export function useRunSimulation() {
   const [loading, setLoading] = useState(false);
-  const [loadingPhase, setLoadingPhase] = useState<"fetching" | "analyzing_objective" | "analyzing_persona" | "done">("fetching");
+  const [loadingPhase, setLoadingPhase] = useState<"fetching" | "analyzing_objective" | "analyzing_persona" | "analyzing_audit" | "done">("fetching");
   const [progress, setProgress] = useState({
     current: 0,
     total: 0,
@@ -30,6 +30,7 @@ export function useRunSimulation() {
     phaseDurationsMs: {
       objective_analysis: 0,
       persona_simulation: 0,
+      ux_audit: 0,
     },
   });
 
@@ -50,6 +51,7 @@ export function useRunSimulation() {
         phaseDurationsMs: {
           objective_analysis: 0,
           persona_simulation: 0,
+          ux_audit: 0,
         },
       });
 
@@ -65,7 +67,11 @@ export function useRunSimulation() {
           if (status === "start") {
             starts[phase] = timestamp;
             phaseStartByPersona.set(personaName, starts);
-            setLoadingPhase(phase === "objective_analysis" ? "analyzing_objective" : "analyzing_persona");
+            setLoadingPhase(
+              phase === "objective_analysis" ? "analyzing_objective" :
+              phase === "ux_audit" ? "analyzing_audit" :
+              "analyzing_persona"
+            );
             setProgress((prev) => ({
               ...prev,
               currentPersona: personaName,

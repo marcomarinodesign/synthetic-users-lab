@@ -11,6 +11,9 @@ export type {
   SimulationResponse,
   SimulationResult,
   SourceType,
+  UxAuditIssue,
+  UxAuditReport,
+  UxAuditSeverity,
 } from "@/domain/simulation";
 
 export interface SourceOption {
