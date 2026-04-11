@@ -696,7 +696,12 @@ export default function SyntheticUsersLab() {
                 />
 
                 {/* UX Audit mode toggle */}
-                <label className="flex cursor-pointer items-start gap-3 rounded-[var(--radius-lg)] border border-[var(--color-tertiary-border)] bg-[var(--color-basics-white)] p-4 transition-colors hover:bg-[var(--color-beige-25)]">
+                <label className={[
+                  "flex cursor-pointer items-start gap-3 rounded-[var(--radius-lg)] border p-4 transition-colors",
+                  uxAuditMode
+                    ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5"
+                    : "border-[var(--color-tertiary-border)] bg-[var(--color-basics-white)] hover:bg-[var(--color-beige-25)]",
+                ].join(" ")}>
                   <div className="relative mt-[2px] flex shrink-0 items-center">
                     <input
                       type="checkbox"
@@ -708,10 +713,15 @@ export default function SyntheticUsersLab() {
                     <div className="h-5 w-9 rounded-full border border-[var(--color-tertiary-border)] bg-[var(--color-grey-soft-middle)] transition-colors peer-checked:border-[var(--color-primary)] peer-checked:bg-[var(--color-primary)] peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--color-accent-300)] peer-focus-visible:ring-offset-1" />
                     <div className={`absolute left-[3px] top-[3px] h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${uxAuditMode ? "translate-x-4" : "translate-x-0"}`} />
                   </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[14px] font-semibold text-foreground">
-                      🔬 {t.uxAuditModeLabel}
-                    </span>
+                  <div className="flex flex-1 flex-col gap-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[14px] font-semibold text-foreground">
+                        🔬 {t.uxAuditModeLabel}
+                      </span>
+                      <span className="inline-flex items-center rounded-full bg-[var(--color-primary)] px-2 py-0.5 text-[11px] font-medium text-white">
+                        NEW
+                      </span>
+                    </div>
                     <span className="text-[13px] leading-[1.45] text-foreground/60">
                       {t.uxAuditModeDesc}
                     </span>

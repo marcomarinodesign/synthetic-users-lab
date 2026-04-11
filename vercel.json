@@ -3,8 +3,8 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/simulate.ts": { "maxDuration": 300 },
-    "api/simulate-stream.ts": { "maxDuration": 300 },
+    "api/simulate.ts": { "maxDuration": 60 },
+    "api/simulate-stream.ts": { "maxDuration": 60 },
     "api/fetch-content.ts": { "maxDuration": 15 },
     "api/fetch-url-meta.ts": { "maxDuration": 15 }
   }
